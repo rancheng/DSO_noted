@@ -72,22 +72,35 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	bool print = false;//rand()%50==0;
     // Those variables are initialized for the optmization for the idepth of the immature point
 	float lastEnergy = 0;
+	/*
+	 * ImmaturePoint::linearizeResidual function.
+	 * Hdd += (hw*d_idepth)*d_idepth;
+	 * bd += (hw*residual)*d_idepth;
+	 * here the hw is the width and height production
+	 * idepth is the derivative of inverse depth
+	 * */
 	float lastHdd=0;
 	float lastbd=0;
+	// currentIdepth just normalize with max and min idepth
 	float currentIdepth=(point->idepth_max+point->idepth_min)*0.5f;
 
 
 
 
 
-
+	// loop through each frame in the sliding window
 	for(int i=0;i<nres;i++)
 	{
+	    // aggregate the linearized residual for the point in each frame.
 		lastEnergy += point->linearizeResidual(&Hcalib, 1000, residuals+i,lastHdd, lastbd, currentIdepth);
+		// set the state as outlier
 		residuals[i].state_state = residuals[i].state_NewState;
+		// set the energy as 0
 		residuals[i].state_energy = residuals[i].state_NewEnergy;
+		// by doing this we wipe out the residual state in the temporal residual struct
+		// and kept all the residuals aggregated into lastEnergy
 	}
-
+    // if there's computation error for the energy or
 	if(!std::isfinite(lastEnergy) || lastHdd < setting_minIdepthH_act)
 	{
 		if(print)

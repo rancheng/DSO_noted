@@ -89,6 +89,7 @@ public:
 
 	float idepth_GT;
 
+	// linearize residual calculation to simplify computation.
 	double linearizeResidual(
 			CalibHessian *  HCalib, const float outlierTHSlack,
 			ImmaturePointTemporaryResidual* tmpRes,
