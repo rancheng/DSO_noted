@@ -509,15 +509,25 @@ void FullSystem::traceNewCoarse(FrameHessian* fh)
 
 
 
-
+// this is the function directly optimize the toOptimize points and store the optimized one
+// into optimized.
 void FullSystem::activatePointsMT_Reductor(
 		std::vector<PointHessian*>* optimized,
 		std::vector<ImmaturePoint*>* toOptimize,
 		int min, int max, Vec10* stats, int tid)
 {
+    // create temporal residual for the immature points
+    // this temporal residual takes all the points in to optimize
+    // that means every immature point to be optimized shares the same residual object
+    // framehessians is the sliding window of frames. that explains this temproal residual
+    // is set for each frame. every immature point in that frame share the same residual struct
+    // and this struct describes the residual:
+
 	ImmaturePointTemporaryResidual* tr = new ImmaturePointTemporaryResidual[frameHessians.size()];
 	for(int k=min;k<max;k++)
 	{
+	    // in FullSystemOptPoint.cpp
+	    // optimizeImmaturePoint function
 		(*optimized)[k] = optimizeImmaturePoint((*toOptimize)[k],1,tr);
 	}
 	delete[] tr;
@@ -562,7 +572,7 @@ void FullSystem::activatePointsMT()
 	coarseDistanceMap->makeDistanceMap(frameHessians, newestHs);
 
 	//coarseTracker->debugPlotDistMap("distMap");
-
+    // the immature points to optimize in threads. will be used in threadReduce
 	std::vector<ImmaturePoint*> toOptimize; toOptimize.reserve(20000);
 
 
@@ -624,7 +634,9 @@ void FullSystem::activatePointsMT()
 			{
 
 				float dist = coarseDistanceMap->fwdWarpedIDDistFinal[u+wG[1]*v] + (ptp[0]-floorf((float)(ptp[0])));
-
+				// holy shit, what this my_type is ?????
+				// why can't you find a proper name?????
+				// guessing: my type is a float number
 				if(dist>=currentMinActDist* ph->my_type)
 				{
 					coarseDistanceMap->addIntoDistFinal(u,v);
@@ -646,6 +658,16 @@ void FullSystem::activatePointsMT()
 	std::vector<PointHessian*> optimized; optimized.resize(toOptimize.size());
 
 	if(multiThreading)
+	    // here boost:bind the activatePointsMT_Reductor with "&optimized, &toOptimize"
+	    // and left four arguments: _1, _2, _3, _4 corresponding to
+	    // "int, int, Running*, int" in
+	    // boost::function<void(int,int,Running*,int)> callPerIndex
+	    // and reduce function in threadReduce takes function pointer, first, end and step size as arguments
+	    // inline void reduce(boost::function<void(int,int,Running*,int)> callPerIndex, int first, int end, int stepSize = 0)
+	    // first is:
+	    // end is:
+	    // if stepsize is 0 then depends on first and end and num_threads
+
 		treadReduce.reduce(boost::bind(&FullSystem::activatePointsMT_Reductor, this, &optimized, &toOptimize, _1, _2, _3, _4), 0, toOptimize.size(), 50);
 
 	else

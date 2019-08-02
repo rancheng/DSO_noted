@@ -14,7 +14,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0f0dc611-cbd5-4db1-88f6-e311e5a16f35" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/src/FullSystem/FullSystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FullSystem/FullSystem.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FullSystem/FullSystem.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/FullSystem/FullSystem.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/util/IndexThreadReduce.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/IndexThreadReduce.h" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
@@ -29,35 +29,53 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.400358">
+    <splitter split-orientation="horizontal" split-proportion="0.46002388">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state>
-                  <caret line="102" column="35" selection-start-line="102" selection-start-column="35" selection-end-line="102" selection-end-column="35" />
+                <state relative-caret-position="19">
+                  <caret line="272" column="42" selection-start-line="272" selection-start-column="42" selection-end-line="272" selection-end-column="42" />
+                  <folding>
+                    <element signature="e#964#980#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/PixelSelector2.cpp">
+            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="522">
-                  <caret line="334" lean-forward="true" selection-start-line="334" selection-end-line="334" />
+                <state relative-caret-position="631">
+                  <caret line="530" column="68" selection-start-line="530" selection-start-column="68" selection-end-line="530" selection-end-column="68" />
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.h">
+            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="274">
-                  <caret line="265" column="36" lean-forward="true" selection-start-line="265" selection-start-column="36" selection-end-line="265" selection-end-column="36" />
-                  <folding>
-                    <element signature="e#964#980#0" expanded="true" />
-                  </folding>
+                <state relative-caret-position="615">
+                  <caret line="72" column="95" selection-start-line="72" selection-start-column="95" selection-end-line="72" selection-end-column="95" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/FullSystem/Residuals.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="284">
+                  <caret line="46" column="5" selection-start-line="46" selection-start-column="5" selection-end-line="46" selection-end-column="5" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/FullSystem/ImmaturePoint.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="403">
+                  <caret line="41" column="25" lean-forward="true" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
                 </state>
               </provider>
             </entry>
@@ -66,15 +84,6 @@
       </split-first>
       <split-second>
         <leaf>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1236">
-                  <caret line="1057" column="30" selection-start-line="1057" selection-start-column="30" selection-end-line="1057" selection-end-column="30" />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemMarginalize.cpp">
               <provider selected="true" editor-type-id="text-editor">
@@ -87,10 +96,11 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/util/IndexThreadReduce.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="318">
-                  <caret line="38" column="21" lean-forward="true" selection-start-line="38" selection-start-column="21" selection-end-line="38" selection-end-column="21" />
+                <state relative-caret-position="549">
+                  <caret line="136" column="32" selection-start-line="136" selection-start-column="32" selection-end-line="136" selection-end-column="32" />
                   <folding>
                     <element signature="e#934#960#0" expanded="true" />
+                    <element signature="e#1056#1074#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -123,7 +133,10 @@
       <find>scale</find>
       <find>thread</find>
       <find>boost/thread</find>
+      <find>multiThreading</find>
+      <find>bind</find>
       <find>threadreduce</find>
+      <find>toOptimize</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -133,9 +146,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/FullSystem/PixelSelector2.cpp" />
-        <option value="$PROJECT_DIR$/src/FullSystem/FullSystem.cpp" />
         <option value="$PROJECT_DIR$/src/FullSystem/FullSystem.h" />
         <option value="$PROJECT_DIR$/src/util/IndexThreadReduce.h" />
+        <option value="$PROJECT_DIR$/src/FullSystem/FullSystem.cpp" />
+        <option value="$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp" />
       </list>
     </option>
   </component>
@@ -235,12 +249,12 @@
       <workItem from="1560175131726" duration="4315000" />
       <workItem from="1564685900487" duration="614000" />
       <workItem from="1564695524049" duration="1748000" />
-      <workItem from="1564752688723" duration="4963000" />
+      <workItem from="1564752688723" duration="7229000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11640000" />
+    <option name="totallyTimeSpent" value="13906000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1920" height="1056" extended-state="6" />
@@ -310,13 +324,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemMarginalize.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="284">
-          <caret line="57" column="23" selection-start-line="57" selection-start-column="23" selection-end-line="57" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/include/boost/thread/pthread/condition_variable_fwd.hpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="139">
@@ -324,13 +331,6 @@
           <folding>
             <element signature="e#839#880#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/PixelSelector2.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="522">
-          <caret line="334" lean-forward="true" selection-start-line="334" selection-end-line="334" />
         </state>
       </provider>
     </entry>
@@ -344,37 +344,97 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/util/NumType.h">
+    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemMarginalize.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="41" column="8" selection-start-line="41" selection-start-column="8" selection-end-line="41" selection-end-column="8" />
+        <state relative-caret-position="284">
+          <caret line="57" column="23" selection-start-line="57" selection-start-column="23" selection-end-line="57" selection-end-column="23" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.cpp">
+    <entry file="file:///usr/include/boost/function/function_fwd.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1236">
-          <caret line="1057" column="30" selection-start-line="1057" selection-start-column="30" selection-end-line="1057" selection-end-column="30" />
+        <state relative-caret-position="292">
+          <caret line="31" column="37" selection-start-line="31" selection-start-column="37" selection-end-line="31" selection-end-column="37" />
+          <folding>
+            <element signature="e#1091#1111#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/7/bits/stl_bvector.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="292">
+          <caret line="889" column="4" selection-start-line="889" selection-start-column="4" selection-end-line="889" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/util/NumType.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="292">
+          <caret line="85" selection-start-line="85" selection-end-line="85" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FullSystem/PixelSelector2.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="522">
+          <caret line="334" lean-forward="true" selection-start-line="334" selection-end-line="334" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/7/bits/stl_vector.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="292">
+          <caret line="258" column="6" selection-start-line="258" selection-start-column="6" selection-end-line="258" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/util/IndexThreadReduce.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="549">
+          <caret line="136" column="32" selection-start-line="136" selection-start-column="32" selection-end-line="136" selection-end-column="32" />
+          <folding>
+            <element signature="e#934#960#0" expanded="true" />
+            <element signature="e#1056#1074#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="274">
-          <caret line="265" column="36" lean-forward="true" selection-start-line="265" selection-start-column="36" selection-end-line="265" selection-end-column="36" />
+        <state relative-caret-position="19">
+          <caret line="272" column="42" selection-start-line="272" selection-start-column="42" selection-end-line="272" selection-end-column="42" />
           <folding>
             <element signature="e#964#980#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/util/IndexThreadReduce.h">
+    <entry file="file://$PROJECT_DIR$/src/FullSystem/Residuals.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="318">
-          <caret line="38" column="21" lean-forward="true" selection-start-line="38" selection-start-column="21" selection-end-line="38" selection-end-column="21" />
-          <folding>
-            <element signature="e#934#960#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="284">
+          <caret line="46" column="5" selection-start-line="46" selection-start-column="5" selection-end-line="46" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FullSystem/ImmaturePoint.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="403">
+          <caret line="41" column="25" lean-forward="true" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="631">
+          <caret line="530" column="68" selection-start-line="530" selection-start-column="68" selection-end-line="530" selection-end-column="68" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="615">
+          <caret line="72" column="95" selection-start-line="72" selection-start-column="95" selection-end-line="72" selection-end-column="95" />
         </state>
       </provider>
     </entry>

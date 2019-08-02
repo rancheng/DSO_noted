@@ -52,6 +52,8 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 		ImmaturePoint* point, int minObs,
 		ImmaturePointTemporaryResidual* residuals)
 {
+    // this loops through each frame in the sliding window and
+    // set up the point residual states
 	int nres = 0;
 	for(FrameHessian* fh : frameHessians)
 	{
@@ -64,10 +66,11 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 			nres++;
 		}
 	}
+	// see if this loops through all frames without expections
 	assert(nres == ((int)frameHessians.size())-1);
-
+    // print? and print used to be 50 prob? they must be a logging beast
 	bool print = false;//rand()%50==0;
-
+    // Those variables are initialized for the optmization for the idepth of the immature point
 	float lastEnergy = 0;
 	float lastHdd=0;
 	float lastbd=0;

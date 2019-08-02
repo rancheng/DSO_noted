@@ -36,6 +36,7 @@ namespace dso
 // was invoked in fullsystem:
 // IndexThreadReduce<Vec10> treadReduce;
 // typename "Running" here is a container?
+// typedef Eigen::Matrix<double,10,1> Vec10 -> inside NumType.h
 template<typename Running>
 class IndexThreadReduce
 {
@@ -88,7 +89,7 @@ public:
     // use reduce function to multi threads a given task
 	inline void reduce(boost::function<void(int,int,Running*,int)> callPerIndex, int first, int end, int stepSize = 0)
 	{
-
+        // initialize the stats as all 0 -> vec10 is intialized as 0
 		memset(&stats, 0, sizeof(Running));
 
 //		if(!multiThreading)
@@ -149,7 +150,7 @@ public:
 
 		//printf("reduce done (all threads finished)\n");
 	}
-
+    // status is the instance of, say, vec10.
 	Running stats;
 
 private:
@@ -167,6 +168,9 @@ private:
 
 	bool running;
 
+	// boost::function is a function pointer that point to certain pattern:
+	// the parameter and return types are specified like this:
+	// <void(int,int,Running*,int)> -> return void, take three int and one Running* arguments
 	boost::function<void(int,int,Running*,int)> callPerIndex;
 
 	void callPerIndexDefault(int i, int j,Running* k, int tid)
