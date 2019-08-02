@@ -269,6 +269,7 @@ private:
 	PixelSelector* pixelSelector;
 	CoarseDistanceMap* coarseDistanceMap;
 
+	// this frameHessians vector is a sliding window?
 	std::vector<FrameHessian*> frameHessians;	// ONLY changed in marginalizeFrame and addFrame.
 	std::vector<PointFrameResidual*> activeResiduals;
 	float currentMinActDist;

@@ -33,22 +33,35 @@
 
 namespace dso
 {
-
+// was invoked in fullsystem:
+// IndexThreadReduce<Vec10> treadReduce;
+// typename "Running" here is a container?
 template<typename Running>
 class IndexThreadReduce
 {
 
 public:
+    /*
+     * https://github.com/stack-of-tasks/pinocchio/issues/165
+     * To be able to instantiate a model and data using the new operator one should add
+     * EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+     * as a public macro in the classes.
+     * This is needed feature if you want to have pointers own and initialized in a single class.
+     * */
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-
+    // constructor
 	inline IndexThreadReduce()
 	{
+	    // nextIndex and maxIndex was used in workerLoop
+	    // workerLoop seems like a working thread
 		nextIndex = 0;
 		maxIndex = 0;
 		stepSize = 1;
+		// this literally did nothing >>>.....
 		callPerIndex = boost::bind(&IndexThreadReduce::callPerIndexDefault, this, _1, _2, _3, _4);
 
 		running = true;
+		// num_threads was set to 6, they initialize those 6 worker threads.
 		for(int i=0;i<NUM_THREADS;i++)
 		{
 			isDone[i] = false;
@@ -72,7 +85,7 @@ public:
 		printf("destroyed ThreadReduce\n");
 
 	}
-
+    // use reduce function to multi threads a given task
 	inline void reduce(boost::function<void(int,int,Running*,int)> callPerIndex, int first, int end, int stepSize = 0)
 	{
 
@@ -93,7 +106,8 @@ public:
 		//printf("reduce called\n");
 
 		boost::unique_lock<boost::mutex> lock(exMutex);
-
+        // this is the reason why they will call eigen memory align macro at first
+        // they want to save the pointer owned in the class
 		// save
 		this->callPerIndex = callPerIndex;
 		nextIndex = first;

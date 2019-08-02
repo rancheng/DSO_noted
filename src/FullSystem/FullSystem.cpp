@@ -68,6 +68,7 @@ FullSystem::FullSystem()
 {
 
 	int retstat =0;
+	// log, no need to explain
 	if(setting_logStuff)
 	{
 
@@ -129,10 +130,12 @@ FullSystem::FullSystem()
 	assert(retstat!=293847);
 
 
-
+    //initialize the pixel selector map, which is just the image itself
 	selectionMap = new float[wG[0]*hG[0]];
-
+    // coarse distance map is used to store reprojection points, TODO: need to verify
 	coarseDistanceMap = new CoarseDistanceMap(wG[0], hG[0]);
+	// initialize the coarse tracker template, coarse tracker is used on initialize and re-localizing
+	// mainly used as "coarseTracker->trackNewestCoarse"
 	coarseTracker = new CoarseTracker(wG[0], hG[0]);
 	coarseTracker_forNewKF = new CoarseTracker(wG[0], hG[0]);
 	coarseInitializer = new CoarseInitializer(wG[0], hG[0]);
