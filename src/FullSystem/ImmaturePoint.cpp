@@ -493,9 +493,14 @@ double ImmaturePoint::linearizeResidual(
 	//const float * const Il = tmpRes->target->I;
 
 	Vec2f affLL = precalc->PRE_aff_mode;
-
+    // loop first 8 patterns
 	for(int idx=0;idx<patternNum;idx++)
 	{
+	    // patternP use the static pattern.
+	    // staticPattern[10][40][2] this has 10 different patterns
+	    // so idx is 0-8 different pattern, the rest indice should be
+	    // the pattern content, right?
+	    // staticPatter[0][0] will be the 2
 		int dx = patternP[idx][0];
 		int dy = patternP[idx][1];
 
@@ -512,8 +517,12 @@ double ImmaturePoint::linearizeResidual(
 
 		if(!std::isfinite((float)hitColor[0])) {tmpRes->state_NewState = ResState::OOB; return tmpRes->state_energy;}
 		float residual = hitColor[0] - (affLL[0] * color[idx] + affLL[1]);
-
+        // here hw is huber weights
+        // if residual is less than setting_huberTH got 1
+        // otherwise, will be inverse propotional to residual
+        // fabsf is float absolute function.
 		float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual);
+
 		energyLeft += weights[idx]*weights[idx]*hw *residual*residual*(2-hw);
 
 		// depth derivatives.
@@ -537,7 +546,7 @@ double ImmaturePoint::linearizeResidual(
 	{
 		tmpRes->state_NewState = ResState::IN;
 	}
-
+    // assign the energy left to the temporal residual object.
 	tmpRes->state_NewEnergy = energyLeft;
 	return energyLeft;
 }

@@ -92,8 +92,11 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	for(int i=0;i<nres;i++)
 	{
 	    // aggregate the linearized residual for the point in each frame.
+	    // residuals is the pointer to the temporal residual, so residuals+i point to ith frame's residual
+	    // here 1000 is the outlier threshold, if the energy is larger than that, considered as outlier.
 		lastEnergy += point->linearizeResidual(&Hcalib, 1000, residuals+i,lastHdd, lastbd, currentIdepth);
-		// set the state as outlier
+		// set the state as outlier if exceed the energy threshold
+		// otherwise, will still be ResState::IN.
 		residuals[i].state_state = residuals[i].state_NewState;
 		// set the energy as 0
 		residuals[i].state_energy = residuals[i].state_NewEnergy;

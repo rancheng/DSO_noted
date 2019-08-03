@@ -231,7 +231,18 @@ void handleKey(char k)
 
 
 
+/*
+ * Our experiments have shown that, 8 pixels, arranged in a slightly spread pattern
+ * give a good trade-off between computations required for evaluation,
+ * robustness to motion blur, and providing sufficient information
+ * ------------------------------------------------------------------
+ * Note that in terms of the contained information, evaluating the
+ * SSD over such a small neighborhood of pixels is similar to adding
+ * first- and second-order irradiance derivative constancy terms
+ *  (in addition to irradiance constancy) for the central pixel.
+ * */
 
+// TODO problem: why this pattern is 10 by 40 by 2 ??????
 int staticPattern[10][40][2] = {
 		{{0,0}, 	  {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100},	// .
 		 {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100}, {-100,-100},
@@ -284,6 +295,9 @@ int staticPattern[10][40][2] = {
 		 {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}, {-200,-200}},
 };
 
+// I know that they usually use staticPatternNum[8]
+// which is 8
+// and what this 8 refer to?
 int staticPatternNum[10] = {
 		1,
 		5,
