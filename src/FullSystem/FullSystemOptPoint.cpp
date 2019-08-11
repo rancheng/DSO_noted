@@ -47,7 +47,7 @@ namespace dso
 {
 
 
-
+// TODO: find out what to optimize in the immature point?
 PointHessian* FullSystem::optimizeImmaturePoint(
 		ImmaturePoint* point, int minObs,
 		ImmaturePointTemporaryResidual* residuals)
@@ -59,7 +59,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	{
 		if(fh != point->host)
 		{
-			residuals[nres].state_NewEnergy = residuals[nres].state_energy = 0;
+			residuals[nres].state_NewEnergy = resi,duals[nres].state_energy = 0;
 			residuals[nres].state_NewState = ResState::OUTLIER;
 			residuals[nres].state_state = ResState::IN;
 			residuals[nres].target = fh;
@@ -103,7 +103,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 		// by doing this we wipe out the residual state in the temporal residual struct
 		// and kept all the residuals aggregated into lastEnergy
 	}
-    // if there's computation error for the energy or
+    // if there's computation error for the energy or last
 	if(!std::isfinite(lastEnergy) || lastHdd < setting_minIdepthH_act)
 	{
 		if(print)

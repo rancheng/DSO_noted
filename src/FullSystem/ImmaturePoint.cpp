@@ -34,7 +34,7 @@ ImmaturePoint::ImmaturePoint(int u_, int v_, FrameHessian* host_, float type, Ca
 {
 
 	gradH.setZero();
-
+    // loop through different pattern to initialize the immature point
 	for(int idx=0;idx<patternNum;idx++)
 	{
 		int dx = patternP[idx][0];
@@ -479,6 +479,9 @@ double ImmaturePoint::linearizeResidual(
 		float &Hdd, float &bd,
 		float idepth)
 {
+    //what is Hdd?
+    // what is bd?
+    //
 	if(tmpRes->state_state == ResState::OOB)
 		{ tmpRes->state_NewState = ResState::OOB; return tmpRes->state_energy; }
 
