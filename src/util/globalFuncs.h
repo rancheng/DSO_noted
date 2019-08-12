@@ -165,10 +165,12 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement13BiLin(const float* c
 
 EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33BiLin(const Eigen::Vector3f* const mat, const float x, const float y, const int width)
 {
-	int ix = (int)x;
-	int iy = (int)y;
+    // here mat is dI, which is the trace for fine tracking.
+	int ix = (int)x; // x is the dx in static pattern 8
+	int iy = (int)y; // y is the dy in static pattern 8
+	// bp is the point in the offset position.
 	const Eigen::Vector3f* bp = mat +ix+iy*width;
-
+    // bp is still a vector3f store [x, y, z]
 	float tl = (*(bp))[0];
 	float tr = (*(bp+1))[0];
 	float bl = (*(bp+width))[0];

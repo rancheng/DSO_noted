@@ -37,6 +37,9 @@ ImmaturePoint::ImmaturePoint(int u_, int v_, FrameHessian* host_, float type, Ca
     // loop through different pattern to initialize the immature point
 	for(int idx=0;idx<patternNum;idx++)
 	{
+	    // patternP is staticPattern[8] in paper
+	    // this loops for {0,-2},	  {-1,-1},	   {1,-1},		{-2,0},		 {0,0},		  {2,0},	   {-1,1},		{0,2}
+	    // which is the eight points.
 		int dx = patternP[idx][0];
 		int dy = patternP[idx][1];
 
@@ -54,7 +57,7 @@ ImmaturePoint::ImmaturePoint(int u_, int v_, FrameHessian* host_, float type, Ca
 	}
 
 	energyTH = patternNum*setting_outlierTH;
-	energyTH *= setting_overallEnergyTHWeight*setting_overallEnergyTHWeight;
+	energyTH *= setting_overallEnergyTHWeight * setting_overallEnergyTHWeight;
 
 	idepth_GT=0;
 	quality=10000;

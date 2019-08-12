@@ -131,7 +131,7 @@ struct FrameHessian
 
 	// Photometric Calibration Stuff
 	float frameEnergyTH;	// set dynamically depending on tracking residual
-	float ab_exposure;
+	float ab_exposure;  // affine model for exposure. important in the photometric error. a and b are two parameters to estimate.
 
 	bool flaggedForMarginalization;
 
@@ -140,8 +140,8 @@ struct FrameHessian
 	std::vector<PointHessian*> pointHessiansOut;		// contains all OUTLIER points (= discarded.).
 	std::vector<ImmaturePoint*> immaturePoints;		// contains all OUTLIER points (= discarded.).
 
-
-	Mat66 nullspaces_pose;
+    // Nullity is the complement to the rank of a matrix
+	Mat66 nullspaces_pose; // nullspace is: assume h(v) = A*v that A*v = 0. null-space is equivalently the set of solutions to the homogeneous equation A*v=0
 	Mat42 nullspaces_affine;
 	Vec6 nullspaces_scale;
 

@@ -127,9 +127,11 @@ void FrameHessian::release()
 
 void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 {
-
+    // loop all scale space to copy the
 	for(int i=0;i<pyrLevelsUsed;i++)
 	{
+	    // this dIp allocate a new image for different scale.
+	    // don't know yet why it's vector3f. maybe x, y, inverse depth.
 		dIp[i] = new Eigen::Vector3f[wG[i]*hG[i]];
 		absSquaredGrad[i] = new float[wG[i]*hG[i]];
 	}

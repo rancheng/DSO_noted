@@ -298,6 +298,18 @@ int staticPattern[10][40][2] = {
 // I know that they usually use staticPatternNum[8]
 // which is 8
 // and what this 8 refer to?
+// oh, they have definition behind.
+// " 8 for SSE efficiency "
+// static pattern is the pattern on the paper:
+//          *
+//       *
+//    *     *     *
+//       *     *
+//          *
+// the pattern above have 8 different candidates.
+// what I can't understand is why they will interpolate {-100, -100} ?
+
+// I think they just made this for mapping different pattern id for simplicity.
 int staticPatternNum[10] = {
 		1,
 		5,
@@ -310,7 +322,7 @@ int staticPatternNum[10] = {
 		8,
 		25
 };
-
+// obervious padding for patterns.
 int staticPatternPadding[10] = {
 		1,
 		1,
