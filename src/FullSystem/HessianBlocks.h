@@ -298,7 +298,7 @@ struct FrameHessian
 
 struct CalibHessian
 {
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW; // memory align
 	static int instanceCounter;
 
 	VecC value_zero;
@@ -316,6 +316,8 @@ struct CalibHessian
 	{
 
 		VecC initial_value = VecC::Zero();
+		// fxG, fyG and cxG, cyG is read from globalCalib, which is read by the calib.txt file.
+		// initial_value is the calibration file for the original image scale.
 		initial_value[0] = fxG[0];
 		initial_value[1] = fyG[0];
 		initial_value[2] = cxG[0];
@@ -345,7 +347,7 @@ struct CalibHessian
 
 	inline void setValue(const VecC &value)
 	{
-		// [0-3: Kl, 4-7: Kr, 8-12: l2r]
+		// [0-3: Kl, 4-7: Kr, 8-12: l2r] -> this code means they are meant to develop stereo system.
 		this->value = value;
 		value_scaled[0] = SCALE_F * value[0];
 		value_scaled[1] = SCALE_F * value[1];

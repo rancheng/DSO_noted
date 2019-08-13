@@ -134,6 +134,10 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 	    // don't know yet why it's vector3f. maybe x, y, inverse depth.
 	    // dI should be the graident of Image, but p, don't really konw. maybe projection?
 	    // maybe d here is the depth, will figure out later on...
+	    // !!!!! dI_l[idx][1] = dx;
+        // !!!!! dI_l[idx][2] = dy;
+        // now I understand that dx and dy are stored in the 2nd and 3rd channel.
+        // and d here means gradient.
 		dIp[i] = new Eigen::Vector3f[wG[i]*hG[i]];
 		// abs squared gradient is storing all those absolute value of squared gradient of the image.
 		// allocated the same size as dIp, but it's a float matrix, just one dimensional.
@@ -192,22 +196,28 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 												dI_lm[2*x+1 + 2*y*wlm1+wlm1][0]);
 				}
 		}
-
+        // this is still in the scale space for loop
+        // loop the image in current scale, just created by the for loop above.
 		for(int idx=wl;idx < wl*(hl-1);idx++)
 		{
+		    // horizental gradient of the image
 			float dx = 0.5f*(dI_l[idx+1][0] - dI_l[idx-1][0]);
+			// vertical gradient of the image
 			float dy = 0.5f*(dI_l[idx+wl][0] - dI_l[idx-wl][0]);
 
-
+            // set all those illegal values to 0
 			if(!std::isfinite(dx)) dx=0;
 			if(!std::isfinite(dy)) dy=0;
-
+            // so this dI_l Vector3f 2nd and 3rd channel is used here!!!!!
+            // to store dx and dy.
 			dI_l[idx][1] = dx;
 			dI_l[idx][2] = dy;
 
-
+            // dabs_l update the absgradient by the squared sum of gradient.
+            // note that dabs_l is a pointer to a float image.
 			dabs_l[idx] = dx*dx+dy*dy;
-
+            // if use original intensity for pixel selection, and calibration hessian created.
+            // to be honest, I still don't know why they are using hessian so often, will report here later.
 			if(setting_gammaWeightsPixelSelect==1 && HCalib!=0)
 			{
 				float gw = HCalib->getBGradOnly((float)(dI_l[idx][0]));
