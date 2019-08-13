@@ -132,35 +132,60 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 	{
 	    // this dIp allocate a new image for different scale.
 	    // don't know yet why it's vector3f. maybe x, y, inverse depth.
+	    // dI should be the graident of Image, but p, don't really konw. maybe projection?
+	    // maybe d here is the depth, will figure out later on...
 		dIp[i] = new Eigen::Vector3f[wG[i]*hG[i]];
+		// abs squared gradient is storing all those absolute value of squared gradient of the image.
+		// allocated the same size as dIp, but it's a float matrix, just one dimensional.
 		absSquaredGrad[i] = new float[wG[i]*hG[i]];
 	}
+	// dI is the image on the largest scale.
 	dI = dIp[0];
 
 
 	// make d0
+	// the largest scale of width and height
 	int w=wG[0];
 	int h=hG[0];
+	// here assign the color image inside dI. this color only takes one dimension, grey scale?
+    // note that dI is wG*hG*3. this dI[i][0] only assigned color to the first dimension.
 	for(int i=0;i<w*h;i++)
 		dI[i][0] = color[i];
 
+    // this loop create the scale space by average pooling.
 	for(int lvl=0; lvl<pyrLevelsUsed; lvl++)
 	{
+	    // here take different scales
 		int wl = wG[lvl], hl = hG[lvl];
+		// init the dI for each scale space. Since dIp has already initialized by new Vector3f...
+		// here just point back to the original dIp.
 		Eigen::Vector3f* dI_l = dIp[lvl];
-
+        // pointer to the abs gradient layer.
 		float* dabs_l = absSquaredGrad[lvl];
+		// for the down-sampled images...
 		if(lvl>0)
 		{
+		    // note that this is in the for loop that loop through all the scales.
+		    // this lvlm1 is one layer above, which is larger image in the scale pyramid.
 			int lvlm1 = lvl-1;
+			// why they just take the wlm1 no hlm1?
 			int wlm1 = wG[lvlm1];
+			// dI_lm is obvious the larger image point to dIp, but why they are using Vector3f*
+			// there's just one channel.
 			Eigen::Vector3f* dI_lm = dIp[lvlm1];
 
 
-
+            // oh, I see, this step is just for the down-sampling.
+            // compress bottom layer's high quality to the higher layers, which has smaller scale.
 			for(int y=0;y<hl;y++)
 				for(int x=0;x<wl;x++)
 				{
+				    // for each point in the down sample layer
+				    // why they choose 2*x, it's because their scale is power of 2 which implemented by
+				    // bit-shift. 8>>1 = 4 ... something like that.
+				    // now, I finally know that why they don't use the hlm1. because it's not necessary,
+				    // they just average out the nearby 4 pixels on the upper bigger image into one
+				    // this is literally equivilent to an average pooling with kernel of 2x2.
 					dI_l[x + y*wl][0] = 0.25f * (dI_lm[2*x   + 2*y*wlm1][0] +
 												dI_lm[2*x+1 + 2*y*wlm1][0] +
 												dI_lm[2*x   + 2*y*wlm1+wlm1][0] +

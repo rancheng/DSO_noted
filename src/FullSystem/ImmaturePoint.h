@@ -63,7 +63,7 @@ public:
 
 
 
-
+	// gradient of Hessian? what is H?
 	Mat22f gradH;
 	Vec2f gradH_ev;
 	Mat22f gradH_eig;

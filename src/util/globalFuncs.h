@@ -171,9 +171,13 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33BiLin(const Eigen::V
 	// bp is the point in the offset position.
 	const Eigen::Vector3f* bp = mat +ix+iy*width;
     // bp is still a vector3f store [x, y, z]
+    // tl is x,y
 	float tl = (*(bp))[0];
+	// tr is x+1, y
 	float tr = (*(bp+1))[0];
+	// bl is x, y+1
 	float bl = (*(bp+width))[0];
+	// lr is x+1, y+1
 	float br = (*(bp+width+1))[0];
 
 	float dx = x - ix;
