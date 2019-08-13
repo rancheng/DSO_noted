@@ -124,7 +124,9 @@ void FrameHessian::release()
 	immaturePoints.clear();
 }
 
-
+// this function make all images in different scale space
+// three channels: image color, dx, dy
+// and the gradient of image according to gamma response and down sampling local region.
 void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 {
     // loop all scale space to copy the
