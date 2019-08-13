@@ -328,8 +328,10 @@ struct CalibHessian
 		value_minus_value_zero.setZero();
 
 		instanceCounter++;
-		for(int i=0;i<256;i++)
-			Binv[i] = B[i] = i;		// set gamma function to identity
+		for(int i=0;i<256;i++){
+            // Binv and B is [0...255]
+            Binv[i] = B[i] = i;		// set gamma function to identity
+		}
 	};
 
 
@@ -382,12 +384,14 @@ struct CalibHessian
 	float Binv[256];
 	float B[256];
 
-
-	EIGEN_STRONG_INLINE float getBGradOnly(float color)
+    // this function get the color of
+	EIGEN_STRONG_INLINE float getBGradOnly(float color) // EIGEN_STRONG_INLINE here is to tell compiler not optimize this inline code out.
 	{
-		int c = color+0.5f;
+		int c = color+0.5f; // this is tricky, when the color is 5.5 then int(c+0.5) is 6 and c+1 is 7, yet int(c) is still 5
 		if(c<5) c=5;
 		if(c>250) c=250;
+		// B is a function of int, which is [0..255]
+		// so B[c+1] - B[c] is gradient of B... the gamma function... which is 1. if c is [5 ... 250], and 0 if c outside.
 		return B[c+1]-B[c];
 	}
 

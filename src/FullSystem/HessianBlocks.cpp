@@ -215,12 +215,22 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 
             // dabs_l update the absgradient by the squared sum of gradient.
             // note that dabs_l is a pointer to a float image.
+            // this is a non-linear gamma function of the gradient.
 			dabs_l[idx] = dx*dx+dy*dy;
             // if use original intensity for pixel selection, and calibration hessian created.
             // to be honest, I still don't know why they are using hessian so often, will report here later.
 			if(setting_gammaWeightsPixelSelect==1 && HCalib!=0)
 			{
+			    // setting_gammaWeightsPixelSelect can choose 0 which is use their defined weighted intensity choose
+			    // if you know the gamma function you can try to set it to 1.
+			    // -------------------------------------------------------------
+			    // here getBGradOnly get the gradient of gamma function, which is 1 if dI_l[idx][0] is in [5..250] and decimal part is less than 0.5
+			    // and 2 if dI_l[idx][0] decimal part is larger than 0.5, here dI_l[idx] is the pixel location, [0] is to index to grey color channel.
 				float gw = HCalib->getBGradOnly((float)(dI_l[idx][0]));
+				// this makes gradient more sensitive to the decimal part of the color. but how can a color be some digit with .5 as decimal?
+				// this doesn't make sense. all the image colors are suppose to be integers.
+				// OH!!!! I know, when downsampling, it will create .5 part of the pixels! great job, this emphasize
+				// the down-sampled part, which is rich in color pattern nearby 4 pixels....
 				dabs_l[idx] *= gw*gw;	// convert to gradient of original color space (before removing response).
 			}
 		}
