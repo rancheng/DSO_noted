@@ -479,9 +479,14 @@ namespace dso {
                                             // dir2 is the random direction sampled by n2...
                                             // that means n2 will change if dir2 is not perpendicular to ag0d.
                                             // which means they are finding all the non-rthonormal basis...
+                                            // and eventually converge to the minimal angle and until they are
+                                            // in the same direction...
                                             float dirNorm = fabsf((float) (ag0d.dot(dir2)));
                                             if (!setting_selectDirectionDistribution) dirNorm = ag0;
                                             // bestIdx2,3,4 are used to update the n2 n3 and n4
+                                            // if it's not orthogonal, then update bestVal2...
+                                            // and if it's less angle, the higher the dirNorm
+                                            // this step is to align the direction to gradient angle...
                                             if (dirNorm > bestVal2) {
                                                 bestVal2 = dirNorm;
                                                 bestIdx2 = idx;
@@ -489,8 +494,16 @@ namespace dso {
                                                 bestIdx4 = -2;
                                             }
                                         }
+                                        // this continue will jump the loop
+                                        // because they found the best alignment on this loop,
+                                        // move to another x1...
                                         if (bestIdx3 == -2) continue;
-
+                                        // same as above, this is for the second scale space. which
+                                        // is w/2, h/2 size gradient image.
+                                        // again, will find the most aligned direction along image gradient.
+                                        // here why on mapmax1 they shrink size of x and y
+                                        // because mapmax1 itself is the smaller sized map. width height is w/2 h/2
+                                        // + 0.25 is to compensate for what? still unknown, will investigate later...
                                         float ag1 = mapmax1[(int) (xf * 0.5f + 0.25f) + (int) (yf * 0.5f + 0.25f) * w1];
                                         if (ag1 > pixelTH1 * thFactor) {
                                             Vec2f ag0d = map0[idx].tail<2>();
