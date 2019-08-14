@@ -28,7 +28,7 @@
 #include "FullSystem/ResidualProjections.h"
 
 namespace dso {
-    // initialize
+    // initialize immature points.
     ImmaturePoint::ImmaturePoint(int u_, int v_, FrameHessian *host_, float type, CalibHessian *HCalib)
             : u(u_), v(v_), host(host_), my_type(type), idepth_min(0), idepth_max(NAN),
               lastTraceStatus(IPS_UNINITIALIZED) {
@@ -41,7 +41,7 @@ namespace dso {
             // which is the eight points.
             int dx = patternP[idx][0];
             int dy = patternP[idx][1];
-
+            // dI is the image on the largest scale
             Vec3f ptc = getInterpolatedElement33BiLin(host->dI, u + dx, v + dy, wG[0]);
 
 
