@@ -496,20 +496,26 @@ namespace dso {
             float drescale, u, v, new_idepth;
             float Ku, Kv;
             Vec3f KliP;
-
+            // this step project the immature point to the new frame.
+            // if projection fails, set the state as out of boundary
+            // else, go get the hitColor and calculate residual of that point.
             if (!projectPoint(this->u, this->v, idepth, dx, dy, HCalib,
                               PRE_RTll, PRE_tTll, drescale, u, v, Ku, Kv, KliP, new_idepth)) {
                 tmpRes->state_NewState = ResState::OOB;
                 return tmpRes->state_energy;
             }
-
-
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // ########################## Core of Paper ####################
+            // normalized color and gradient channel at Ku and Kv.
+            // Ku and Kv are the reprojected point.
             Vec3f hitColor = (getInterpolatedElement33(dIl, Ku, Kv, wG[0]));
 
             if (!std::isfinite((float) hitColor[0])) {
                 tmpRes->state_NewState = ResState::OOB;
                 return tmpRes->state_energy;
             }
+            // residual is propotional to the color and linearly affined by affine model.
+            // affLL is affine left to left. I think here affLL[0] is a and affLL[1] is b.
             float residual = hitColor[0] - (affLL[0] * color[idx] + affLL[1]);
             // here hw is huber weights
             // if residual is less than setting_huberTH got 1

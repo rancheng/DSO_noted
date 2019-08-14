@@ -72,20 +72,27 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement43(const Eigen::Vector
 			+ (1-dx-dy+dxdy) * *(const Eigen::Vector3f*)(bp);
 }
 
+// get the normalized 3 channel (normalized from the decimal part of x and y)
 EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33(const Eigen::Vector3f* const mat, const float x, const float y, const int width)
 {
 	int ix = (int)x;
 	int iy = (int)y;
-	float dx = x - ix;
+	float dx = x - ix; // x and y are float, so dx dy are the float part
 	float dy = y - iy;
-	float dxdy = dx*dy;
-	const Eigen::Vector3f* bp = mat +ix+iy*width;
+	float dxdy = dx*dy; // what is this for? why multiply dx and dy?
+	const Eigen::Vector3f* bp = mat +ix+iy*width; // this is the pointer point to the 3 channels in [ix, iy] location in dI or other scales.
 
-
-	return dxdy * *(const Eigen::Vector3f*)(bp+1+width)
-	        + (dy-dxdy) * *(const Eigen::Vector3f*)(bp+width)
-	        + (dx-dxdy) * *(const Eigen::Vector3f*)(bp+1)
-			+ (1-dx-dy+dxdy) * *(const Eigen::Vector3f*)(bp);
+    /**
+     *      x x  -> 1-dx-dy+dx*dy dx-dx*dy
+     *      x x  ->     dy-dx*dy    dx*dy
+     *
+     *      This means that the original channels will get some part of the right and below
+     *      information as normalization. This could be regard as linear interpolation.
+     */
+	return dxdy * *(const Eigen::Vector3f*)(bp+1+width) // point on one point right one row below
+	        + (dy-dxdy) * *(const Eigen::Vector3f*)(bp+width) // point on the row below
+	        + (dx-dxdy) * *(const Eigen::Vector3f*)(bp+1) // point on the right
+			+ (1-dx-dy+dxdy) * *(const Eigen::Vector3f*)(bp); // original point.
 }
 
 EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33OverAnd(const Eigen::Vector3f* const mat, const bool* overMat, const float x, const float y, const int width, bool& over_out)
