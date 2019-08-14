@@ -59,7 +59,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	{
 		if(fh != point->host)
 		{
-			residuals[nres].state_NewEnergy = resi,duals[nres].state_energy = 0;
+			residuals[nres].state_NewEnergy = residuals[nres].state_energy = 0;
 			residuals[nres].state_NewState = ResState::OUTLIER;
 			residuals[nres].state_state = ResState::IN;
 			residuals[nres].target = fh;

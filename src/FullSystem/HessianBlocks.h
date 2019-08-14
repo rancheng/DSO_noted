@@ -76,14 +76,14 @@ class EFPoint;
 
 struct FrameFramePrecalc
 {
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW; // align memory.
 	// static values
 	static int instanceCounter;
 	FrameHessian* host;	// defines row
 	FrameHessian* target;	// defines column
 
 	// precalc values
-	Mat33f PRE_RTll;
+	Mat33f PRE_RTll; // pre-calculated Rotation and Translation matrix, ll here means left to left.
 	Mat33f PRE_KRKiTll;
 	Mat33f PRE_RKiTll;
 	Mat33f PRE_RTll_0;

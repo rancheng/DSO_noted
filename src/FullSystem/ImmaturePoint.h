@@ -57,8 +57,8 @@ class ImmaturePoint
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	// static values
-	float color[MAX_RES_PER_POINT];
-	float weights[MAX_RES_PER_POINT];
+	float color[MAX_RES_PER_POINT]; // MAX_RES_PER_POINT is 8 here, why it's a 8 size float array?
+	float weights[MAX_RES_PER_POINT]; // again float array with length 8
 
 
 

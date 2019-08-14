@@ -249,7 +249,7 @@ void FrameFramePrecalc::set(FrameHessian* host, FrameHessian* target, CalibHessi
 	PRE_tTll_0 = (leftToLeft_0.translation()).cast<float>();
 
 
-
+    // calculate the warp matrix from target frame to the host grame.
 	SE3 leftToLeft = target->PRE_worldToCam * host->PRE_camToWorld;
 	PRE_RTll = (leftToLeft.rotationMatrix()).cast<float>();
 	PRE_tTll = (leftToLeft.translation()).cast<float>();
