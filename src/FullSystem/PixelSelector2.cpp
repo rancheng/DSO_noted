@@ -412,7 +412,8 @@ namespace dso {
                 int bestIdx4 = -1;
                 float bestVal4 = 0;
                 // 0xF is 15, and randomPattern[n2] is randomPattern[0] for now, so this is to sample the same direction.
-                // shouldn't this be n4?
+                // shouldn't this be n4? randomPattern[n2] ?
+                // randomPattern is generated on the constructor.
                 Vec2f dir4 = directions[randomPattern[n2] & 0xF];
                 // !Notice: this is y3 and x3 loop.
                 for (int y3 = 0; y3 < my3; y3 += (2 * pot))
@@ -432,6 +433,9 @@ namespace dso {
                                 int my1 = std::min(pot, h - y234);
                                 int mx1 = std::min(pot, w - x234);
                                 int bestIdx2 = -1;
+                                // so this controls the loop for the update on n2..
+                                // n2 is the key looper to choose direction, so that means if
+                                // you didn't find any gradient that has higher direction norm
                                 float bestVal2 = 0;
                                 // this should be n2.
                                 Vec2f dir2 = directions[randomPattern[n2] & 0xF];
@@ -442,7 +446,7 @@ namespace dso {
                                         assert(y1 + y234 < h);
                                         // loop the small patch in different big strides, now I understand they are searching in different
                                         // patches are small when they reach to the end of the strides.
-                                        int idx = x1 + x234 + w * (y1 + y234);
+                                        int idx = x1 + x234 + w * (y1 + y234); // x234 = x2 + x3 + x4... same as y234, this is just offsets.
                                         int xf = x1 + x234;
                                         int yf = y1 + y234;
 
@@ -451,6 +455,7 @@ namespace dso {
                                         // this is the pixels index, why the hell they will down weight those index??????
                                         float pixelTH0 = thsSmoothed[(xf >> 5) + (yf >> 5) * thsStep]; // thsStep is w32
                                         // down weight those index will shrink those points in the threshold.
+                                        // multiply dw1 and dw1 they lifted the bar of the threshold.
                                         float pixelTH1 = pixelTH0 * dw1;
                                         float pixelTH2 = pixelTH1 * dw2;
 
@@ -461,11 +466,19 @@ namespace dso {
                                         // in order to find out more valid gradient, they use histogram to store all
                                         // the gradients, and normalize throughout the down sampled image
                                         // now they just want to use this threshold to pick up point according to gradient
-                                        // now I understand why they use pixelselector....
+                                        // now I understand why they name it as pixel selector...
                                         if (ag0 > pixelTH0 * thFactor) {
                                             // this will give the last two scales of abs gradient
+                                            // remember this map0 is the dI, dI is 3 channels, color, dx, dy,
+                                            // now tail<2> selects dx and dy channel.
+                                            // this explained why they use ag0d -> d means gradient.
+                                            // ag absolute gradient? 0 represent scale 0 which is the original image.
                                             Vec2f ag0d = map0[idx].tail<2>();
-                                            // ag0d.dot(dir2) will give the direction norm? dot product
+                                            // ag0d.dot(dir2) will give the direction norm? dot product will be
+                                            // zero if ag0d is perpendicular to dir2...
+                                            // dir2 is the random direction sampled by n2...
+                                            // that means n2 will change if dir2 is not perpendicular to ag0d.
+                                            // which means they are finding all the non-rthonormal basis...
                                             float dirNorm = fabsf((float) (ag0d.dot(dir2)));
                                             if (!setting_selectDirectionDistribution) dirNorm = ag0;
                                             // bestIdx2,3,4 are used to update the n2 n3 and n4
