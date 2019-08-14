@@ -68,7 +68,9 @@ namespace dso {
         for (int i = 0; i < 90; i++) {
             // now I understand, this way they want to locate all those histogram that under threshold, and return the index
             // if the index is above 90, they will just return 90 instead.
-            th -= hist[i + 1];
+            // ################################
+            // this operation keeps minus first 90 elements in the hist. and when it reach to 0, just return that index.
+            th -= hist[i + 1]; // start from i+1 because hist[0] has been used to define th.
             // return i!!!!!! this is the index! how can you return the index?
             if (th < 0) return i;
         }
@@ -126,6 +128,9 @@ namespace dso {
                     }
                 // find the threshold that the histogram below the setting threshold. return the found index before 90
                 // ths[x, y] threshold in the downsampled image (size: [h32, w32]).
+                // setting_minGradHistCut is 0.5
+                // setting_minGradHistAdd is 7
+                // this ths record each point in the w32 h32 scale, with their HOG threshold index plus an offset.
                 ths[x + y * w32] = computeHistQuantil(hist0, setting_minGradHistCut) + setting_minGradHistAdd;
             }
         // loop the downsampled threshold image to smooth the thresholds,
@@ -139,15 +144,20 @@ namespace dso {
                 // for example:
                 // if they right to the right most, they will only calculate the up and down, then devide by 2
                 float sum = 0, num = 0;
+                // add sum when x > 0 add again when x < w32 - 1, and ...
+                // overall, they added sum 9 times. if x in [1...w32-1] y in [1...h32-1]
                 if (x > 0) {
+                    // this add sum an extra term to include the top most row.
                     if (y > 0) {
                         num++;
                         sum += ths[x - 1 + (y - 1) * w32];
                     }
+                    // this add sum the threshold on the bottom row.
                     if (y < h32 - 1) {
                         num++;
                         sum += ths[x - 1 + (y + 1) * w32];
                     }
+                    // this reaches no matter what y is, so it add up 3 times if in [1...h32-1]
                     num++;
                     sum += ths[x - 1 + (y) * w32];
                 }
@@ -176,6 +186,11 @@ namespace dso {
                 num++;
                 sum += ths[x + y * w32];
                 // smoothed threshold indices?>>!@#@!# why you go to smooth those indices?>>>!@#
+                // now I understand: they keep track on how many times they aggregated sum,
+                // and do a final normalization according to num.
+                // ################################################
+                // so, here it should be a normalized threshold index
+                // for each pixel location in the smallest scale space.
                 thsSmoothed[x + y * w32] = (sum / num) * (sum / num);
 
             }
@@ -442,6 +457,11 @@ namespace dso {
                                         // this is the single abs gradient in the local index.
                                         // thFactor now is 2...
                                         float ag0 = mapmax0[idx];
+                                        // this pixelTH0 is just the min threshold for the gradient
+                                        // in order to find out more valid gradient, they use histogram to store all
+                                        // the gradients, and normalize throughout the down sampled image
+                                        // now they just want to use this threshold to pick up point according to gradient
+                                        // now I understand why they use pixelselector....
                                         if (ag0 > pixelTH0 * thFactor) {
                                             // this will give the last two scales of abs gradient
                                             Vec2f ag0d = map0[idx].tail<2>();
