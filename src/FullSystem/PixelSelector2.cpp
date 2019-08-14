@@ -75,17 +75,19 @@ namespace dso {
         return 90;
     }
 
-
+    // holy shit, this is exactly HOG.... absSquaredGrad is the Magnitude of gradient.....
+    // they apply the HOG on a sliding window with kernel size 32*32, which means they are
+    // applying HOG on the smallest scale space......
     void PixelSelector::makeHists(const FrameHessian *const fh) {
         gradHistFrame = fh;
         // mapmax0 get the sum squared gradient of the framehessian.
         // absSquaredGrad[0] is the original level gradient, first layer is the largest layer.
-        float *mapmax0 = fh->absSquaredGrad[0];
+        float *mapmax0 = fh->absSquaredGrad[0]; // remember absSquaredGrad is the gradient of the image applied gamma function
 
         int w = wG[0];
         int h = hG[0];
 
-        int w32 = w / 32;
+        int w32 = w / 32; // note that 32 is 2^5 which means w32 and h32 is the smallest scale in this program.
         int h32 = h / 32;
         thsStep = w32;
 
@@ -98,10 +100,13 @@ namespace dso {
                 // guess: 50 in the front, 50 in the back, why all all those padding? and why the padding is 100?
                 memset(hist0, 0, sizeof(int) * 50);
                 // for each step in 32 by 32 square:
+                // I think this is a kernel. 32*32 which collect the gradient and sum into a histogram (size of 50)
                 for (int j = 0; j < 32; j++)
                     for (int i = 0; i < 32; i++) {
                         // it should be the cordinate in the original image frame, same as jt
                         // if they found out of bound, continue
+                        // note that this is it and jt, I think this just prevent those points
+                        // that is oob on the bigger scale where they fails to project into the current scale space.
                         int it = i + 32 * x;
                         int jt = j + 32 * y;
                         if (it > w - 2 || jt > h - 2 || it < 1 || jt < 1) continue;
@@ -109,12 +114,14 @@ namespace dso {
                         // map0[i+j*w] is the gradient in that 32*32 square. consider it loopes to h32 and w32, this step
                         // might want to get the square by square histogram in that image. what those histograms to do with
                         // navigation?
+                        // ####### understood. ##########
+                        // this g is the statistic results for the histogram.
                         int g = sqrtf(map0[i + j * w]);
                         // remmeber that hist0 is 0 for first 50 and gradHist is at least 100 size.
                         if (g > 48) g = 48;
                         // this is to collect different graident level, and set the level [0-49] totally 50 different gradients.
                         hist0[g + 1]++;
-                        // why will they add this hist0[0]? so hist0 will always be 32*32.
+                        // why will they add this hist0[0]? so hist0 will always be 50.
                         hist0[0]++;
                     }
                 // find the threshold that the histogram below the setting threshold. return the found index before 90
@@ -176,15 +183,20 @@ namespace dso {
 
     }
 
+    // like this name, make the selectionMap
+    // don't know yet what the selection map works for.
+    // will update here later.
     int PixelSelector::makeMaps(
             const FrameHessian *const fh,
             float *map_out, float density, int recursionsLeft, bool plot, float thFactor) {
         // here the float* map_out is the status map in the coarse initializer. what they are working with is to update
-        // the status map to feed back to initializer, will investigate later.
+        // the status map to feed back to initializer.
+        // ####################################
+        // *map_out point to the selectionMap.
         float numHave = 0;
         float numWant = density;
         float quotia;
-        int idealPotential = currentPotential;
+        int idealPotential = currentPotential; // I think this current potential should be a percentage... but why it's int?
 
 
 //	if(setting_pixelSelectionUseFast>0 && allowFast)
@@ -359,6 +371,9 @@ namespace dso {
         // this is allocation of status write for map_out and pass back to the coarseInitializer
         // for now, I still don't know what those status used for, but will fill up later on
         //TODO: find out the function of PixelSelectorStatus
+        // ##################
+        // update: here there's 4 channels of status, which make the map_out or SelectionMap
+        // a w*h*4 matrix.
         memset(map_out, 0, w * h * sizeof(PixelSelectorStatus));
 
 
@@ -370,6 +385,7 @@ namespace dso {
         int n3 = 0, n2 = 0, n4 = 0;
         // pot here is the potential defined in the function or passed from coarse initializer
         // here I understand as the stride.
+        // !Notice: this starts from y4 and x4 loop.
         for (int y4 = 0; y4 < h; y4 += (4 * pot))
             for (int x4 = 0; x4 < w; x4 += (4 * pot)) {
                 // 4*pot, why it's 4*pot? h-y4?
@@ -383,6 +399,7 @@ namespace dso {
                 // 0xF is 15, and randomPattern[n2] is randomPattern[0] for now, so this is to sample the same direction.
                 // shouldn't this be n4?
                 Vec2f dir4 = directions[randomPattern[n2] & 0xF];
+                // !Notice: this is y3 and x3 loop.
                 for (int y3 = 0; y3 < my3; y3 += (2 * pot))
                     for (int x3 = 0; x3 < mx3; x3 += (2 * pot)) {
                         int x34 = x3 + x4;
@@ -417,7 +434,7 @@ namespace dso {
                                         if (xf < 4 || xf >= w - 5 || yf < 4 || yf > h - 4) continue;
 
                                         // this is the pixels index, why the hell they will down weight those index??????
-                                        float pixelTH0 = thsSmoothed[(xf >> 5) + (yf >> 5) * thsStep];
+                                        float pixelTH0 = thsSmoothed[(xf >> 5) + (yf >> 5) * thsStep]; // thsStep is w32
                                         // down weight those index will shrink those points in the threshold.
                                         float pixelTH1 = pixelTH0 * dw1;
                                         float pixelTH2 = pixelTH1 * dw2;

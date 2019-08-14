@@ -58,7 +58,7 @@ private:
 	unsigned char* randomPattern;
 
 
-	int* gradHist;
+	int* gradHist; // used to record the histogram of the image gradient, note that the image size is w/32 * h/32
 	float* ths;
 	float* thsSmoothed;
 	int thsStep;
