@@ -1263,12 +1263,17 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 
 		Pnt* point = coarseInitializer->points[0]+i;
 		ImmaturePoint* pt = new ImmaturePoint(point->u+0.5f,point->v+0.5f,firstFrame,point->my_type, &Hcalib);
-
+        // according to immature point class:
+        // energyTH is calculated from the normalized color. so most of the color values in the boundaries will
+        // be discard. Thus, the point will be deleted.
 		if(!std::isfinite(pt->energyTH)) { delete pt; continue; }
 
-
+        // !Notice: set all points idepths are 1. -> then update the idepth according to the next frame.
 		pt->idepth_max=pt->idepth_min=1;
+		// !Notice: so initially all points are set from immature point!
 		PointHessian* ph = new PointHessian(pt, &Hcalib);
+		// delete the immature point ? no tracing? this point has uniformally depth: 1. where do you think you will
+		// update them?
 		delete pt;
 		if(!std::isfinite(ph->energyTH)) {delete ph; continue;}
 

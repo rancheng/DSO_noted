@@ -91,8 +91,15 @@ namespace dso {
                            const Vec2f &hostToFrame_affine, CalibHessian *HCalib, bool debugPrint) {
         if (lastTraceStatus == ImmaturePointStatus::IPS_OOB) return lastTraceStatus;
 
+        // !Notice: there's already a host frameHessian in the immature point class.
+        // so this traceOn should be reproject the immature point on the upcoming frame (FrameHessian *frame).
 
+
+        // just some debug information...
         debugPrint = false;//rand()%100==0;
+        // setting_maxPixSearch: line segment searched during immature point tracking (settings.cpp)
+        // so this maxPixSearch control how many points this traceOn want to search for candidates.
+        // default is: setting_maxPixSearch = 0.027
         float maxPixSearch = (wG[0] + hG[0]) * setting_maxPixSearch;
 
         if (debugPrint)
@@ -109,15 +116,23 @@ namespace dso {
 //	const float slackInterval = 0.8;			// if pixel-interval is smaller than this, leave it be.
 //	const float minImprovementFactor = 2;		// if pixel-interval is smaller than this, leave it be.
         // ============== project min and max. return if one of them is OOB ===================
+        // u, v is initialized on the constructor, which is offered by the outer function.
+        // they are the image coordinates. -> this pr is point in image space.
         Vec3f pr = hostToFrame_KRKi * Vec3f(u, v, 1);
+        // here pr + t*idepth_min should be the minimal inverse depth estimation t here is translation from host frame
+        // to target frame.
         Vec3f ptpMin = pr + hostToFrame_Kt * idepth_min;
+        // so here since, they applied the smallest idepth estimation on the point, there x and y projection will have
+        // a bottom bound. which is uMin and vMin, you can image it's projected to left bottom corner of an area.
         float uMin = ptpMin[0] / ptpMin[2];
         float vMin = ptpMin[1] / ptpMin[2];
-
+        // filter out those OOB points.
+        // notice this padding is 5, why they set padding as 5? give up so many points on the border of image?
         if (!(uMin > 4 && vMin > 4 && uMin < wG[0] - 5 && vMin < hG[0] - 5)) {
             if (debugPrint)
                 printf("OOB uMin %f %f - %f %f %f (id %f-%f)!\n",
                        u, v, uMin, vMin, ptpMin[2], idepth_min, idepth_max);
+            // this literally set all the tracing to be bad and declare it's failing.
             lastTraceUV = Vec2f(-1, -1);
             lastTracePixelInterval = 0;
             return lastTraceStatus = ImmaturePointStatus::IPS_OOB;
@@ -127,12 +142,14 @@ namespace dso {
         float uMax;
         float vMax;
         Vec3f ptpMax;
+        // so here is tricky. idepth_max should be finite, practically, they are only tracking obj that's
+        // less than 600m+-100m, depending to the camera. which is well enough for tracking.
         if (std::isfinite(idepth_max)) {
             ptpMax = pr + hostToFrame_Kt * idepth_max;
             uMax = ptpMax[0] / ptpMax[2];
             vMax = ptpMax[1] / ptpMax[2];
 
-
+            // again. OOB check, padding 5.
             if (!(uMax > 4 && vMax > 4 && uMax < wG[0] - 5 && vMax < hG[0] - 5)) {
                 if (debugPrint) printf("OOB uMax  %f %f - %f %f!\n", u, v, uMax, vMax);
                 lastTraceUV = Vec2f(-1, -1);
