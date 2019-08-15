@@ -879,18 +879,24 @@ void CoarseDistanceMap::makeDistanceMap(
 
 	// make coarse tracking templates for latstRef.
 	int numItems = 0;
-
+    // this loops all the frames in frame window into the target frame
 	for(FrameHessian* fh : frameHessians)
 	{
 		if(frame == fh) continue;
-
+        // this translate the cordinate from the fh->cam ->world -> frame->cam.
+        // notice this matrix is left product of frame (target frame) to the fh (host frame)
 		SE3 fhToNew = frame->PRE_worldToCam * fh->PRE_camToWorld;
+		// R and t from host frame to the target frame.
 		Mat33f KRKi = (K[1] * fhToNew.rotationMatrix().cast<float>() * Ki[0]);
 		Vec3f Kt = (K[1] * fhToNew.translation().cast<float>());
-
+        // now for each active point in the host fames, using the precomputed R, t project to the target frame.
 		for(PointHessian* ph : fh->pointHessians)
 		{
+		    // check if it's active point.
 			assert(ph->status == PointHessian::ACTIVE);
+			// p to p  here idepth scaled is the maintained idepth of those active points.
+			// now you know how to find the key of the DSO, you go trough idepth_scaled to find out how
+			// they update the idepth and will find how to control and modify the scale.
 			Vec3f ptp = KRKi * Vec3f(ph->u, ph->v, 1) + Kt*ph->idepth_scaled;
 			int u = ptp[0] / ptp[2] + 0.5f;
 			int v = ptp[1] / ptp[2] + 0.5f;

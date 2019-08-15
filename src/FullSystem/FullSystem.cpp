@@ -462,9 +462,11 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 
 	return Vec4(achievedRes[0], flowVecs[0], flowVecs[1], flowVecs[2]);
 }
-
+// trace the immature point on the host frame on the target frame: FrameHessian* fh.
 void FullSystem::traceNewCoarse(FrameHessian* fh)
 {
+    // fh here is target frame.
+    // lock the mapMutex on tracking thread.
 	boost::unique_lock<boost::mutex> lock(mapMutex);
 
 	int trace_total=0, trace_good=0, trace_oob=0, trace_out=0, trace_skip=0, trace_badcondition=0, trace_uninitialized=0;
@@ -534,10 +536,10 @@ void FullSystem::activatePointsMT_Reductor(
 }
 
 
-
+// activate points on multi-thread.
 void FullSystem::activatePointsMT()
 {
-
+    // this is all about setting parameters.
 	if(ef->nPoints < setting_desiredPointDensity*0.66)
 		currentMinActDist -= 0.8;
 	if(ef->nPoints < setting_desiredPointDensity*0.8)
@@ -564,7 +566,7 @@ void FullSystem::activatePointsMT()
                 currentMinActDist, (int)(setting_desiredPointDensity), ef->nPoints);
 
 
-
+    // remember frameHessians is the sliding window of frames.
 	FrameHessian* newestHs = frameHessians.back();
 
 	// make dist map.
