@@ -57,14 +57,14 @@ long runningResID=0;
 PointFrameResidual::PointFrameResidual(){assert(false); instanceCounter++;}
 
 PointFrameResidual::~PointFrameResidual(){assert(efResidual==0); instanceCounter--; delete J;}
-
+// initialize the point frame residual object by assign those pointers to residual obj.
 PointFrameResidual::PointFrameResidual(PointHessian* point_, FrameHessian* host_, FrameHessian* target_) :
 	point(point_),
 	host(host_),
 	target(target_)
 {
-	efResidual=0;
-	instanceCounter++;
+	efResidual=0; // efResidual is initialized with 0 and will increase on reprojection error.
+	instanceCounter++; // ?? this is inside constructor, different instance shouldn't share this counter. why set it?
 	resetOOB();
 	J = new RawResidualJacobian();
 	assert(((long)J)%16==0);

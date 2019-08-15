@@ -35,6 +35,7 @@ namespace dso {
 
         gradH.setZero();
         // loop through different pattern to initialize the immature point
+        // loop 8 directions. To initialize the node. -> calculate the weighted SSD.
         for (int idx = 0; idx < patternNum; idx++) {
             // patternP is staticPattern[8] in paper
             // this loops for {0,-2},	  {-1,-1},	   {1,-1},		{-2,0},		 {0,0},		  {2,0},	   {-1,1},		{0,2}
@@ -44,6 +45,8 @@ namespace dso {
             // dI is the image on the largest scale, three channels, color, dx, dy.
             // this ptc is a vector of bidirectional linearly interpolated [color, dx, dy]
             // collected on point in u+dx and v+dy at the original scale image plane
+            // now ptc collect the interpolated 3 channel vector from 8 sampling direction.
+            // interpolation here is bidirectional and linearly operation.
             Vec3f ptc = getInterpolatedElement33BiLin(host->dI, u + dx, v + dy, wG[0]);
 
             // see, here color takes the first value as color value, which is greyscale (normalized).
@@ -56,8 +59,16 @@ namespace dso {
             }
 
             // for other valid immature points:
-            // gradient H is: dx*dx + dy*dy -> H
-            // H here more like a scaled abs(dx) + abs(dy) => it captures all the gradients.
+            // gradient H is:
+            // [dx, dy] * [dx, dy]^T:
+            // [ dx*dx dx*dy ]
+            // [ dy*dx dy*dy ]
+            // I really want to say H here represent Hessian, but this is definitely not hessian.
+            // this is a matrix that capture the directional gradients. Hessian is the second order derivative matrix.
+            // H. need to find a word to describe this gradH.
+            // H here more like a scaled [abs(dx), abs(dy)] => it captures all the gradients.
+            // gradH is a mat22f which is a 2x2 matrix.
+            // gradH aggregated itself with 8 different directional gradients.
             gradH += ptc.tail<2>() * ptc.tail<2>().transpose();
             // squared norm is: sqrt(x1^2 + x2^2 + ...), Frobenius norm for matrix.
             // weight of point idx is inverse propotional to the squared norm of normalized dx dy at that point
@@ -86,6 +97,7 @@ namespace dso {
  * * UPDATED -> point has been updated.
  * * SKIP -> point has not been updated.
  */
+    // whoa! 400 lines function, intimidating.
     ImmaturePointStatus
     ImmaturePoint::traceOn(FrameHessian *frame, const Mat33f &hostToFrame_KRKi, const Vec3f &hostToFrame_Kt,
                            const Vec2f &hostToFrame_affine, CalibHessian *HCalib, bool debugPrint) {
@@ -124,8 +136,8 @@ namespace dso {
         Vec3f ptpMin = pr + hostToFrame_Kt * idepth_min;
         // so here since, they applied the smallest idepth estimation on the point, there x and y projection will have
         // a bottom bound. which is uMin and vMin, you can image it's projected to left bottom corner of an area.
-        float uMin = ptpMin[0] / ptpMin[2];
-        float vMin = ptpMin[1] / ptpMin[2];
+        float uMin = ptpMin[0] / ptpMin[2]; // normalize with depth to get the u v.
+        float vMin = ptpMin[1] / ptpMin[2]; // normalize with the depth term, depth is from idepth_min.
         // filter out those OOB points.
         // notice this padding is 5, why they set padding as 5? give up so many points on the border of image?
         if (!(uMin > 4 && vMin > 4 && uMin < wG[0] - 5 && vMin < hG[0] - 5)) {
@@ -133,12 +145,12 @@ namespace dso {
                 printf("OOB uMin %f %f - %f %f %f (id %f-%f)!\n",
                        u, v, uMin, vMin, ptpMin[2], idepth_min, idepth_max);
             // this literally set all the tracing to be bad and declare it's failing.
-            lastTraceUV = Vec2f(-1, -1);
-            lastTracePixelInterval = 0;
-            return lastTraceStatus = ImmaturePointStatus::IPS_OOB;
+            lastTraceUV = Vec2f(-1, -1); // initialize lastTraceUV with (-1, -1)
+            lastTracePixelInterval = 0; // interval captures the pixels to search in the nearby.
+            return lastTraceStatus = ImmaturePointStatus::IPS_OOB; // set the point as OOB... IPS: immature point state
         }
 
-        float dist;
+        float dist; // dist capture how many pixels to search in the nearby, rdius decided by uMax uMin and vMax vMin
         float uMax;
         float vMax;
         Vec3f ptpMax;
@@ -158,35 +170,39 @@ namespace dso {
             }
 
 
-
-            // ============== check their distance. everything below 2px is OK (-> skip). ===================
+            // uMin <- ptpMin <- idepth_min
+            // uMax <- ptpMax <- idpeth_max
             dist = (uMin - uMax) * (uMin - uMax) + (vMin - vMax) * (vMin - vMax);
-            dist = sqrtf(dist);
+            dist = sqrtf(dist); // dist is proportional to the radius of the projection area.
+            // ============== check their distance. everything below 2px is OK (-> skip). ===================
             if (dist < setting_trace_slackInterval) {
                 if (debugPrint)
                     printf("TOO CERTAIN ALREADY (dist %f)!\n", dist);
 
-                lastTraceUV = Vec2f(uMax + uMin, vMax + vMin) * 0.5;
-                lastTracePixelInterval = dist;
-                return lastTraceStatus = ImmaturePointStatus::IPS_SKIPPED;
+                lastTraceUV = Vec2f(uMax + uMin, vMax + vMin) * 0.5; // pick the center point as u, v.
+                lastTracePixelInterval = dist; // dist is less than 1.5 now.
+                return lastTraceStatus = ImmaturePointStatus::IPS_SKIPPED; // skipped means the point project fine.
             }
             assert(dist > 0);
-        } else {
+        } else { // idepth_max is not finite.
             dist = maxPixSearch;
 
             // project to arbitrary depth to get direction.
-            ptpMax = pr + hostToFrame_Kt * 0.01;
-            uMax = ptpMax[0] / ptpMax[2];
+            ptpMax = pr + hostToFrame_Kt * 0.01; // idepth is infinite or NAN, so calculate z from traslation matrix t.
+            uMax = ptpMax[0] / ptpMax[2]; // uMax was projected to actually left bottom side.
             vMax = ptpMax[1] / ptpMax[2];
 
             // direction.
-            float dx = uMax - uMin;
+            float dx = uMax - uMin; // note this dx captures the direction.
             float dy = vMax - vMin;
+            // d is inverse proportional to a scaled abs of gardient magnitude.
+            // that means higher the gradient, small the d.
             float d = 1.0f / sqrtf(dx * dx + dy * dy);
 
-            // set to [setting_maxPixSearch].
-            uMax = uMin + dist * dx * d;
-            vMax = vMin + dist * dy * d;
+            // set to [setting_maxPixSearch]. dist = (wG[0] + hG[0]) * 0.027
+            // use uMin and dx to find out uMax. why dont' use uMax directly?
+            uMax = uMin + dist * dx * d; // here dx is scaled by dist and d, which is restricted to a small neighborhood.
+            vMax = vMin + dist * dy * d; // same as dy.
 
             // may still be out!
             if (!(uMax > 4 && vMax > 4 && uMax < wG[0] - 5 && vMax < hG[0] - 5)) {
@@ -206,11 +222,19 @@ namespace dso {
             lastTracePixelInterval = 0;
             return lastTraceStatus = ImmaturePointStatus::IPS_OOB;
         }
-
+        // only idepth_min > 0 and ptpMin[2] (z) in [0.75 ... 1.5] will be considered.
+        // here 0.75 and 1.5 is a small range, and what unit it is?
+        // TODO: figure out what this range is for. Maybe the key to figure out how to change scales.
 
         // ============== compute error-bounds on result in pixel. if the new interval is not at least 1/2 of the old, SKIP ===================
         float dx = setting_trace_stepsize * (uMax - uMin);
         float dy = setting_trace_stepsize * (vMax - vMin);
+        // notice gradH is the aggregated gradient matrix on 8 directions.
+        //
+        //  a = [dx] *sum([dx*dx dx*dy]
+        //      [dy]      [dy*dx dy*dy]) * [dx dy]
+        //
+        //
 
         float a = (Vec2f(dx, dy).transpose() * gradH * Vec2f(dx, dy));
         float b = (Vec2f(dy, -dx).transpose() * gradH * Vec2f(dy, -dx));

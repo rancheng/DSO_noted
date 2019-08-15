@@ -61,19 +61,20 @@ public:
 	static int instanceCounter;
 
 
-	ResState state_state;
+	ResState state_state; // what is this state state for
 	double state_energy;
-	ResState state_NewState;
+	ResState state_NewState; // why create a new state to store the states.
 	double state_NewEnergy;
 	double state_NewEnergyWithOutlier;
 
 
 	void setState(ResState s) {state_state = s;}
 
-
-	PointHessian* point;
-	FrameHessian* host;
-	FrameHessian* target;
+    // so that means the residual is an object on each point hessian that
+    // can be projected from host frame to target frame.
+	PointHessian* point; // point hessian that was projected from host to target
+	FrameHessian* host; // host frame
+	FrameHessian* target; // target frame
 	RawResidualJacobian* J;
 
 
@@ -85,7 +86,9 @@ public:
 
 	~PointFrameResidual();
 	PointFrameResidual();
+	// constructor that collect the point host and target pointers.
 	PointFrameResidual(PointHessian* point_, FrameHessian* host_, FrameHessian* target_);
+	// linearize residual function.
 	double linearize(CalibHessian* HCalib);
 
 

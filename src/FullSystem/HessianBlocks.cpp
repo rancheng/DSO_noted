@@ -51,17 +51,19 @@ namespace dso {
         // it must be maintained after converge, otherwise, it doesn't make sense to keep this
         // GT on a immature point. Once you have converged idepth, you are no longer a immature point.
         //idepth_init = rawPoint->idepth_GT;
-
+        // copy type.
         my_type = rawPoint->my_type;
-
+        // copy the scaled idepth, which normalized from idepth max and min.
         setIdepthScaled((rawPoint->idepth_max + rawPoint->idepth_min) * 0.5);
+        // INACTIVE is marked for tracing
         setPointStatus(PointHessian::INACTIVE);
 
-        int n = patternNum;
-        memcpy(color, rawPoint->color, sizeof(float) * n);
-        memcpy(weights, rawPoint->weights, sizeof(float) * n);
-        energyTH = rawPoint->energyTH;
-
+        int n = patternNum; // patternNum here is 8. which is the pattern shown on the paper.
+        memcpy(color, rawPoint->color, sizeof(float) * n); // copy the color (greyscale) value
+        // copy the weights, notice the weights is normalized from the gradient on dx and dy.
+        memcpy(weights, rawPoint->weights, sizeof(float) * n); // weight on the 8 directions.
+        energyTH = rawPoint->energyTH; // energy threshold, 12*12*8 = 912, set as the upper bound of energy.
+        // energy functional point, haven't explored it yet, will report later.
         efPoint = 0;
 
 
