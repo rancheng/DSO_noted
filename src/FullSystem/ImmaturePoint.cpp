@@ -41,7 +41,7 @@ namespace dso {
             // which is the eight points.
             int dx = patternP[idx][0];
             int dy = patternP[idx][1];
-            // dI is the image on the largest scale
+            // dI is the image on the largest scale, three channels, color, dx, dy.
             Vec3f ptc = getInterpolatedElement33BiLin(host->dI, u + dx, v + dy, wG[0]);
 
 

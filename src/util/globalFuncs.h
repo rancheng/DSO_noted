@@ -173,22 +173,23 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement13BiLin(const float* c
 EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33BiLin(const Eigen::Vector3f* const mat, const float x, const float y, const int width)
 {
     // here mat is dI, which is the trace for fine tracking.
-	int ix = (int)x; // x is the dx in static pattern 8
-	int iy = (int)y; // y is the dy in static pattern 8
+	int ix = (int)x; // x = u+dx, dx is the dx in static pattern 8
+	int iy = (int)y; // y = v+dy, dy is the dy in static pattern 8
 	// bp is the point in the offset position.
-	const Eigen::Vector3f* bp = mat +ix+iy*width;
+	const Eigen::Vector3f* bp = mat +ix+iy*width; // bp is the base point, which is the [ix, iy] pixel position in dI.
     // bp is still a vector3f store [x, y, z]
     // tl is x,y
+    // notice unlike
 	float tl = (*(bp))[0];
 	// tr is x+1, y
 	float tr = (*(bp+1))[0];
 	// bl is x, y+1
-	float bl = (*(bp+width))[0];
+	float bl = (*(bp+width))[0]; // width is the key, here bp+width is the next row element.
 	// lr is x+1, y+1
 	float br = (*(bp+width+1))[0];
 
-	float dx = x - ix;
-	float dy = y - iy;
+	float dx = x - ix; // float part of the x coordinate
+	float dy = y - iy; // float part of the y coordinate
 	float topInt = dx * tr + (1-dx) * tl;
 	float botInt = dx * br + (1-dx) * bl;
 	float leftInt = dy * bl + (1-dy) * tl;
