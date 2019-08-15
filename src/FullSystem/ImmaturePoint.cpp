@@ -68,10 +68,11 @@ namespace dso {
         // setting_outlierTH default is 12*12, higher it is, less strict the contrain is.
         // so they use 114*8 = 912 as energyTH. -> so let's see how much energy they can get for each point.
         energyTH = patternNum * setting_outlierTH;
-        // setting_overallEnergyTHWeight is 1 for now.
+        // setting_overallEnergyTHWeight is 1 for now. note this is a squared weighting.
         energyTH *= setting_overallEnergyTHWeight * setting_overallEnergyTHWeight;
-
+        // idepth GT, GT here is ground truth?
         idepth_GT = 0;
+        // quality is controlled and updated from point energy, the smaller the best energy is the higher the quality.
         quality = 10000;
     }
 
@@ -299,7 +300,18 @@ namespace dso {
                 errors[i] < secondBest)
                 secondBest = errors[i];
         }
-        float newQuality = secondBest / bestEnergy;
+        /*
+         * ////////////////////get from FullSystem.cpp////////////////////////
+         * bool canActivate = (ph->lastTraceStatus == IPS_GOOD
+					|| ph->lastTraceStatus == IPS_SKIPPED
+					|| ph->lastTraceStatus == IPS_BADCONDITION
+					|| ph->lastTraceStatus == IPS_OOB )
+							&& ph->lastTracePixelInterval < 8
+							&& ph->quality > setting_minTraceQuality
+							&& (ph->idepth_max+ph->idepth_min) > 0;
+         */
+        // quality further determine weather a immature point can be activated as mature point or not.
+        float newQuality = secondBest / bestEnergy; // best energy is always the smallest, that makes quality >= 1
         if (newQuality < quality || numSteps > 10) quality = newQuality;
 
 
