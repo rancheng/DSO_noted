@@ -898,15 +898,18 @@ void CoarseDistanceMap::makeDistanceMap(
 			// now you know how to find the key of the DSO, you go trough idepth_scaled to find out how
 			// they update the idepth and will find how to control and modify the scale.
 			Vec3f ptp = KRKi * Vec3f(ph->u, ph->v, 1) + Kt*ph->idepth_scaled;
+			// convert xyz to u,v, 3d cordinate to 2d image plane in target frame.
 			int u = ptp[0] / ptp[2] + 0.5f;
 			int v = ptp[1] / ptp[2] + 0.5f;
+			// OOB
 			if(!(u > 0 && v > 0 && u < w[1] && v < h[1])) continue;
 			fwdWarpedIDDistFinal[u+w1*v]=0;
-			bfsList1[numItems] = Eigen::Vector2i(u,v);
+			// hmmm, they create a bfs list for those points that are able to project to target frame.
+			bfsList1[numItems] = Eigen::Vector2i(u,v); // this bfsList1 is a list of vector2i
 			numItems++;
 		}
 	}
-
+    // now in this function, use dfs to grow distance in the bfslist1 list.
 	growDistBFS(numItems);
 }
 
