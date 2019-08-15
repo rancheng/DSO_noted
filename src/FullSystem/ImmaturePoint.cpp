@@ -42,23 +42,33 @@ namespace dso {
             int dx = patternP[idx][0];
             int dy = patternP[idx][1];
             // dI is the image on the largest scale, three channels, color, dx, dy.
+            // this ptc is a vector of bidirectional linearly interpolated [color, dx, dy]
+            // collected on point in u+dx and v+dy at the original scale image plane
             Vec3f ptc = getInterpolatedElement33BiLin(host->dI, u + dx, v + dy, wG[0]);
 
-
+            // see, here color takes the first value as color value, which is greyscale (normalized).
             color[idx] = ptc[0];
+            // if the interpolation is infinite, which means the point is on the edge, will be OOB soon
+            // thus give up on this point and return with nothing.
             if (!std::isfinite(color[idx])) {
                 energyTH = NAN;
                 return;
             }
 
-
+            // for other valid immature points:
+            // gradient H is: dx*dx + dy*dy -> H
+            // H here more like a scaled abs(dx) + abs(dy) => it captures all the gradients.
             gradH += ptc.tail<2>() * ptc.tail<2>().transpose();
-
+            // squared norm is: sqrt(x1^2 + x2^2 + ...), Frobenius norm for matrix.
+            // weight of point idx is inverse propotional to the squared norm of normalized dx dy at that point
             weights[idx] = sqrtf(
                     setting_outlierTHSumComponent / (setting_outlierTHSumComponent + ptc.tail<2>().squaredNorm()));
         }
-
+        // patternNum is 8
+        // setting_outlierTH default is 12*12, higher it is, less strict the contrain is.
+        // so they use 114*8 = 912 as energyTH. -> so let's see how much energy they can get for each point.
         energyTH = patternNum * setting_outlierTH;
+        // setting_overallEnergyTHWeight is 1 for now.
         energyTH *= setting_overallEnergyTHWeight * setting_overallEnergyTHWeight;
 
         idepth_GT = 0;
