@@ -543,8 +543,8 @@ namespace dso {
                 tmpRes->state_NewState = ResState::OOB;
                 return tmpRes->state_energy;
             }
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // ########################## Core of Paper ####################
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // ########################## Core of Paper ####################################
             // normalized color and gradient channel at Ku and Kv.
             // Ku and Kv are the reprojected point.
             Vec3f hitColor = (getInterpolatedElement33(dIl, Ku, Kv, wG[0]));
