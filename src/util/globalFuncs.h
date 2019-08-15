@@ -170,6 +170,8 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement13BiLin(const float* c
 			botInt-topInt);
 }
 
+// interpolate the 3 channel image pixel values (color, dx, dy) according to the bi-direction linear interpolation.
+// return a linearly interpolated color, dx, dy vector corresponding to the offered x y cordinate in image plane.
 EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33BiLin(const Eigen::Vector3f* const mat, const float x, const float y, const int width)
 {
     // here mat is dI, which is the trace for fine tracking.
@@ -180,13 +182,13 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33BiLin(const Eigen::V
     // bp is still a vector3f store [x, y, z]
     // tl is x,y
     // notice unlike
-	float tl = (*(bp))[0];
+	float tl = (*(bp))[0]; //tl = top left
 	// tr is x+1, y
-	float tr = (*(bp+1))[0];
+	float tr = (*(bp+1))[0]; // tr = top right
 	// bl is x, y+1
-	float bl = (*(bp+width))[0]; // width is the key, here bp+width is the next row element.
+	float bl = (*(bp+width))[0]; // bl = bottom left
 	// lr is x+1, y+1
-	float br = (*(bp+width+1))[0];
+	float br = (*(bp+width+1))[0]; // br = bottom right
 
 	float dx = x - ix; // float part of the x coordinate
 	float dy = y - iy; // float part of the y coordinate
@@ -196,9 +198,9 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33BiLin(const Eigen::V
 	float rightInt = dy * br + (1-dy) * tr;
 
 	return Eigen::Vector3f(
-			dx * rightInt + (1-dx) * leftInt,
-			rightInt-leftInt,
-			botInt-topInt);
+			dx * rightInt + (1-dx) * leftInt, // so they do an weighted shift on this term. depending on the decimal value
+			rightInt-leftInt, // rightInt - leftInt = (1-dy)*(tr-tl) -> tr-tl is dx on color space.
+			botInt-topInt); // botInt - topInt = (1-dx)*(bl-tl) -> bl - tl is dy on the color space.
 }
 EIGEN_ALWAYS_INLINE float getInterpolatedElement11Cub(const float* const p, const float x)	// for x=0, this returns p[1].
 {
