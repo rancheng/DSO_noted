@@ -97,6 +97,7 @@ namespace dso {
  * * UPDATED -> point has been updated.
  * * SKIP -> point has not been updated.
  */
+    // from the paper, they leverage Squared Sum differential (SSD) to do image alignment.
     // whoa! 400 lines function, intimidating.
     ImmaturePointStatus
     ImmaturePoint::traceOn(FrameHessian *frame, const Mat33f &hostToFrame_KRKi, const Vec3f &hostToFrame_Kt,
@@ -235,23 +236,27 @@ namespace dso {
         //      [dy]      [dy*dx dy*dy]) * [dx dy]
         //
         //
-
+        // a and b are more like inversed ones.
+        // this simply aggregate the gradient, or we can say the distance from uMax to uMin and vMax to vMin,
+        // which is the bounding box size, and errorInPixel is the scaled value.
         float a = (Vec2f(dx, dy).transpose() * gradH * Vec2f(dx, dy));
         float b = (Vec2f(dy, -dx).transpose() * gradH * Vec2f(dy, -dx));
         float errorInPixel = 0.2f + 0.2f * (a + b) / a;
-
+        // this mark those points with very large depth estimation error as bad contition. yet still capture
+        // the normalized lastTraceUV. so I think they kept this kind of point for further optimization.
+        // if error larger than the searching point number. mark it as bad one.
         if (errorInPixel * setting_trace_minImprovementFactor > dist && std::isfinite(idepth_max)) {
             if (debugPrint)
                 printf("NO SIGNIFICANT IMPROVMENT (%f)!\n", errorInPixel);
             lastTraceUV = Vec2f(uMax + uMin, vMax + vMin) * 0.5;
-            lastTracePixelInterval = dist;
+            lastTracePixelInterval = dist; //dist = (wG[0] + hG[0]) * 0.027
             return lastTraceStatus = ImmaturePointStatus::IPS_BADCONDITION;
         }
 
         if (errorInPixel > 10) errorInPixel = 10;
 
 
-
+        // this part, including those bad condition points, are further lead to the discrete search
         // ============== do the discrete search ===================
         dx /= dist;
         dy /= dist;
