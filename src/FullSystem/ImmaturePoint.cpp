@@ -76,14 +76,14 @@ namespace dso {
                     setting_outlierTHSumComponent / (setting_outlierTHSumComponent + ptc.tail<2>().squaredNorm()));
         }
         // patternNum is 8
-        // setting_outlierTH default is 12*12, higher it is, less strict the contrain is.
+        // setting_outlierTH default is 12*12, higher it is, less strict the contsrain is.
         // so they use 114*8 = 912 as energyTH. -> so let's see how much energy they can get for each point.
         energyTH = patternNum * setting_outlierTH;
         // setting_overallEnergyTHWeight is 1 for now. note this is a squared weighting.
         energyTH *= setting_overallEnergyTHWeight * setting_overallEnergyTHWeight;
         // idepth GT, GT here is ground truth?
         idepth_GT = 0;
-        // quality is controlled and updated from point energy, the smaller the best energy is the higher the quality.
+        // quality is controlled and updated from point energy, the smaller the best_energy is the higher the quality.
         quality = 10000;
     }
 
@@ -258,6 +258,10 @@ namespace dso {
 
         // this part, including those bad condition points, are further lead to the discrete search
         // ============== do the discrete search ===================
+        // you know why they call it discrete search?
+        // think about it, here they discretize the box: (uMax, uMin) (vMax, vMin)
+        // into several squares, each square height, width is dy/dist, dx/dist.
+        // so, pretty much they seperate this candidate searching area into dist*dist number of small pieces.
         dx /= dist;
         dy /= dist;
 
@@ -270,26 +274,40 @@ namespace dso {
                    errorInPixel
             );
 
-
+        // this situation can happen only if maxDepth is finite and has a valid prior.
+        // here it shrink the size of search candidate area back to the maxPixSearch size.
         if (dist > maxPixSearch) {
-            uMax = uMin + maxPixSearch * dx;
+            uMax = uMin + maxPixSearch * dx; // uMax and vMax was redefined to be maximum pix search size.
             vMax = vMin + maxPixSearch * dy;
-            dist = maxPixSearch;
+            dist = maxPixSearch; // this further controls the search area.
         }
-
-        int numSteps = 1.9999f + dist / setting_trace_stepsize;
+        // dist is search point size, dist = (wG[0] + hG[0]) * 0.027
+        // 0.9999 here is a normalize term that make up all decimal part on dist to an extra 1 and contribute to numSteps.
+        int numSteps = 1.9999f + dist / setting_trace_stepsize; // setting_trace_stepsize default is 1.
+        // upper left 2x2 matrix is the rotation matrix to rotate the plane/surface.
         Mat22f Rplane = hostToFrame_KRKi.topLeftCorner<2, 2>();
 
+        // take the uMin decimal part that less than 0.001 to be the random shift.
+        // it's not random at all.... uMin is controlled by the initialization, optimization and marginalization process
+        // one can easily calculate how uMin would roughly be.
+        // I'd trust this is a term that author make for more contribution and make the trace more sensitive to u.
         float randShift = uMin * 1000 - floorf(uMin * 1000);
-        float ptx = uMin - randShift * dx;
-        float pty = vMin - randShift * dy;
+        // this dx and dy now is one unit size on the searching square, scaled by randShift,
+        // which should be a number smaller than 1.
+        // dx and dy are non-negative, randShift is also non-negative...
+        float ptx = uMin - randShift * dx; // curious, uMin and vMin are already smallest part on the bbox.
+        float pty = vMin - randShift * dy; // why would they enlarge the searching area towards top left corner.
 
-
-        Vec2f rotatetPattern[MAX_RES_PER_POINT];
+        // build the rotated pattern u, v from the 2x2 rotation plane matrix
+        // and the patternP 8 direction dx, dy combination, aka, the residual pattern.
+        Vec2f rotatetPattern[MAX_RES_PER_POINT]; // size 8, 8x2 matrix. contains 8 rotated searching direction points.
         for (int idx = 0; idx < patternNum; idx++)
             rotatetPattern[idx] = Rplane * Vec2f(patternP[idx][0], patternP[idx][1]);
 
-
+        // why you don't move this part back to the top to prevent the overflow of dx and dy
+        // when you do this:
+        //        dx /= dist;
+        //        dy /= dist;
         if (!std::isfinite(dx) || !std::isfinite(dy)) {
             //printf("COUGHT INF / NAN dxdy (%f %f)!\n", dx, dx);
 
@@ -298,39 +316,50 @@ namespace dso {
             return lastTraceStatus = ImmaturePointStatus::IPS_OOB;
         }
 
-
+        // after the previous filter, those illegal points are kicked out.
+        // now define the errors 100 size. which stores the energys in 100 loops.
         float errors[100];
         float bestU = 0, bestV = 0, bestEnergy = 1e10;
         int bestIdx = -1;
         if (numSteps >= 100) numSteps = 99;
-
+        // so they loop 100 times, in 8 directions. to collect the residual energy.
         for (int i = 0; i < numSteps; i++) {
             float energy = 0;
             for (int idx = 0; idx < patternNum; idx++) {
+                // here hitColor is the normalized pixel intensity nearby 8 direction of ptx and pty
+                // ptx and pty is a small step top left on the uMin and vMin.
                 float hitColor = getInterpolatedElement31(frame->dI,
                                                           (float) (ptx + rotatetPattern[idx][0]),
                                                           (float) (pty + rotatetPattern[idx][1]),
                                                           wG[0]);
-
+                // OOB. or some invalid border part.
                 if (!std::isfinite(hitColor)) {
+                    // set as invalid energy.
                     energy += 1e5;
                     continue;
                 }
+                // other wise. residual is Epj = sum{(Ijp'-bj) - }
                 float residual = hitColor - (float) (hostToFrame_affine[0] * color[idx] + hostToFrame_affine[1]);
+                // here hw is huber weight, and energy is applied with huber loss. to be smooth on close 0 part
+                // and gradient stable when the residual is large.
                 float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
-                energy += hw * residual * residual * (2 - hw);
+                // if hw is smaller than huber threshold, hw is 1.
+                //          energy += 1*residual*residual*1
+                // else:
+                //          energy += (residual)^2*c(2*residual - c)/residual = c * residual * (2*residual - c)
+                energy += hw * residual * residual * (2 - hw); // huber normalized squared residual.
             }
 
             if (debugPrint)
                 printf("step %.1f %.1f (id %f): energy = %f!\n",
                        ptx, pty, 0.0f, energy);
 
-
+            // loop 100 times. this error get dump into error list.
             errors[i] = energy;
             if (energy < bestEnergy) {
                 bestU = ptx;
                 bestV = pty;
-                bestEnergy = energy;
+                bestEnergy = energy; // 
                 bestIdx = i;
             }
 

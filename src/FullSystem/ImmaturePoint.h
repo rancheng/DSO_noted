@@ -66,30 +66,31 @@ public:
 
 
 	// gradient of Hessian? what is H?
-	Mat22f gradH;
+	// answer: gradH is the gradient matrix aggregated from 8 different direction given in the residual pattern.
+	Mat22f gradH; // gradient H, here H in the paper is noted as matrix. so this is gradient matrix.
 	Vec2f gradH_ev;
 	Mat22f gradH_eig;
-	float energyTH;
-	float u,v;
-	FrameHessian* host;
-	int idxInImmaturePoints;
+	float energyTH; // 12*12*8 = 912, 12 is the energy threshold in setting, for each point, energy is the huber norm of residual.
+	float u,v; // u and v are the coordinate in the image plane (host frame)
+	FrameHessian* host; // yeah, this is the host frame that this immature point are located in and looking for reprojection candidates in the upcoming target frames.
+	int idxInImmaturePoints; // this index helps frame to locate the immature points like this: host->immaturePoints[ph->idxInImmaturePoints]
 
-	float quality;
+	float quality; // quality capture the smallest energy and the second smallest energy, when the energy change is large (converge faster) quality is higher.
 
-	float my_type;
+	float my_type; // this variable is for debugging... different type have different colors. (totally 4 types)
 
-	float idepth_min;
+	float idepth_min; // as it says, min idepth, and max idepth. they are used to create the reprojection region for immature point to the target frame.
 	float idepth_max;
-	ImmaturePoint(int u_, int v_, FrameHessian* host_, float type, CalibHessian* HCalib);
+	ImmaturePoint(int u_, int v_, FrameHessian* host_, float type, CalibHessian* HCalib); // constructor.
 	~ImmaturePoint();
-
+    // image alignment using Squared Sum differential (SSD)
 	ImmaturePointStatus traceOn(FrameHessian* frame, const Mat33f &hostToFrame_KRKi, const Vec3f &hostToFrame_Kt, const Vec2f &hostToFrame_affine, CalibHessian* HCalib, bool debugPrint=false);
 
-	ImmaturePointStatus lastTraceStatus;
-	Vec2f lastTraceUV;
-	float lastTracePixelInterval;
+	ImmaturePointStatus lastTraceStatus; // flag to see if OOB.
+	Vec2f lastTraceUV; // never used.
+	float lastTracePixelInterval; // idepth region area.
 
-	float idepth_GT;
+	float idepth_GT; // suppose to be the ground truth of idepth.
 
 	// linearize residual calculation to simplify computation.
 	double linearizeResidual(
