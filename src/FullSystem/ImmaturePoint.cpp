@@ -357,19 +357,23 @@ namespace dso {
             // loop 100 times. this error get dump into error list.
             errors[i] = energy;
             if (energy < bestEnergy) {
-                bestU = ptx;
+                bestU = ptx; // find the best energy u and v.
                 bestV = pty;
-                bestEnergy = energy; // 
-                bestIdx = i;
+                bestEnergy = energy; // loop out the smallest energy.
+                bestIdx = i; // and it's index.
             }
 
-            ptx += dx;
+            ptx += dx; // dx is c*(uMax - uMin)/dist which is a small pixel step which will cover the whole rectangle area determined by min_idepth and max_idepth
             pty += dy;
         }
 
 
         // find best score outside a +-2px radius.
         float secondBest = 1e10;
+        // loop the 100 errors list and find the smallest error outside the radius above.
+        // this secondBest error will determine the quality. if the secondbest error is very high
+        // and the best error is small, this means quality is good, which is intuitive.
+        // the projection gets into the right place with smallest reprojection error, anywhere else are bad choices.
         for (int i = 0; i < numSteps; i++) {
             if ((i < bestIdx - setting_minTraceTestRadius || i > bestIdx + setting_minTraceTestRadius) &&
                 errors[i] < secondBest)
@@ -387,26 +391,30 @@ namespace dso {
          */
         // quality further determine weather a immature point can be activated as mature point or not.
         float newQuality = secondBest / bestEnergy; // best energy is always the smallest, that makes quality >= 1
-        if (newQuality < quality || numSteps > 10) quality = newQuality;
-
+        if (newQuality < quality || numSteps > 10) quality = newQuality; // quality intialized as 1000
+        // quality = min(1000, newQuality)
 
         // ============== do GN optimization ===================
-        float uBak = bestU, vBak = bestV, gnstepsize = 1, stepBack = 0;
-        if (setting_trace_GNIterations > 0) bestEnergy = 1e5;
-        int gnStepsGood = 0, gnStepsBad = 0;
+        float uBak = bestU, vBak = bestV, gnstepsize = 1, stepBack = 0; // gauss newton optimization
+        if (setting_trace_GNIterations > 0) bestEnergy = 1e5; // bestEnergy
+        int gnStepsGood = 0, gnStepsBad = 0; // gaussian newton steps
         for (int it = 0; it < setting_trace_GNIterations; it++) {
             float H = 1, b = 0, energy = 0;
             for (int idx = 0; idx < patternNum; idx++) {
+                // get the normalized color at bestU, bestV with 8 different directions.
                 Vec3f hitColor = getInterpolatedElement33(frame->dI,
                                                           (float) (bestU + rotatetPattern[idx][0]),
                                                           (float) (bestV + rotatetPattern[idx][1]), wG[0]);
-
+                // skip those invalid color values.
                 if (!std::isfinite((float) hitColor[0])) {
                     energy += 1e5;
                     continue;
                 }
+                // get the residual for each point.
                 float residual = hitColor[0] - (hostToFrame_affine[0] * color[idx] + hostToFrame_affine[1]);
+                // dx*dx + dy*dy... distance of gradient x and y.
                 float dResdDist = dx * hitColor[1] + dy * hitColor[2];
+                // code below calculate the energy and aggregated for 8 directions.
                 float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
 
                 H += hw * dResdDist * dResdDist;
@@ -419,7 +427,7 @@ namespace dso {
                 gnStepsBad++;
 
                 // do a smaller step from old point.
-                stepBack *= 0.5;
+                stepBack *= 0.5; // shrink the offset
                 bestU = uBak + stepBack * dx;
                 bestV = vBak + stepBack * dy;
                 if (debugPrint)
@@ -429,7 +437,8 @@ namespace dso {
             } else {
                 gnStepsGood++;
 
-                float step = -gnstepsize * b / H;
+                float step = -gnstepsize * b / H; // step size is determined by b/H = residual/dResdDist.
+                // notice that it's -gnstepsize which makes it negative constantly.
                 if (step < -0.5) step = -0.5;
                 else if (step > 0.5) step = 0.5;
 
