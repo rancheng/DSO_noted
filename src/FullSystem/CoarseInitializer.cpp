@@ -773,7 +773,7 @@ void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHe
 	makeK(HCalib);
 	firstFrame = newFrameHessian; // first Frame in CoarseInitializer is equivalent to host frame in frame window.
 
-	PixelSelector sel(w[0],h[0]);
+	PixelSelector sel(w[0],h[0]); // basically this selector select points in different scales that gradient collinear with the random direction setup.
 
 	float* statusMap = new float[w[0]*h[0]];
 	bool* statusMapB = new bool[w[0]*h[0]];

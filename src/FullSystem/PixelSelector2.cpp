@@ -345,7 +345,8 @@ namespace dso {
         return numHaveSub;
     }
 
-    // this function
+    // this function loops through different scale space and for each space, they select the point with
+    // dx and dy collinear with the random direction.
     Eigen::Vector3i PixelSelector::select(const FrameHessian *const fh,
                                           float *map_out, int pot, float thFactor) {
         // int pot is potential, defined in the class, but what is potential defined in paper?
