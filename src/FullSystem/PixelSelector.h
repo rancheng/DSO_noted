@@ -56,6 +56,8 @@ inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h,
 			float bestXX=0, bestYY=0, bestXY=0, bestYX=0;
 
 			Eigen::Vector3f* grads0 = grads+x+y*w;
+			// same as pixel selector 2's selector, which compare the gradients on one point
+			// this one select those points that has relatively larger squared norm of gradients.
 			for(int dx=0;dx<pot;dx++)
 				for(int dy=0;dy<pot;dy++)
 				{
@@ -202,7 +204,7 @@ inline int makePixelStatus(Eigen::Vector3f* grads, bool* map, int w, int h, floa
 
 	int numGoodPoints;
 
-
+    // gridMaxSelection is a simplified pixel selector as pixel selector2 which take different size of potential scales.
 	if(sparsityFactor==1) numGoodPoints = gridMaxSelection<1>(grads, map, w, h, THFac);
 	else if(sparsityFactor==2) numGoodPoints = gridMaxSelection<2>(grads, map, w, h, THFac);
 	else if(sparsityFactor==3) numGoodPoints = gridMaxSelection<3>(grads, map, w, h, THFac);

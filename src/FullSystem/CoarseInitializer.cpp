@@ -780,9 +780,10 @@ void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHe
 
 	float densities[] = {0.03,0.05,0.15,0.5,1}; // I see, this is density for sample: 3% on largest scale. and 100% on smallest scale.
     // float numWant = density; this is in PixelSelector2.cpp. which is the point number makeMaps want.
+    // loop through all level of scales
 	for(int lvl=0; lvl<pyrLevelsUsed; lvl++)
 	{
-		sel.currentPotential = 3;
+		sel.currentPotential = 3; // okay, start from largest potential patch size, and will reach to 1 in pixel selector.
 		int npts;
 		if(lvl == 0)
 			npts = sel.makeMaps(firstFrame, statusMap,densities[lvl]*w[0]*h[0],1,false,2);
@@ -802,6 +803,10 @@ void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHe
 		for(int x=patternPadding+1;x<wl-patternPadding-2;x++)
 		{
 			//if(x==2) printf("y=%d!\n",y);
+			// remember that statusMapB is the binary map of the point selected.
+			// statusMap is the hash map for the selected points in different level.
+			// this condition is (not in first level and the point in x,y location was selected)
+			// or it's first level but the selected point is not from first level.
 			if((lvl!=0 && statusMapB[x+y*wl]) || (lvl==0 && statusMap[x+y*wl] != 0))
 			{
 				//assert(patternNum==9);
