@@ -398,6 +398,9 @@ namespace dso {
         float uBak = bestU, vBak = bestV, gnstepsize = 1, stepBack = 0; // gauss newton optimization
         if (setting_trace_GNIterations > 0) bestEnergy = 1e5; // bestEnergy
         int gnStepsGood = 0, gnStepsBad = 0; // gaussian newton steps
+
+        // trace gauss-newton iteration is 3.
+        // loop 3 times to find the best u and v
         for (int it = 0; it < setting_trace_GNIterations; it++) {
             float H = 1, b = 0, energy = 0;
             for (int idx = 0; idx < patternNum; idx++) {
@@ -428,23 +431,23 @@ namespace dso {
 
                 // do a smaller step from old point.
                 stepBack *= 0.5; // shrink the offset
-                bestU = uBak + stepBack * dx;
+                bestU = uBak + stepBack * dx; // use the last backup of best u and v as searching direction.
                 bestV = vBak + stepBack * dy;
                 if (debugPrint)
                     printf("GN BACK %d: E %f, H %f, b %f. id-step %f. UV %f %f -> %f %f.\n",
                            it, energy, H, b, stepBack,
                            uBak, vBak, bestU, bestV);
-            } else {
+            } else { // energy < bestEnergy.
                 gnStepsGood++;
 
-                float step = -gnstepsize * b / H; // step size is determined by b/H = residual/dResdDist.
+                float step = -gnstepsize * b / H; // step size is determined by b/H = sum[residual*dResdDist]/sum[dResDist*dResdDist].
                 // notice that it's -gnstepsize which makes it negative constantly.
                 if (step < -0.5) step = -0.5;
                 else if (step > 0.5) step = 0.5;
 
                 if (!std::isfinite(step)) step = 0;
 
-                uBak = bestU;
+                uBak = bestU; // backup the last best u and v.
                 vBak = bestV;
                 stepBack = step;
 
@@ -458,7 +461,7 @@ namespace dso {
                            uBak, vBak, bestU, bestV);
             }
 
-            if (fabsf(stepBack) < setting_trace_GNThreshold) break;
+            if (fabsf(stepBack) < setting_trace_GNThreshold) break; // that means the searched candidate is very close to target, converged and stop the iteration.
         }
 
 
@@ -466,7 +469,7 @@ namespace dso {
 //	float absGrad0 = getInterpolatedElement(frame->absSquaredGrad[0],bestU, bestV, wG[0]);
 //	float absGrad1 = getInterpolatedElement(frame->absSquaredGrad[1],bestU*0.5-0.25, bestV*0.5-0.25, wG[1]);
 //	float absGrad2 = getInterpolatedElement(frame->absSquaredGrad[2],bestU*0.25-0.375, bestV*0.25-0.375, wG[2]);
-        if (!(bestEnergy < energyTH * setting_trace_extraSlackOnTH))
+        if (!(bestEnergy < energyTH * setting_trace_extraSlackOnTH)) // energy is too big and will be discarded.
 //			|| (absGrad0*areaGradientSlackFactor < host->frameGradTH
 //		     && absGrad1*areaGradientSlackFactor < host->frameGradTH*0.75f
 //			 && absGrad2*areaGradientSlackFactor < host->frameGradTH*0.50f))
@@ -481,8 +484,9 @@ namespace dso {
             else
                 return lastTraceStatus = ImmaturePointStatus::IPS_OUTLIER;
         }
-
-
+        // upon the loop above, they either picked the best u and v (converged depth) or mark the point as outlier.
+        // the best u and v are now used to update idepth min and idepth max.
+        //
         // ============== set new interval ===================
         if (dx * dx > dy * dy) {
             idepth_min = (pr[2] * (bestU - errorInPixel * dx) - pr[0]) /
