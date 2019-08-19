@@ -197,6 +197,7 @@ namespace dso {
 
                     Running s;
                     memset(&s, 0, sizeof(Running));
+                    // 4 parameters are: int start, int end, Running* r, int tid.
                     callPerIndex(todo, std::min(todo + stepSize, maxIndex), &s, idx);
                     gotOne[idx] = true;
                     lock.lock();

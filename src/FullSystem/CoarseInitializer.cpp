@@ -53,14 +53,14 @@ CoarseInitializer::CoarseInitializer(int ww, int hh) : thisToNext_aff(0,0), this
 		numPoints[lvl] = 0;
 	}
 
-	JbBuffer = new Vec10f[ww*hh];
+	JbBuffer = new Vec10f[ww*hh]; // 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
 	JbBuffer_new = new Vec10f[ww*hh];
 
 
 	frameID=-1;
 	fixAffine=true;
 	printDebug=false;
-
+    // wM is a diagonal matrix dump all the scale information
 	wM.diagonal()[0] = wM.diagonal()[1] = wM.diagonal()[2] = SCALE_XI_ROT;
 	wM.diagonal()[3] = wM.diagonal()[4] = wM.diagonal()[5] = SCALE_XI_TRANS;
 	wM.diagonal()[6] = SCALE_A;
@@ -81,10 +81,10 @@ CoarseInitializer::~CoarseInitializer()
 bool CoarseInitializer::trackFrame(FrameHessian* newFrameHessian, std::vector<IOWrap::Output3DWrapper*> &wraps)
 {
 	newFrame = newFrameHessian;
-
+    // update the target frame into visualization wrapper.
     for(IOWrap::Output3DWrapper* ow : wraps)
         ow->pushLiveFrame(newFrameHessian);
-
+    // maximum itarations for different scales.
 	int maxIterations[] = {5,5,10,30,50};
 
 
@@ -97,7 +97,7 @@ bool CoarseInitializer::trackFrame(FrameHessian* newFrameHessian, std::vector<IO
 	if(!snapped)
 	{
 		thisToNext.translation().setZero();
-		for(int lvl=0;lvl<pyrLevelsUsed;lvl++)
+		for(int lvl=0;lvl<pyrLevelsUsed;lvl++) // pyrLevelsUsed is 6 in settings.h
 		{
 			int npts = numPoints[lvl];
 			Pnt* ptsl = points[lvl];

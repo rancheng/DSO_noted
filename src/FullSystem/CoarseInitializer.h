@@ -40,7 +40,7 @@ struct CalibHessian;
 struct FrameHessian;
 
 
-struct Pnt
+struct Pnt // point struct.
 {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
@@ -94,7 +94,7 @@ public:
 	Pnt* points[PYR_LEVELS];
 	int numPoints[PYR_LEVELS];
 	AffLight thisToNext_aff;
-	SE3 thisToNext;
+	SE3 thisToNext; // transformation matrix from current host frame to new target frame.
 
 
 	FrameHessian* firstFrame;
