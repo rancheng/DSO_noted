@@ -775,8 +775,8 @@ void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHe
 
 	PixelSelector sel(w[0],h[0]); // basically this selector select points in different scales that gradient collinear with the random direction setup.
 
-	float* statusMap = new float[w[0]*h[0]];
-	bool* statusMapB = new bool[w[0]*h[0]];
+	float* statusMap = new float[w[0]*h[0]]; // statusMap is the point select map. record which point are selected from which scale.
+	bool* statusMapB = new bool[w[0]*h[0]]; // statusMapB here B is binary, see this is a bool map. record weather a point should be select or not.
 
 	float densities[] = {0.03,0.05,0.15,0.5,1}; // I see, this is density for sample: 3% on largest scale. and 100% on smallest scale.
     // float numWant = density; this is in PixelSelector2.cpp. which is the point number makeMaps want.
