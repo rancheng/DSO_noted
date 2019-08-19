@@ -99,6 +99,11 @@ namespace dso {
  */
     // from the paper, they leverage Squared Sum differential (SSD) to do image alignment.
     // whoa! 400 lines function, intimidating.
+    // traceOn function purpose:
+    // loop through the residual pattern and calculate residual and normalize it into energy
+    // use gauss-newton method to find the minimal energy location and use it to update idepth estimation.
+    // notice this function is happen in each immaturepoint, thus will trigger each point to traceOn and
+    // eventually convert immaturepoint into good point hessian or discard as an outlier.
     ImmaturePointStatus
     ImmaturePoint::traceOn(FrameHessian *frame, const Mat33f &hostToFrame_KRKi, const Vec3f &hostToFrame_Kt,
                            const Vec2f &hostToFrame_affine, CalibHessian *HCalib, bool debugPrint) {
@@ -489,16 +494,19 @@ namespace dso {
         //
         // ============== set new interval ===================
         if (dx * dx > dy * dy) {
+            // error on x direction is smaller. use best U to update idepth.
             idepth_min = (pr[2] * (bestU - errorInPixel * dx) - pr[0]) /
                          (hostToFrame_Kt[0] - hostToFrame_Kt[2] * (bestU - errorInPixel * dx));
             idepth_max = (pr[2] * (bestU + errorInPixel * dx) - pr[0]) /
                          (hostToFrame_Kt[0] - hostToFrame_Kt[2] * (bestU + errorInPixel * dx));
         } else {
+            // error on y direction is smaller. use best V as update idepth.
             idepth_min = (pr[2] * (bestV - errorInPixel * dy) - pr[1]) /
                          (hostToFrame_Kt[1] - hostToFrame_Kt[2] * (bestV - errorInPixel * dy));
             idepth_max = (pr[2] * (bestV + errorInPixel * dy) - pr[1]) /
                          (hostToFrame_Kt[1] - hostToFrame_Kt[2] * (bestV + errorInPixel * dy));
         }
+        // swap the idepth guess. notice that idepth here is the 1/depth. so actually idepth min should be the far side of depth estimation.
         if (idepth_min > idepth_max) std::swap<float>(idepth_min, idepth_max);
 
 
