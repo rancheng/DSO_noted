@@ -42,7 +42,7 @@ namespace dso {
         std::srand(3141592);    // want to be deterministic.
         for (int i = 0; i < w * h; i++) randomPattern[i] = rand() & 0xFF;
 
-        currentPotential = 3;
+        currentPotential = 3; // this current potiential search field is initialized as 3 which is a relative large space. will shrink on MakeMaps function to select enough points.
 
 
         gradHist = new int[100 * (1 + w / 32) * (1 + h / 32)];
@@ -201,6 +201,10 @@ namespace dso {
     // like this name, make the selectionMap
     // don't know yet what the selection map works for.
     // will update here later.
+    // ---------------update----------------------
+    // selection map marks the point should be selected and mark them with different scale space index.
+    // notice the recursion inside, it will recursively search shirnked search potential area. (currentPotential = 3 --> shrink to 1... if there's not enough points.)
+    // here this currentPotential or pot or any other potential is regard as stride as in convolution.
     int PixelSelector::makeMaps(
             const FrameHessian *const fh,
             float *map_out, float density, int recursionsLeft, bool plot, float thFactor) {
@@ -252,10 +256,11 @@ namespace dso {
             Eigen::Vector3i n = this->select(fh, map_out, currentPotential, thFactor);
 
             // sub-select!
-            numHave = n[0] + n[1] + n[2];
-            quotia = numWant / numHave;
+            numHave = n[0] + n[1] + n[2]; // see, this n is n2 n3 and n4, the total point selected.
+            quotia = numWant / numHave; // quotia is obvious, no need to explain...
 
             // by default we want to over-sample by 40% just to be sure.
+            // if K = 1.4 numHave... that means currentPotential is ~0.2 (1.2*1.2 ~ 1.44)
             float K = numHave * (currentPotential + 1) * (currentPotential + 1);
             idealPotential = sqrtf(K / numWant) - 1;    // round down.
             if (idealPotential < 1) idealPotential = 1;
