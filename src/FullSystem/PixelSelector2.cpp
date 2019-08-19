@@ -345,10 +345,12 @@ namespace dso {
         return numHaveSub;
     }
 
-
+    // this function
     Eigen::Vector3i PixelSelector::select(const FrameHessian *const fh,
                                           float *map_out, int pot, float thFactor) {
         // int pot is potential, defined in the class, but what is potential defined in paper?
+        // my guess is pot here is a scale factor for how much search space they want to cover
+        // in each scale space.
         // the map0 now is used to define image.... notation abuse, understood.
         Eigen::Vector3f const *const map0 = fh->dI;
         // 3 levels of sum suared gradients. 0 is the largest and 2 is the smallest
@@ -395,7 +397,25 @@ namespace dso {
         // down weighting constant, don't know what they exactly doing.
         float dw1 = setting_gradDownweightPerLevel;
         float dw2 = dw1 * dw1;
+        //------------------------------------Explain of loop:----------------------------------------------
 
+        // this loop is searching in different scales.
+
+        // first scale y4, x4 which is looping trough the whole image space
+
+        // second scale y3, x3 which looping through the 4*pot size small patch start at y4, x4.
+
+        // now on y2, x2 and y1, x1 should be even smaller size of patch to search.
+
+        // this is equivalent to the convolution through different scale space.
+
+        // and they change directions in each loop step in each scale space.
+
+        // eventually, in the loop body, they capture those largest dirNorm (which means gradient vector are collinear)
+
+        // intuitively, we can regard all point like that are matched point and considered as selected point.
+
+        //----------------------------------------------------------------------------------------
         // n3 n2 and n4 are index of vector returned. increased at each for loop.
         int n3 = 0, n2 = 0, n4 = 0;
         // pot here is the potential defined in the function or passed from coarse initializer
@@ -531,7 +551,9 @@ namespace dso {
                                             }
                                         }
                                     }
-
+                                // from this if all those following code are recording the map_out with those matched points
+                                // and marked in different scales.
+                                // map_out[some_index] = 1 means that this is the match point searched by the smallest scale.
                                 if (bestIdx2 > 0) {
                                     map_out[bestIdx2] = 1;
                                     bestVal3 = 1e10;
@@ -540,19 +562,20 @@ namespace dso {
                             }
 
                         if (bestIdx3 > 0) {
-                            map_out[bestIdx3] = 2;
+                            map_out[bestIdx3] = 2; // mark the selected point in scale 2, which is even larger scale
                             bestVal4 = 1e10;
                             n3++;
                         }
                     }
 
                 if (bestIdx4 > 0) {
-                    map_out[bestIdx4] = 4;
+                    map_out[bestIdx4] = 4; // this is the largest scale, which literally covers the whole image piexls.
                     n4++;
                 }
             }
-
-
+        // after finished the loop above, all the point that are suppose to be a match was selected and marked in map_out.
+        // here map_out has 3 different scales. but every point marked in map_out are selected.
+        // n3 n2 and n4 are the point size selected in different scales.
         return Eigen::Vector3i(n2, n3, n4);
     }
 

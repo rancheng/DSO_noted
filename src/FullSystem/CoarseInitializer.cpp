@@ -739,7 +739,7 @@ void CoarseInitializer::propagateDown(int srcLvl)
 	optReg(srcLvl-1);
 }
 
-
+// this function loops through all scales and use average pooling to create scale spaces and calculate dx dy for each scale.
 void CoarseInitializer::makeGradients(Eigen::Vector3f** data)
 {
 	for(int lvl=1; lvl<pyrLevelsUsed; lvl++)
@@ -747,11 +747,12 @@ void CoarseInitializer::makeGradients(Eigen::Vector3f** data)
 		int lvlm1 = lvl-1;
 		int wl = w[lvl], hl = h[lvl], wlm1 = w[lvlm1];
 
-		Eigen::Vector3f* dINew_l = data[lvl];
-		Eigen::Vector3f* dINew_lm = data[lvlm1];
+		Eigen::Vector3f* dINew_l = data[lvl]; // dINew_l is the scale from 1 to 8
+		Eigen::Vector3f* dINew_lm = data[lvlm1]; // dINew_lm is the upper (larger) scale above dINew_l
 
 		for(int y=0;y<hl;y++)
 			for(int x=0;x<wl;x++)
+			    // normalize the dINew_l pixel color at x, y by average the upper layer's 4 nearby pixel patch.
 				dINew_l[x + y*wl][0] = 0.25f * (dINew_lm[2*x   + 2*y*wlm1][0] +
 													dINew_lm[2*x+1 + 2*y*wlm1][0] +
 													dINew_lm[2*x   + 2*y*wlm1+wlm1][0] +
@@ -759,16 +760,18 @@ void CoarseInitializer::makeGradients(Eigen::Vector3f** data)
 
 		for(int idx=wl;idx < wl*(hl-1);idx++)
 		{
-			dINew_l[idx][1] = 0.5f*(dINew_l[idx+1][0] - dINew_l[idx-1][0]);
-			dINew_l[idx][2] = 0.5f*(dINew_l[idx+wl][0] - dINew_l[idx-wl][0]);
+			dINew_l[idx][1] = 0.5f*(dINew_l[idx+1][0] - dINew_l[idx-1][0]); // calculate dx
+			dINew_l[idx][2] = 0.5f*(dINew_l[idx+wl][0] - dINew_l[idx-wl][0]); // calculate dy
 		}
 	}
 }
+
+// this function set the first frameHessian.
 void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHessian)
 {
 
 	makeK(HCalib);
-	firstFrame = newFrameHessian;
+	firstFrame = newFrameHessian; // first Frame in CoarseInitializer is equivalent to host frame in frame window.
 
 	PixelSelector sel(w[0],h[0]);
 
