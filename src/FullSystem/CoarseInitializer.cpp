@@ -741,6 +741,7 @@ namespace dso {
             int wl = w[lvl], hl = h[lvl]; // w h in lvl scale.
             Pnt *pl = points[lvl]; // pointer to get the points in lvl.
             int nl = 0;
+            // this whole loop covers the whole image space with in the padding, in scale lvl.
             for (int y = patternPadding + 1; y < hl - patternPadding - 2; y++)
                 for (int x = patternPadding + 1; x < wl - patternPadding - 2; x++) {
                     //if(x==2) printf("y=%d!\n",y);
@@ -785,11 +786,11 @@ namespace dso {
                     }
                 }
 
-
-            numPoints[lvl] = nl;
+            // now nl is the final point selected in scale lvl.
+            numPoints[lvl] = nl; // numPoints record the number of chosen point in different lvl.
         }
-        delete[] statusMap;
-        delete[] statusMapB;
+        delete[] statusMap; // since all points are stored in pl.
+        delete[] statusMapB; // status map (selection map) has finished their purpose.
 
         makeNN();
 
@@ -898,7 +899,7 @@ namespace dso {
         }
     }
 
-
+    // nearest neighbor.
     void CoarseInitializer::makeNN() {
         const float NNDistFactor = 0.05;
 
