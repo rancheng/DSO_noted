@@ -433,7 +433,7 @@ float FullSystem::optimize(int mnumOptIts)
 					r->resetOOB();
 				}
 				else
-					numLRes++;
+					numLRes++; // get the points with linearized residual.
 			}
 			numPoints++;
 		}

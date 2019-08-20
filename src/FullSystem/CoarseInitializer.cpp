@@ -53,14 +53,14 @@ CoarseInitializer::CoarseInitializer(int ww, int hh) : thisToNext_aff(0,0), this
 		numPoints[lvl] = 0;
 	}
 
-	JbBuffer = new Vec10f[ww*hh];
+	JbBuffer = new Vec10f[ww*hh]; // 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
 	JbBuffer_new = new Vec10f[ww*hh];
 
 
 	frameID=-1;
 	fixAffine=true;
 	printDebug=false;
-
+    // wM is a diagonal matrix dump all the scale information
 	wM.diagonal()[0] = wM.diagonal()[1] = wM.diagonal()[2] = SCALE_XI_ROT;
 	wM.diagonal()[3] = wM.diagonal()[4] = wM.diagonal()[5] = SCALE_XI_TRANS;
 	wM.diagonal()[6] = SCALE_A;
@@ -81,10 +81,10 @@ CoarseInitializer::~CoarseInitializer()
 bool CoarseInitializer::trackFrame(FrameHessian* newFrameHessian, std::vector<IOWrap::Output3DWrapper*> &wraps)
 {
 	newFrame = newFrameHessian;
-
+    // update the target frame into visualization wrapper.
     for(IOWrap::Output3DWrapper* ow : wraps)
         ow->pushLiveFrame(newFrameHessian);
-
+    // maximum itarations for different scales.
 	int maxIterations[] = {5,5,10,30,50};
 
 
@@ -97,7 +97,7 @@ bool CoarseInitializer::trackFrame(FrameHessian* newFrameHessian, std::vector<IO
 	if(!snapped)
 	{
 		thisToNext.translation().setZero();
-		for(int lvl=0;lvl<pyrLevelsUsed;lvl++)
+		for(int lvl=0;lvl<pyrLevelsUsed;lvl++) // pyrLevelsUsed is 6 in settings.h
 		{
 			int npts = numPoints[lvl];
 			Pnt* ptsl = points[lvl];
@@ -780,9 +780,10 @@ void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHe
 
 	float densities[] = {0.03,0.05,0.15,0.5,1}; // I see, this is density for sample: 3% on largest scale. and 100% on smallest scale.
     // float numWant = density; this is in PixelSelector2.cpp. which is the point number makeMaps want.
+    // loop through all level of scales
 	for(int lvl=0; lvl<pyrLevelsUsed; lvl++)
 	{
-		sel.currentPotential = 3; // selector potential size is 3 for the first.
+		sel.currentPotential = 3; // okay, start from largest potential patch size, and will reach to 1 in pixel selector.
 		int npts;
 		if(lvl == 0)
 			npts = sel.makeMaps(firstFrame, statusMap,densities[lvl]*w[0]*h[0],1,false,2); // selected points in random directions.
@@ -802,6 +803,10 @@ void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHe
 		for(int x=patternPadding+1;x<wl-patternPadding-2;x++)
 		{
 			//if(x==2) printf("y=%d!\n",y);
+			// remember that statusMapB is the binary map of the point selected.
+			// statusMap is the hash map for the selected points in different level.
+			// this condition is (not in first level and the point in x,y location was selected)
+			// or it's first level but the selected point is not from first level.
 			if((lvl!=0 && statusMapB[x+y*wl]) || (lvl==0 && statusMap[x+y*wl] != 0))
 			{
 				//assert(patternNum==9);

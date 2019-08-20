@@ -49,6 +49,16 @@ namespace dso {
 
                 float bestXX = 0, bestYY = 0, bestXY = 0, bestYX = 0;
 
+			Eigen::Vector3f* grads0 = grads+x+y*w;
+			// same as pixel selector 2's selector, which compare the gradients on one point
+			// this one select those points that has relatively larger squared norm of gradients.
+			for(int dx=0;dx<pot;dx++)
+				for(int dy=0;dy<pot;dy++)
+				{
+					int idx = dx+dy*w;
+					Eigen::Vector3f g=grads0[idx];
+					float sqgd = g.tail<2>().squaredNorm();
+					float TH = THFac*minUseGrad_pixsel * (0.75f);
                 Eigen::Vector3f *grads0 = grads + x + y * w;
                 for (int dx = 0; dx < pot; dx++)
                     for (int dy = 0; dy < pot; dy++) {
@@ -205,26 +215,26 @@ namespace dso {
 
         int numGoodPoints;
 
-
-        if (sparsityFactor == 1) numGoodPoints = gridMaxSelection<1>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 2) numGoodPoints = gridMaxSelection<2>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 3) numGoodPoints = gridMaxSelection<3>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 4) numGoodPoints = gridMaxSelection<4>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 5) numGoodPoints = gridMaxSelection<5>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 6) numGoodPoints = gridMaxSelection<6>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 7) numGoodPoints = gridMaxSelection<7>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 8) numGoodPoints = gridMaxSelection<8>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 9) numGoodPoints = gridMaxSelection<9>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 10) numGoodPoints = gridMaxSelection<10>(grads, map, w, h, THFac);
-        else if (sparsityFactor == 11) numGoodPoints = gridMaxSelection<11>(grads, map, w, h, THFac);
-        else numGoodPoints = gridMaxSelection(grads, map, w, h, sparsityFactor, THFac);
+    // gridMaxSelection is a simplified pixel selector as pixel selector2 which take different size of potential scales.
+	if(sparsityFactor==1) numGoodPoints = gridMaxSelection<1>(grads, map, w, h, THFac);
+	else if(sparsityFactor==2) numGoodPoints = gridMaxSelection<2>(grads, map, w, h, THFac);
+	else if(sparsityFactor==3) numGoodPoints = gridMaxSelection<3>(grads, map, w, h, THFac);
+	else if(sparsityFactor==4) numGoodPoints = gridMaxSelection<4>(grads, map, w, h, THFac);
+	else if(sparsityFactor==5) numGoodPoints = gridMaxSelection<5>(grads, map, w, h, THFac);
+	else if(sparsityFactor==6) numGoodPoints = gridMaxSelection<6>(grads, map, w, h, THFac);
+	else if(sparsityFactor==7) numGoodPoints = gridMaxSelection<7>(grads, map, w, h, THFac);
+	else if(sparsityFactor==8) numGoodPoints = gridMaxSelection<8>(grads, map, w, h, THFac);
+	else if(sparsityFactor==9) numGoodPoints = gridMaxSelection<9>(grads, map, w, h, THFac);
+	else if(sparsityFactor==10) numGoodPoints = gridMaxSelection<10>(grads, map, w, h, THFac);
+	else if(sparsityFactor==11) numGoodPoints = gridMaxSelection<11>(grads, map, w, h, THFac);
+	else numGoodPoints = gridMaxSelection(grads, map, w, h, sparsityFactor, THFac);
 
 
         /*
          * #points is approximately proportional to sparsityFactor^2.
          */
 
-        float quotia = numGoodPoints / (float) (desiredDensity);
+	float quotia = numGoodPoints / (float)(desiredDensity);
 
         int newSparsity = (sparsityFactor * sqrtf(quotia)) + 0.7f;
 
