@@ -789,17 +789,21 @@ namespace dso {
             // now nl is the final point selected in scale lvl.
             numPoints[lvl] = nl; // numPoints record the number of chosen point in different lvl.
         }
+        // --------end of lvl loop.-------------
+
+
         delete[] statusMap; // since all points are stored in pl.
         delete[] statusMapB; // status map (selection map) has finished their purpose.
 
-        makeNN();
+        makeNN(); // make the kd tree in scale lvl.
 
-        thisToNext = SE3();
-        snapped = false;
-        frameID = snappedAt = 0;
+        thisToNext = SE3(); // create an empty transformation matrix.
+        snapped = false; // don't know the purpose of this yet. snap means store it by flash.
+
+        frameID = snappedAt = 0; // hmm... interesting, does this means snap will store the frame in memory?
 
         for (int i = 0; i < pyrLevelsUsed; i++)
-            dGrads[i].setZero();
+            dGrads[i].setZero(); // dGrads is a vect3f... list of vector.  seems like they have never used this dGrads.
 
     }
 
