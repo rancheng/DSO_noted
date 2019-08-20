@@ -55,19 +55,20 @@ inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h,
 
 			float bestXX=0, bestYY=0, bestXY=0, bestYX=0;
 
-			Eigen::Vector3f* grads0 = grads+x+y*w;
+			Eigen::Vector3f* grads0 = grads+x+y*w; // color, dx, dy in location [x, y]
+			// this loop the pot square. and this square start from [x, y]
 			for(int dx=0;dx<pot;dx++)
 				for(int dy=0;dy<pot;dy++)
 				{
-					int idx = dx+dy*w;
-					Eigen::Vector3f g=grads0[idx];
-					float sqgd = g.tail<2>().squaredNorm();
-					float TH = THFac*minUseGrad_pixsel * (0.75f);
+					int idx = dx+dy*w; // convert to 1d index in this pot square.
+					Eigen::Vector3f g=grads0[idx]; // get the color, dx, dy in the point.
+					float sqgd = g.tail<2>().squaredNorm(); // dx, dy in x and y. -> sqgd = sqrt(dx^2 + dy^2)
+					float TH = THFac*minUseGrad_pixsel * (0.75f); // threshold of squred gradient norm.
 
 					if(sqgd > TH*TH)
 					{
-						float agx = fabs((float)g[1]);
-						if(agx > bestXX) {bestXX=agx; bestXXID=idx;}
+						float agx = fabs((float)g[1]); // abs gradient x => abs(dx)
+						if(agx > bestXX) {bestXX=agx; bestXXID=idx;} // all the if statement below are updating bestXX YY and their id...
 
 						float agy = fabs((float)g[2]);
 						if(agy > bestYY) {bestYY=agy; bestYYID=idx;}
@@ -77,12 +78,16 @@ inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h,
 
 						float gxmy = fabs((float)(g[1]+g[2]));
 						if(gxmy > bestYX) {bestYX=gxmy; bestYXID=idx;}
+						// after this loop, any point if their gradient met the above conditions, will be selected.
+						// now you know why it's max selection. this will only select one max in each direction: xx, yy, xy, yx.
+						// which is basically vertical and horizental and two diagonals.
 					}
 				}
-
-			bool* map0 = map_out+x+y*w;
-
-			if(bestXXID>=0)
+			// end of looping the pot square.
+			bool* map0 = map_out+x+y*w; // map0 point to point_select map data which starts from x and y.
+            // only if the best xxid or yyid are >= 0 the point was considered good point
+            // otherwise skip.
+			if(bestXXID>=0) // if found the point in the pot square loop above. mark the map and aggregate selected point number. in four directions.
 			{
 				if(!map0[bestXXID])
 					numGood++;
@@ -112,11 +117,11 @@ inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h,
 			}
 		}
 	}
-
-	return numGood;
+    // after looping the image, map0 ==> the point selection map was marked.
+	return numGood; // this is the final selected point number.
 }
 
-
+// this is identical to the above function, the only difference is the above function has template...
 inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h, int pot, float THFac)
 {
 
@@ -195,14 +200,14 @@ inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h,
 	return numGood;
 }
 
-
+// grads was given the dIp, which is color, dx and dy for a given scale. map is the status binary map to mark the selected point.
 inline int makePixelStatus(Eigen::Vector3f* grads, bool* map, int w, int h, float desiredDensity, int recsLeft=5, float THFac = 1)
 {
-	if(sparsityFactor < 1) sparsityFactor = 1;
+	if(sparsityFactor < 1) sparsityFactor = 1; // sparsityFactor default is 5
 
 	int numGoodPoints;
 
-
+    // select points according to different sparsity factor, which is different pot square size.
 	if(sparsityFactor==1) numGoodPoints = gridMaxSelection<1>(grads, map, w, h, THFac);
 	else if(sparsityFactor==2) numGoodPoints = gridMaxSelection<2>(grads, map, w, h, THFac);
 	else if(sparsityFactor==3) numGoodPoints = gridMaxSelection<3>(grads, map, w, h, THFac);
@@ -220,19 +225,22 @@ inline int makePixelStatus(Eigen::Vector3f* grads, bool* map, int w, int h, floa
 	/*
 	 * #points is approximately proportional to sparsityFactor^2.
 	 */
-
+    // desiredDesnsity is a float matrix which get higher when scale is smaller.
+    // which is intuitive, you want to select more points when you are in smaller scales. and want to select less
+    // on large scales, which make the scale space contribute equally from local and global point selections.
 	float quotia = numGoodPoints / (float)(desiredDensity);
 
-	int newSparsity = (sparsityFactor * sqrtf(quotia))+0.7f;
+	int newSparsity = (sparsityFactor * sqrtf(quotia))+0.7f; // new sparsity was shrinked by quotia
 
 
 	if(newSparsity < 1) newSparsity=1;
 
 
 	float oldTHFac = THFac;
+	// reach to the smallest scale
 	if(newSparsity==1 && sparsityFactor==1) THFac = 0.5;
 
-
+    // if sparsity converges.
 	if((abs(newSparsity-sparsityFactor) < 1 && THFac==oldTHFac) ||
 			( quotia > 0.8 &&  1.0f / quotia > 0.8) ||
 			recsLeft == 0)
@@ -240,14 +248,14 @@ inline int makePixelStatus(Eigen::Vector3f* grads, bool* map, int w, int h, floa
 
 //		printf(" \n");
 		//all good
-		sparsityFactor = newSparsity;
-		return numGoodPoints;
+		sparsityFactor = newSparsity; // sparsity factor is getting smaller
+		return numGoodPoints; //selection done.
 	}
 	else
 	{
 //		printf(" -> re-evaluate! \n");
 		// re-evaluate.
-		sparsityFactor = newSparsity;
+		sparsityFactor = newSparsity; // reach to the smaller scale by recursion.
 		return makePixelStatus(grads, map, w,h, desiredDensity, recsLeft-1, THFac);
 	}
 }
