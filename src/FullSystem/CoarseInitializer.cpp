@@ -934,7 +934,7 @@ namespace dso {
         const int nn = 10;
 
         // find NN & parents
-        for (int lvl = 0; lvl < pyrLevelsUsed; lvl++) { // why this is just pyrLevelsUsed? not pyrLevelsUsed - 1?
+        for (int lvl = 0; lvl < pyrLevelsUsed; lvl++) { // why this is just pyrLevelsUsed? not pyrLevelsUsed - 1? where's parent?
             Pnt *pts = points[lvl];
             int npts = numPoints[lvl];
 
@@ -965,17 +965,19 @@ namespace dso {
                     pts[i].neighboursDist[k] *= 10 / sumDF; // the smaller the distance is, the smaller the neighbourdist[k] is, this is exponientially propotional to the distance found in kdtree neighbours.
 
 
-                if (lvl < pyrLevelsUsed - 1) {
-                    resultSet1.init(ret_index, ret_dist);
-                    pt = pt * 0.5f - Vec2f(0.25f, 0.25f);
-                    indexes[lvl + 1]->findNeighbors(resultSet1, (float *) &pt, nanoflann::SearchParams());
+                if (lvl < pyrLevelsUsed - 1) { // this if statement explained my question above, this is prepared for parent.
+                    // remember this lvl is growing larger, which means the scale is smaller.
+                    resultSet1.init(ret_index, ret_dist); // here they reuse the ret_index and ret_dist?
+                    pt = pt * 0.5f - Vec2f(0.25f, 0.25f); // so parent is from the smaller scale.
+                    // note that this pt is still in the current lvl, the 'parent' point is merely the index location change.
+                    indexes[lvl + 1]->findNeighbors(resultSet1, (float *) &pt, nanoflann::SearchParams()); // this indexes is the kdtree in the smaller level.
 
-                    pts[i].parent = ret_index[0];
-                    pts[i].parentDist = expf(-ret_dist[0] * NNDistFactor);
+                    pts[i].parent = ret_index[0]; // the nearest parent
+                    pts[i].parentDist = expf(-ret_dist[0] * NNDistFactor); // the distance of the nearest parent
 
                     assert(ret_index[0] >= 0 && ret_index[0] < numPoints[lvl + 1]);
                 } else {
-                    pts[i].parent = -1;
+                    pts[i].parent = -1; // last layer doesn't have parent.
                     pts[i].parentDist = -1;
                 }
             }
