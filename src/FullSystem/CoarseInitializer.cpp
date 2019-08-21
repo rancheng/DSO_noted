@@ -908,9 +908,14 @@ namespace dso {
     }
 
     // find the nearest neighbor of selected points (in the smaller scale space) from the it's larger parent scale space.
+    // detailed original code can be found from:
+    // https://github.com/jlblancoc/nanoflann/blob/master/examples/pointcloud_example.cpp
+    // which is the author's repo of nanoflann
     void CoarseInitializer::makeNN() {
         const float NNDistFactor = 0.05;
-
+        // construct a kd-tree index:
+        // idex take 4 type of templates as parameter: 1. the distance class, 2. the data-source class 3. dimension (default -1), 4. index type (default size_t is type returned by the sizeof operator).
+        // so this KDTree index is a 2d
         typedef nanoflann::KDTreeSingleIndexAdaptor<
                 nanoflann::L2_Simple_Adaptor<float, FLANNPointcloud>,
                 FLANNPointcloud, 2> KDTree;
@@ -918,41 +923,46 @@ namespace dso {
         // build indices
         FLANNPointcloud pcs[PYR_LEVELS];
         KDTree *indexes[PYR_LEVELS]; // create kd tree for each scale level.
+        // now loop all scale spaces and build 2d kdtree from the selected points.
         for (int i = 0; i < pyrLevelsUsed; i++) {
             pcs[i] = FLANNPointcloud(numPoints[i], points[i]); // create the point cloud for each scale level.
+            // KDTree constructor takes 3 parameters: dimensionality, inputData and params. this parameter sets the _leaf_max_size as 5
             indexes[i] = new KDTree(2, pcs[i], nanoflann::KDTreeSingleIndexAdaptorParams(5)); // create the 2d kd tree out of each point cloud.
-            indexes[i]->buildIndex(); // initialize the index for the kdtree.
+            indexes[i]->buildIndex(); // initialize the kdtree index adaptor class.
         }
 
         const int nn = 10;
 
         // find NN & parents
-        for (int lvl = 0; lvl < pyrLevelsUsed; lvl++) {
+        for (int lvl = 0; lvl < pyrLevelsUsed; lvl++) { // why this is just pyrLevelsUsed? not pyrLevelsUsed - 1?
             Pnt *pts = points[lvl];
             int npts = numPoints[lvl];
 
-            int ret_index[nn];
+            int ret_index[nn]; // find nearest 10 parents.
             float ret_dist[nn];
             nanoflann::KNNResultSet<float, int, int> resultSet(nn);
             nanoflann::KNNResultSet<float, int, int> resultSet1(1);
-
+            // loop all the selected points in the scale level
             for (int i = 0; i < npts; i++) {
                 //resultSet.init(pts[i].neighbours, pts[i].neighboursDist );
                 resultSet.init(ret_index, ret_dist);
                 Vec2f pt = Vec2f(pts[i].u, pts[i].v);
+                // so find neighbors func takes three parameters: result_set, query_point and search_parameters
+                // this function will put the search results into resultSet. which is a zipped data of (index, dist)
                 indexes[lvl]->findNeighbors(resultSet, (float *) &pt, nanoflann::SearchParams());
+
                 int myidx = 0;
                 float sumDF = 0;
-                for (int k = 0; k < nn; k++) {
+                for (int k = 0; k < nn; k++) { // this loop loops the nearest 10 points of pts[i] and dump their expf distance function
                     pts[i].neighbours[myidx] = ret_index[k];
-                    float df = expf(-ret_dist[k] * NNDistFactor);
-                    sumDF += df;
+                    float df = expf(-ret_dist[k] * NNDistFactor); // small number inversely proportional to distance [0, 1]
+                    sumDF += df; // sumDF aggregate the 10 nearest distance float, [0,10]
                     pts[i].neighboursDist[myidx] = df;
                     assert(ret_index[k] >= 0 && ret_index[k] < npts);
                     myidx++;
                 }
                 for (int k = 0; k < nn; k++)
-                    pts[i].neighboursDist[k] *= 10 / sumDF;
+                    pts[i].neighboursDist[k] *= 10 / sumDF; // the smaller the distance is, the smaller the neighbourdist[k] is, this is exponientially propotional to the distance found in kdtree neighbours.
 
 
                 if (lvl < pyrLevelsUsed - 1) {
