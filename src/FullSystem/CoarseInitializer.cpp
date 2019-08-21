@@ -112,6 +112,9 @@ namespace dso {
 
 
         Vec3f latestRes = Vec3f::Zero();
+        // hmm... interesting, this loop start from smaller scale side
+        // so, by doing this inverse order loop, the globally stable points are selected to loop out the
+        // coarse SE3 matrix in a global manner, and will be kept refined in the loop on the larger scales.
         for (int lvl = pyrLevelsUsed - 1; lvl >= 0; lvl--) {
 
 
@@ -705,7 +708,8 @@ namespace dso {
         }
     }
 
-// this function set the first frameHessian.
+    // this function select all the points in different scale, one thing note-worthy is that all points in smaller scales
+    // are selected with max gradient selector (in PixelSelector), which is faster than random gradient selector (in PixelSelector2)
     void CoarseInitializer::setFirst(CalibHessian *HCalib, FrameHessian *newFrameHessian) {
 
         makeK(HCalib);
@@ -903,7 +907,7 @@ namespace dso {
         }
     }
 
-    // nearest neighbor.
+    // find the nearest neighbor of selected points (in the smaller scale space) from the it's larger parent scale space.
     void CoarseInitializer::makeNN() {
         const float NNDistFactor = 0.05;
 
@@ -913,11 +917,11 @@ namespace dso {
 
         // build indices
         FLANNPointcloud pcs[PYR_LEVELS];
-        KDTree *indexes[PYR_LEVELS];
+        KDTree *indexes[PYR_LEVELS]; // create kd tree for each scale level.
         for (int i = 0; i < pyrLevelsUsed; i++) {
-            pcs[i] = FLANNPointcloud(numPoints[i], points[i]);
-            indexes[i] = new KDTree(2, pcs[i], nanoflann::KDTreeSingleIndexAdaptorParams(5));
-            indexes[i]->buildIndex();
+            pcs[i] = FLANNPointcloud(numPoints[i], points[i]); // create the point cloud for each scale level.
+            indexes[i] = new KDTree(2, pcs[i], nanoflann::KDTreeSingleIndexAdaptorParams(5)); // create the 2d kd tree out of each point cloud.
+            indexes[i]->buildIndex(); // initialize the index for the kdtree.
         }
 
         const int nn = 10;

@@ -169,7 +169,7 @@ struct FLANNPointcloud
     inline FLANNPointcloud() {num=0; points=0;}
     inline FLANNPointcloud(int n, Pnt* p) :  num(n), points(p) {}
 	int num;
-	Pnt* points;
+	Pnt* points; //points is an array store all the selected points in different scale level.
 	inline size_t kdtree_get_point_count() const { return num; }
 	inline float kdtree_distance(const float *p1, const size_t idx_p2,size_t /*size*/) const
 	{
