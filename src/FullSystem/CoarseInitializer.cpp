@@ -799,7 +799,7 @@ namespace dso {
         delete[] statusMap; // since all points are stored in pl.
         delete[] statusMapB; // status map (selection map) has finished their purpose.
 
-        makeNN(); // make the kd tree in scale lvl.
+        makeNN(); // build kdtree of selected points in each lvl and find nearest neighbours in same lvl and parent lvl (smaller scaled layer)
 
         thisToNext = SE3(); // create an empty transformation matrix.
         snapped = false; // don't know the purpose of this yet. snap means store it by flash.
