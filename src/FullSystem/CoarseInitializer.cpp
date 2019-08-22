@@ -818,7 +818,7 @@ namespace dso {
             pts[i].energy.setZero();
             pts[i].idepth_new = pts[i].idepth;
 
-
+            // if lvl == 5 and the point i is not good.
             if (lvl == pyrLevelsUsed - 1 && !pts[i].isGood) {
                 float snd = 0, sn = 0;
                 for (int n = 0; n < 10; n++) {
