@@ -8,16 +8,14 @@
   </component>
   <component name="CMakeSettings">
     <configurations>
-      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" GENERATION_DIR="build" />
+      <configuration PROFILE_NAME="Release" CONFIG_NAME="Release" GENERATION_DIR="release" />
     </configurations>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0f0dc611-cbd5-4db1-88f6-e311e5a16f35" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/FullSystem/FullSystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FullSystem/FullSystem.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/util/IndexThreadReduce.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/IndexThreadReduce.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
-    <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,130 +26,8 @@
     <option name="formatViaClangd" value="false" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
-  <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.46002388">
-      <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="19">
-                  <caret line="272" column="42" selection-start-line="272" selection-start-column="42" selection-end-line="272" selection-end-column="42" />
-                  <folding>
-                    <element signature="e#964#980#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="631">
-                  <caret line="530" column="68" selection-start-line="530" selection-start-column="68" selection-end-line="530" selection-end-column="68" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="615">
-                  <caret line="72" column="95" selection-start-line="72" selection-start-column="95" selection-end-line="72" selection-end-column="95" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/Residuals.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="284">
-                  <caret line="46" column="5" selection-start-line="46" selection-start-column="5" selection-end-line="46" selection-end-column="5" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/ImmaturePoint.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="403">
-                  <caret line="41" column="25" lean-forward="true" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemMarginalize.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="284">
-                  <caret line="57" column="23" selection-start-line="57" selection-start-column="23" selection-end-line="57" selection-end-column="23" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/src/util/IndexThreadReduce.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="549">
-                  <caret line="136" column="32" selection-start-line="136" selection-start-column="32" selection-end-line="136" selection-end-column="32" />
-                  <folding>
-                    <element signature="e#934#960#0" expanded="true" />
-                    <element signature="e#1056#1074#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/CoarseTracker.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="182">
-                  <caret line="61" column="20" selection-start-line="61" selection-start-column="20" selection-end-line="61" selection-end-column="20" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/src/FullSystem/CoarseInitializer.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-8">
-                  <caret line="33" selection-start-line="33" selection-end-line="33" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
-  </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>scale</find>
-      <find>thread</find>
-      <find>boost/thread</find>
-      <find>multiThreading</find>
-      <find>bind</find>
-      <find>threadreduce</find>
-      <find>toOptimize</find>
-    </findStrings>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="IdeDocumentHistory">
-    <option name="CHANGED_PATHS">
-      <list>
-        <option value="$PROJECT_DIR$/src/FullSystem/PixelSelector2.cpp" />
-        <option value="$PROJECT_DIR$/src/FullSystem/FullSystem.h" />
-        <option value="$PROJECT_DIR$/src/util/IndexThreadReduce.h" />
-        <option value="$PROJECT_DIR$/src/FullSystem/FullSystem.cpp" />
-        <option value="$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp" />
-      </list>
-    </option>
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectConfigurationFiles">
@@ -170,43 +46,14 @@
     <option name="width" value="1440" />
     <option name="height" value="786" />
   </component>
-  <component name="ProjectView">
-    <navigator proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes>
-      <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="DSO" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dso" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DSO" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dso" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DSO" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dso" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="FullSystem" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-    </panes>
-  </component>
+  <component name="ProjectId" id="1OssViu0mrIAZV93qEsAEholNry" />
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors" />
+    <property name="settings.editor.selected.configurable" value="CMakeSettings" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -249,194 +96,93 @@
       <workItem from="1560175131726" duration="4315000" />
       <workItem from="1564685900487" duration="614000" />
       <workItem from="1564695524049" duration="1748000" />
-      <workItem from="1564752688723" duration="7229000" />
+      <workItem from="1564752688723" duration="10807000" />
+      <workItem from="1564777669145" duration="2159000" />
+      <workItem from="1564804774092" duration="667000" />
+      <workItem from="1565805916766" duration="2672000" />
+      <workItem from="1565880114853" duration="13055000" />
+      <workItem from="1565965774450" duration="599000" />
+      <workItem from="1566221639463" duration="4998000" />
+      <workItem from="1566249315061" duration="1002000" />
+      <workItem from="1566250327593" duration="17000" />
+      <workItem from="1566394099229" duration="599000" />
     </task>
+    <task id="LOCAL-00001" summary="linearize residual calculation explained">
+      <created>1564762233899</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1564762233899</updated>
+    </task>
+    <task id="LOCAL-00002" summary="update static pattern understand">
+      <created>1564804816556</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1564804816556</updated>
+    </task>
+    <task id="LOCAL-00003" summary="reformated some code">
+      <created>1565880755294</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1565880755294</updated>
+    </task>
+    <task id="LOCAL-00004" summary="digging into coarseInitializer.">
+      <created>1566248842581</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1566248842581</updated>
+    </task>
+    <task id="LOCAL-00005" summary="pixel selector function explain (partial)">
+      <created>1566250312977</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1566250312977</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
-  </component>
-  <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13906000" />
-  </component>
-  <component name="ToolWindowManager">
-    <frame x="0" y="24" width="1920" height="1056" extended-state="6" />
-    <editor active="true" />
-    <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.10565635" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32902467" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Database Changes" order="7" />
-      <window_info active="true" anchor="bottom" id="Messages" order="8" visible="true" weight="0.23672566" />
-      <window_info anchor="bottom" id="Terminal" order="9" weight="0.32902467" />
-      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Version Control" order="11" />
-      <window_info anchor="bottom" id="CMake" order="12" weight="0.119469024" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="Database" order="3" />
-    </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
-  <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/util/settings.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="50" column="19" selection-start-line="50" selection-start-column="19" selection-end-line="50" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="102" column="35" selection-start-line="102" selection-start-column="35" selection-end-line="102" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/CoarseInitializer.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="36" column="34" lean-forward="true" selection-start-line="36" selection-start-column="34" selection-end-line="36" selection-end-column="34" />
-          <folding>
-            <element signature="e#1321#1342#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/CoarseInitializer.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-8">
-          <caret line="33" selection-start-line="33" selection-end-line="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/CoarseTracker.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="182">
-          <caret line="61" column="20" selection-start-line="61" selection-start-column="20" selection-end-line="61" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/boost/thread/pthread/condition_variable_fwd.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="139">
-          <caret line="31" column="12" selection-start-line="31" selection-start-column="12" selection-end-line="31" selection-end-column="12" />
-          <folding>
-            <element signature="e#839#880#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/eigen3/Eigen/src/Core/util/Memory.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="16" column="53" lean-forward="true" selection-start-line="16" selection-start-column="53" selection-end-line="16" selection-end-column="53" />
-          <folding>
-            <element signature="e#26677#26733#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemMarginalize.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="284">
-          <caret line="57" column="23" selection-start-line="57" selection-start-column="23" selection-end-line="57" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/boost/function/function_fwd.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="31" column="37" selection-start-line="31" selection-start-column="37" selection-end-line="31" selection-end-column="37" />
-          <folding>
-            <element signature="e#1091#1111#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/7/bits/stl_bvector.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="889" column="4" selection-start-line="889" selection-start-column="4" selection-end-line="889" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/util/NumType.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="85" selection-start-line="85" selection-end-line="85" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/PixelSelector2.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="522">
-          <caret line="334" lean-forward="true" selection-start-line="334" selection-end-line="334" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/7/bits/stl_vector.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="258" column="6" selection-start-line="258" selection-start-column="6" selection-end-line="258" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/util/IndexThreadReduce.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="549">
-          <caret line="136" column="32" selection-start-line="136" selection-start-column="32" selection-end-line="136" selection-end-column="32" />
-          <folding>
-            <element signature="e#934#960#0" expanded="true" />
-            <element signature="e#1056#1074#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19">
-          <caret line="272" column="42" selection-start-line="272" selection-start-column="42" selection-end-line="272" selection-end-column="42" />
-          <folding>
-            <element signature="e#964#980#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/Residuals.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="284">
-          <caret line="46" column="5" selection-start-line="46" selection-start-column="5" selection-end-line="46" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/ImmaturePoint.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="41" column="25" lean-forward="true" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystem.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="631">
-          <caret line="530" column="68" selection-start-line="530" selection-start-column="68" selection-end-line="530" selection-end-column="68" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/FullSystem/FullSystemOptPoint.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="615">
-          <caret line="72" column="95" selection-start-line="72" selection-start-column="95" selection-end-line="72" selection-end-column="95" />
-        </state>
-      </provider>
-    </entry>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list />
+          </value>
+        </entry>
+        <entry key="User">
+          <value>
+            <list />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="linearize residual calculation explained" />
+    <MESSAGE value="update static pattern understand" />
+    <MESSAGE value="reformated some code" />
+    <MESSAGE value="digging into coarseInitializer." />
+    <MESSAGE value="pixel selector function explain (partial)" />
+    <option name="LAST_COMMIT_MESSAGE" value="pixel selector function explain (partial)" />
   </component>
 </project>

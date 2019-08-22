@@ -36,7 +36,7 @@ namespace dso
 
 const float minUseGrad_pixsel = 10;
 
-
+// select the maximum gradient local point.
 template<int pot>
 inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h, float THFac)
 {
