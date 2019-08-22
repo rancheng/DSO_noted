@@ -128,8 +128,8 @@ namespace dso {
             if (lvl < pyrLevelsUsed - 1)
                 propagateDown(lvl + 1); // now I know why they loop from smaller scale to larger scale, they wanna propogate down....
 
-            Mat88f H, Hsc;
-            Vec8f b, bsc;
+            Mat88f H, Hsc; // H and Hsc are 8 by 8 matrix, what are they?
+            Vec8f b, bsc; // what does sc mean?
             resetPoints(lvl);
             Vec3f resOld = calcResAndGS(lvl, H, b, Hsc, bsc, refToNew_current, refToNew_aff_current, false);
             applyStep(lvl);
@@ -819,24 +819,24 @@ namespace dso {
     }
 
     void CoarseInitializer::resetPoints(int lvl) {
-        Pnt *pts = points[lvl];
-        int npts = numPoints[lvl];
+        Pnt *pts = points[lvl]; // get selected points in that lvl.
+        int npts = numPoints[lvl]; // get the selected point number in that lvl.
         for (int i = 0; i < npts; i++) {
-            pts[i].energy.setZero();
-            pts[i].idepth_new = pts[i].idepth;
+            pts[i].energy.setZero(); // energy reset
+            pts[i].idepth_new = pts[i].idepth; // idepth_new dump.
 
             // if lvl == 5 and the point i is not good.
             if (lvl == pyrLevelsUsed - 1 && !pts[i].isGood) {
                 float snd = 0, sn = 0;
                 for (int n = 0; n < 10; n++) {
-                    if (pts[i].neighbours[n] == -1 || !pts[pts[i].neighbours[n]].isGood) continue;
-                    snd += pts[pts[i].neighbours[n]].iR;
-                    sn += 1;
+                    if (pts[i].neighbours[n] == -1 || !pts[pts[i].neighbours[n]].isGood) continue; // if no neighbor or neighbor is not good
+                    snd += pts[pts[i].neighbours[n]].iR; // aggregate the inverse re-substitude depth of good neighbours
+                    sn += 1; // count the aggregate times to do averaging later on.
                 }
 
                 if (sn > 0) {
-                    pts[i].isGood = true;
-                    pts[i].iR = pts[i].idepth = pts[i].idepth_new = snd / sn;
+                    pts[i].isGood = true; // if there's some good neighbour, let the neighbour's depth as the current point depth.
+                    pts[i].iR = pts[i].idepth = pts[i].idepth_new = snd / sn; // iR is the avg(sum(neighbour.iR))
                 }
             }
         }

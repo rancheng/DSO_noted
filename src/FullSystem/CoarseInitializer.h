@@ -55,8 +55,8 @@ public:
 	float idepth_new;
 	Vec2f energy_new;
 
-	float iR;
-	float iRSumNum;
+	float iR; // idepth regression, average iR from local region ##### from: CoarseInitializer::resetPoints(int lvl)
+	float iRSumNum; // aggregated from lastHessian, used to update the idepth and iR. [CoarseInitializer::propagateUp(int srcLvl)]
 
 	float lastHessian;
 	float lastHessian_new;
