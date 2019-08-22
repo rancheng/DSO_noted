@@ -87,25 +87,32 @@ namespace dso {
         alphaW = 150 * 150;//*freeDebugParam2*freeDebugParam2;
         regWeight = 0.8;//*freeDebugParam4;
         couplingWeight = 1;//*freeDebugParam5;
-
-        if (!snapped) {
-            thisToNext.translation().setZero();
+        // if it's not snapped? what snapped mean? stored? successfully tracked?
+        // these initialization steps shows that snapped means established a stable tacking in that frame.
+        // ###########################
+        // Now I know, snapped is a flag returned by the tracker, if tracker successfully locked this frame,
+        // that means it was snapped, which is tracked. that's why if it's tracked, all idepth and hessian stuff
+        // would be already available.
+        if (!snapped) { // if not tracked or no tracking successful, initialize all selected point in this frame
+            thisToNext.translation().setZero(); // initialize thisToNext transformation matrix SE3 to 0
             for (int lvl = 0; lvl < pyrLevelsUsed; lvl++) // pyrLevelsUsed is 6 in settings.h
             {
                 int npts = numPoints[lvl];
                 Pnt *ptsl = points[lvl];
-                for (int i = 0; i < npts; i++) {
-                    ptsl[i].iR = 1;
-                    ptsl[i].idepth_new = 1;
-                    ptsl[i].lastHessian = 0;
+                for (int i = 0; i < npts; i++) { // loop all selected points and initialize their iR idepth and hessian member variables.
+                    ptsl[i].iR = 1; // what is iR? what R means?
+                    ptsl[i].idepth_new = 1; // this idepth_new should be a dummy variable store the idepth estimation
+                    ptsl[i].lastHessian = 0; // another dummy variable to store hessian
                 }
             }
         }
 
 
-        SE3 refToNew_current = thisToNext;
-        AffLight refToNew_aff_current = thisToNext_aff;
-
+        SE3 refToNew_current = thisToNext; // if not snapped, this is all 0
+        AffLight refToNew_aff_current = thisToNext_aff; // initialized as (0,0) in constructor.
+        // firstFrame was set in the CoarseInitializer::setFirst function
+        // newFrame is the current tracking frame.
+        // this if statement lookup whether the frames contains affine exposure model
         if (firstFrame->ab_exposure > 0 && newFrame->ab_exposure > 0)
             refToNew_aff_current = AffLight(logf(newFrame->ab_exposure / firstFrame->ab_exposure),
                                             0); // coarse approximation.
@@ -115,11 +122,11 @@ namespace dso {
         // hmm... interesting, this loop start from smaller scale side
         // so, by doing this inverse order loop, the globally stable points are selected to loop out the
         // coarse SE3 matrix in a global manner, and will be kept refined in the loop on the larger scales.
-        for (int lvl = pyrLevelsUsed - 1; lvl >= 0; lvl--) {
+        for (int lvl = pyrLevelsUsed - 1; lvl >= 0; lvl--) { //start from lvl=5... which is the 6th scale in the index..
 
 
             if (lvl < pyrLevelsUsed - 1)
-                propagateDown(lvl + 1);
+                propagateDown(lvl + 1); // now I know why they loop from smaller scale to larger scale, they wanna propogate down....
 
             Mat88f H, Hsc;
             Vec8f b, bsc;
@@ -306,7 +313,7 @@ namespace dso {
             ow->pushDepthImage(&iRImg);
     }
 
-// calculates residual, Hessian and Hessian-block neede for re-substituting depth.
+// calculates residual, Hessian and Hessian-block needed for re-substituting depth.
     Vec3f CoarseInitializer::calcResAndGS(
             int lvl, Mat88f &H_out, Vec8f &b_out,
             Mat88f &H_out_sc, Vec8f &b_out_sc,
