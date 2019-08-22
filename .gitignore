@@ -8,7 +8,7 @@ build-*
 *.a
 *.so.*
 thirdparty/libzip-1.1.1
-/build
+build/
 /cmake-build-debug
 .idea/
-/release
+release/
