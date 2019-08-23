@@ -419,8 +419,8 @@ namespace dso {
                 float dydd = (t[1] - t[2] * v) / pt[2];
                 // huber weight shrink by sqrt. hw < 1 means residual is larger than threshold, means the error is high, energy is large.
                 if (hw < 1) hw = sqrtf(hw);
-                // hitColor[1] is dx and this gives the hw normalized dx in the image space. which should be named as uxInterp.
-                float dxInterp = hw * hitColor[1] * fxl;
+                // hitColor[1] is dx and this gives the hw normalized dx in the image space. which should be named as uxInterp in target frame.
+                float dxInterp = hw * hitColor[1] * fxl; // hitColor is the (color, dx dy) tuple in target frame.
                 // dy which normalized by hubwe weight and project into pixel plane.
                 float dyInterp = hw * hitColor[2] * fyl;
                 // dp0 is Vec8f. so this dump the dx projection in target img plane in 8 direction
@@ -428,9 +428,11 @@ namespace dso {
                 // dx here is actually du in host frame, so du*idepth_new becomes dx in host frame, real world dx recovered
                 // and then devide by pt[2] which is the depth in the new frame. and this convert
                 // real world dx in target frame into target image frame
+                // dp family is the 8 point in that residual pattern project to the target image frame.
                 dp0[idx] = new_idepth * dxInterp;
                 dp1[idx] = new_idepth * dyInterp;
-                dp2[idx] = -new_idepth * (u * dxInterp + v * dyInterp);
+                // u and v are the image coordinate in the target frame.
+                dp2[idx] = -new_idepth * (u * dxInterp + v * dyInterp); // why this gives u*dxInterp + v*dyInterp? udu + vdv?
                 dp3[idx] = -u * v * dxInterp - (1 + v * v) * dyInterp;
                 dp4[idx] = (1 + u * u) * dxInterp + u * v * dyInterp;
                 dp5[idx] = -v * dxInterp + u * dyInterp;
@@ -443,18 +445,22 @@ namespace dso {
                 if (maxstep < point->maxstep) point->maxstep = maxstep;
 
                 // immediately compute dp*dd' and dd*dd' in JbBuffer1.
-                JbBuffer_new[i][0] += dp0[idx] * dd[idx];
-                JbBuffer_new[i][1] += dp1[idx] * dd[idx];
-                JbBuffer_new[i][2] += dp2[idx] * dd[idx];
-                JbBuffer_new[i][3] += dp3[idx] * dd[idx];
-                JbBuffer_new[i][4] += dp4[idx] * dd[idx];
-                JbBuffer_new[i][5] += dp5[idx] * dd[idx];
-                JbBuffer_new[i][6] += dp6[idx] * dd[idx];
-                JbBuffer_new[i][7] += dp7[idx] * dd[idx];
-                JbBuffer_new[i][8] += r[idx] * dd[idx];
-                JbBuffer_new[i][9] += dd[idx] * dd[idx];
+                JbBuffer_new[i][0] += dp0[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][1] += dp1[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][2] += dp2[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][3] += dp3[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][4] += dp4[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][5] += dp5[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][6] += dp6[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][7] += dp7[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                JbBuffer_new[i][8] += r[idx] * dd[idx]; // sum(res*dd)
+                JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse hessian entry
             }
+            // end of loop 8 directions
 
+            // energy is accumulated through 8 nearby patterns in target frame.
+            // if this point is not good or error is large. then update E[0] with point->energy[0] set point as bad point and dump the energy
+            // then skip this point.
             if (!isGood || energy > point->outlierTH * 20) {
                 E.updateSingle((float) (point->energy[0]));
                 point->isGood_new = false;
@@ -464,12 +470,12 @@ namespace dso {
 
 
             // add into energy.
-            E.updateSingle(energy);
-            point->isGood_new = true;
-            point->energy_new[0] = energy;
+            E.updateSingle(energy); // note that energy is the aggregated error through 8 nearby pattern points.
+            point->isGood_new = true; // point error is ok, and point is good, add as a good tracking point
+            point->energy_new[0] = energy; // dump the error to the point.
 
             // update Hessian matrix.
-            for (int i = 0; i + 3 < patternNum; i += 4)
+            for (int i = 0; i + 3 < patternNum; i += 4) // this for loop has 2 steps each step step 4 stride. (align with SSE)
                 acc9.updateSSE(
                         _mm_load_ps(((float *) (&dp0)) + i),
                         _mm_load_ps(((float *) (&dp1)) + i),
@@ -543,7 +549,7 @@ namespace dso {
                 JbBuffer_new[i][9] += couplingWeight;
             }
 
-            JbBuffer_new[i][9] = 1 / (1 + JbBuffer_new[i][9]);
+            JbBuffer_new[i][9] = 1 / (1 + JbBuffer_new[i][9]); // 9: 1/(1+sum(dd*dd))=inverse hessian entry.
             acc9SC.updateSingleWeighted(
                     (float) JbBuffer_new[i][0], (float) JbBuffer_new[i][1], (float) JbBuffer_new[i][2],
                     (float) JbBuffer_new[i][3],
