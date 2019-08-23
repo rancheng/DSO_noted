@@ -130,6 +130,7 @@ namespace dso {
             // now this iR is updated for each point in each lvl.
             Mat88f H, Hsc; // H and Hsc are 8 by 8 matrix, what are they?
             Vec8f b, bsc; // what does sc mean?
+            // H and b are from the CalcResAndGS func, came from Energy
             resetPoints(lvl); // normalize the idepth of each points in that lvl (make it gradient friendly)
             Vec3f resOld = calcResAndGS(lvl, H, b, Hsc, bsc, refToNew_current, refToNew_aff_current, false);
             applyStep(lvl);
@@ -429,6 +430,8 @@ namespace dso {
                 // and then devide by pt[2] which is the depth in the new frame. and this convert
                 // real world dx in target frame into target image frame
                 // dp family is the 8 point in that residual pattern project to the target image frame.
+                // ########################################################################################
+                // TODO: Figure out what are all those terms!
                 dp0[idx] = new_idepth * dxInterp;
                 dp1[idx] = new_idepth * dyInterp;
                 // u and v are the image coordinate in the target frame.
@@ -439,8 +442,8 @@ namespace dso {
                 dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image.
                 dp7[idx] = -hw * 1; // just minus huber weight, which is negative of 1/residual
                 dd[idx] = dxInterp * dxdd + dyInterp * dydd;
-                r[idx] = hw * residual;
-
+                r[idx] = hw * residual; // r is stacked residual vector...
+                // #########################################################################################
                 float maxstep = 1.0f / Vec2f(dxdd * fxl, dydd * fyl).norm();
                 if (maxstep < point->maxstep) point->maxstep = maxstep;
 
@@ -477,6 +480,10 @@ namespace dso {
             // update Hessian matrix.
             // acc += dp[0] + dp[4]
             // this trick unroll the loop into 4 blocks and speed up this for loop in x86 SSE instruction set
+            //dp0 * dp0 + dp0*dp1 + .. + dp0*r
+            //            dp1*dp1 + .. + dp1*r
+            //                      ..
+            //                           r * r
             for (int i = 0; i + 3 < patternNum; i += 4) // this for loop has 2 steps each step step 4 stride. (align with SSE)
                 acc9.updateSSE(
                         _mm_load_ps(((float *) (&dp0)) + i),
@@ -566,13 +573,16 @@ namespace dso {
 
 
         //printf("nelements in H: %d, in E: %d, in Hsc: %d / 9!\n", (int)acc9.num, (int)E.num, (int)acc9SC.num*9);
+        // in the paper H = J'WJ, b = -J'Wr where J is Jacobian of r, and r is stacked residual, W is diagnal weight matrix.
+        // is the H_out and b_out here the same as above?
+        // why they aggregate the npts on the first 3 diagnals?
         H_out = acc9.H.topLeftCorner<8, 8>();// / acc9.num;
         b_out = acc9.H.topRightCorner<8, 1>();// / acc9.num;
         H_out_sc = acc9SC.H.topLeftCorner<8, 8>();// / acc9.num;
         b_out_sc = acc9SC.H.topRightCorner<8, 1>();// / acc9.num;
 
 
-
+        // why add the npts?
         H_out(0, 0) += alphaOpt * npts;
         H_out(1, 1) += alphaOpt * npts;
         H_out(2, 2) += alphaOpt * npts;
@@ -583,7 +593,7 @@ namespace dso {
         b_out[2] += tlog[2] * alphaOpt * npts;
 
 
-        return Vec3f(E.A, alphaEnergy, E.num);
+        return Vec3f(E.A, alphaEnergy, E.num); // Energy and alphaEnergy and Energy's aggregation number.
     }
 
     float CoarseInitializer::rescale() {

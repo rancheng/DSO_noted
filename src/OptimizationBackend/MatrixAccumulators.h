@@ -1157,6 +1157,8 @@ namespace dso {
                 const __m128 J4, const __m128 J5,
                 const __m128 J6, const __m128 J7,
                 const __m128 J8) {
+            // this update 4*45 times with is 9+8+7+...+1
+            // which is basically the upper triangle part of the matrix J'*J
             float *pt = SSEData;
             _mm_store_ps(pt, _mm_add_ps(_mm_load_ps(pt), _mm_mul_ps(J0, J0)));
             pt += 4;
