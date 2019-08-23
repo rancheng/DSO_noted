@@ -127,7 +127,7 @@ namespace dso {
 
             if (lvl < pyrLevelsUsed - 1)
                 propagateDown(lvl + 1); // now I know why they loop from smaller scale to larger scale, they wanna propogate down....
-
+            // now this iR is updated for each point in each lvl.
             Mat88f H, Hsc; // H and Hsc are 8 by 8 matrix, what are they?
             Vec8f b, bsc; // what does sc mean?
             resetPoints(lvl);
@@ -400,7 +400,9 @@ namespace dso {
                 float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
                 energy += hw * residual * residual * (2 - hw);
 
-
+                // t is translation matrix. t[0] is x, t[1] is y, and t[2] is z
+                // t[0] - t[2] * u = x - z*u
+                // dxdd = (x-zu)/(1+z*idepth)
                 float dxdd = (t[0] - t[2] * u) / pt[2];
                 float dydd = (t[1] - t[2] * v) / pt[2];
 
@@ -670,7 +672,7 @@ namespace dso {
 
         optReg(srcLvl + 1);
     }
-
+    // normalize the idepth of point by the parent idepth with corresponding point hessians.
     void CoarseInitializer::propagateDown(int srcLvl) {
         assert(srcLvl > 0);
         // set idepth of target
@@ -687,11 +689,11 @@ namespace dso {
             if (!point->isGood) { // initialize the current point in the target scale.
                 point->iR = point->idepth = point->idepth_new = parent->iR; // use parent idepth as the current layer's idepth
                 point->isGood = true; // yes, you have got a valid parent idepth, certainly you should be a good point.
-                point->lastHessian = 0;
+                point->lastHessian = 0; // lastHessian was updated by lastHessian_New, and lastHessian_New is updated from JbBuffer[idx][9] which is dd[idx]*dd[idx].
             } else {
                 float newiR = (point->iR * point->lastHessian * 2 + parent->iR * parent->lastHessian) /
-                              (point->lastHessian * 2 + parent->lastHessian);
-                point->iR = point->idepth = point->idepth_new = newiR;
+                              (point->lastHessian * 2 + parent->lastHessian); // so this newiR is a normalized iR from current point and parent point with the corresponding hessian matrix.
+                point->iR = point->idepth = point->idepth_new = newiR; // now this normalized newiR updated iR, idepth and idepth_new...
             }
         }
         optReg(srcLvl - 1);
