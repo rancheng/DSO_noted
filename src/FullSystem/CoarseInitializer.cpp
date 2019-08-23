@@ -436,8 +436,8 @@ namespace dso {
                 dp3[idx] = -u * v * dxInterp - (1 + v * v) * dyInterp;
                 dp4[idx] = (1 + u * u) * dxInterp + u * v * dyInterp;
                 dp5[idx] = -v * dxInterp + u * dyInterp;
-                dp6[idx] = -hw * r2new_aff[0] * rlR;
-                dp7[idx] = -hw * 1;
+                dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image.
+                dp7[idx] = -hw * 1; // just minus huber weight, which is negative of 1/residual
                 dd[idx] = dxInterp * dxdd + dyInterp * dydd;
                 r[idx] = hw * residual;
 
@@ -454,7 +454,7 @@ namespace dso {
                 JbBuffer_new[i][6] += dp6[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][7] += dp7[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][8] += r[idx] * dd[idx]; // sum(res*dd)
-                JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse hessian entry
+                JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse hessian entry, while now is just sum(dd*dd)
             }
             // end of loop 8 directions
 
@@ -475,6 +475,8 @@ namespace dso {
             point->energy_new[0] = energy; // dump the error to the point.
 
             // update Hessian matrix.
+            // acc += dp[0] + dp[4]
+            // this trick unroll the loop into 4 blocks and speed up this for loop in x86 SSE instruction set
             for (int i = 0; i + 3 < patternNum; i += 4) // this for loop has 2 steps each step step 4 stride. (align with SSE)
                 acc9.updateSSE(
                         _mm_load_ps(((float *) (&dp0)) + i),
@@ -487,7 +489,8 @@ namespace dso {
                         _mm_load_ps(((float *) (&dp7)) + i),
                         _mm_load_ps(((float *) (&r)) + i));
 
-
+            // ((patternNum >> 2) << 2) this will align the patternNum to be n*4 which is required by SSE.
+            // ((8 >> 2) << 2) = 8 so, this will jump this for loop directly.
             for (int i = ((patternNum >> 2) << 2); i < patternNum; i++)
                 acc9.updateSingle(
                         (float) dp0[i], (float) dp1[i], (float) dp2[i], (float) dp3[i],
@@ -497,8 +500,8 @@ namespace dso {
 
         }
 
-        E.finish();
-        acc9.finish();
+        E.finish(); // E.finish() will shift different scale of data up to 1 million scale. and clear the memroy
+        acc9.finish(); // acc9 is doing the same thing.
 
 
 
@@ -507,17 +510,18 @@ namespace dso {
 
         // calculate alpha energy, and decide if we cap it.
         Accumulator11 EAlpha;
-        EAlpha.initialize();
+        EAlpha.initialize(); // this set the memroy of SSEData ... in EAlpha to be 0
         for (int i = 0; i < npts; i++) {
             Pnt *point = ptsl + i;
             if (!point->isGood_new) {
-                E.updateSingle((float) (point->energy[1]));
+                E.updateSingle((float) (point->energy[1])); // this will update the same memory value in EAlpha.
             } else {
-                point->energy_new[1] = (point->idepth_new - 1) * (point->idepth_new - 1);
-                E.updateSingle((float) (point->energy_new[1]));
+                point->energy_new[1] = (point->idepth_new - 1) * (point->idepth_new - 1); // (d-1)^2
+                E.updateSingle((float) (point->energy_new[1])); // update the memory block of SSEData by energy_new
             }
         }
-        EAlpha.finish();
+        EAlpha.finish(); // this finish() will wrap up all SSEData buffer into float A.
+        // alphaW is 150*150, EAlpha.A is accumulated squared idepth, dpeth + translation.squaredNorm() * num_points...
         float alphaEnergy = alphaW * (EAlpha.A + refToNew.translation().squaredNorm() * npts);
 
         //printf("AE = %f * %f + %f\n", alphaW, EAlpha.A, refToNew.translation().squaredNorm() * npts);
@@ -525,7 +529,7 @@ namespace dso {
 
         // compute alpha opt.
         float alphaOpt;
-        if (alphaEnergy > alphaK * npts) {
+        if (alphaEnergy > alphaK * npts) { //alphaK is 2.5*2.5
             alphaOpt = 0;
             alphaEnergy = alphaK * npts;
         } else {
@@ -542,14 +546,15 @@ namespace dso {
             point->lastHessian_new = JbBuffer_new[i][9]; // JbBuffer_new[i][9] is dd*dd which is squared second derivative, the hessian entry
 
             JbBuffer_new[i][8] += alphaOpt * (point->idepth_new - 1);
-            JbBuffer_new[i][9] += alphaOpt;
+            JbBuffer_new[i][9] += alphaOpt; // hessian is now 0 or alphaW = 2.5*2.5
 
-            if (alphaOpt == 0) {
+            if (alphaOpt == 0) { // couplingWeight = 1. which is aggregating JBuffer_new[8] with dd , JBuffer_new[9] with 1.
                 JbBuffer_new[i][8] += couplingWeight * (point->idepth_new - point->iR);
                 JbBuffer_new[i][9] += couplingWeight;
             }
 
             JbBuffer_new[i][9] = 1 / (1 + JbBuffer_new[i][9]); // 9: 1/(1+sum(dd*dd))=inverse hessian entry.
+            // this func update 0-8 entry weighted by JbBuffer_new[i][9]. which is the coupling weight or alphaW.
             acc9SC.updateSingleWeighted(
                     (float) JbBuffer_new[i][0], (float) JbBuffer_new[i][1], (float) JbBuffer_new[i][2],
                     (float) JbBuffer_new[i][3],
@@ -557,7 +562,7 @@ namespace dso {
                     (float) JbBuffer_new[i][7],
                     (float) JbBuffer_new[i][8], (float) JbBuffer_new[i][9]);
         }
-        acc9SC.finish();
+        acc9SC.finish(); // aggregate SSEData buffer into H.
 
 
         //printf("nelements in H: %d, in E: %d, in Hsc: %d / 9!\n", (int)acc9.num, (int)E.num, (int)acc9SC.num*9);

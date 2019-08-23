@@ -1142,9 +1142,9 @@ namespace dso {
 
             int idx = 0;
             for (int r = 0; r < 9; r++)
-                for (int c = r; c < 9; c++) {
+                for (int c = r; c < 9; c++) { // note that c start from r. H is a symmetric matrix
                     float d = SSEData1m[idx + 0] + SSEData1m[idx + 1] + SSEData1m[idx + 2] + SSEData1m[idx + 3];
-                    H(r, c) = H(c, r) = d;
+                    H(r, c) = H(c, r) = d; // see they only looped half of the H matrix (upper triangle).
                     idx += 4;
                 }
             assert(idx == 4 * 45);
