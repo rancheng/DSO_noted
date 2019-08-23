@@ -381,38 +381,53 @@ namespace dso {
                 float v = pt[1] / pt[2];
                 float Ku = fxl * u + cxl;
                 float Kv = fyl * v + cyl;
+                // hmm... interesting, why they want to use one idepth to devide another idepth? and generate a new_idepth ? is this new_idepth
                 float new_idepth = point->idepth_new / pt[2]; // idepth_new is the estimated z, and pt[2] is projected z in new frame.
-
+                // OOB...
                 if (!(Ku > 1 && Kv > 1 && Ku < wl - 2 && Kv < hl - 2 && new_idepth > 0)) {
                     isGood = false;
                     break;
                 }
-
+                // get the color, dx, dy (linear normalized with neighbour)
                 Vec3f hitColor = getInterpolatedElement33(colorNew, Ku, Kv, wl);
                 //Vec3f hitColor = getInterpolatedElement33BiCub(colorNew, Ku, Kv, wl);
 
                 //float rlR = colorRef[point->u+dx + (point->v+dy) * wl][0];
+                // this is only color in reference frame (host frame)
                 float rlR = getInterpolatedElement31(colorRef, point->u + dx, point->v + dy, wl);
-
+                // if OOB or illegal color point, just break the 8 direction loop and set this point as not good.
                 if (!std::isfinite(rlR) || !std::isfinite((float) hitColor[0])) {
                     isGood = false;
                     break;
                 }
 
-
+                // residual is the grey scale color difference (with the affine model applied)
+                // c1 - [a*c2 + b]
                 float residual = hitColor[0] - r2new_aff[0] * rlR - r2new_aff[1];
+                // huber weight of residual. -> inverse propotional to residual if above threshold.
                 float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
+                // nenergy is the huber normalized residual.
                 energy += hw * residual * residual * (2 - hw);
 
                 // t is translation matrix. t[0] is x, t[1] is y, and t[2] is z
                 // t[0] - t[2] * u = x - z*u
                 // dxdd = (x-zu)/(1+z*idepth)
+                // x-zu is dx here, 1+z*idepth ~ depth
+                // dxdd here means dx devide depth
                 float dxdd = (t[0] - t[2] * u) / pt[2];
+                // same here, dydd is dy devide depth
                 float dydd = (t[1] - t[2] * v) / pt[2];
-
+                // huber weight shrink by sqrt. hw < 1 means residual is larger than threshold, means the error is high, energy is large.
                 if (hw < 1) hw = sqrtf(hw);
+                // hitColor[1] is dx and this gives the hw normalized dx in the image space. which should be named as uxInterp.
                 float dxInterp = hw * hitColor[1] * fxl;
+                // dy which normalized by hubwe weight and project into pixel plane.
                 float dyInterp = hw * hitColor[2] * fyl;
+                // dp0 is Vec8f. so this dump the dx projection in target img plane in 8 direction
+                // now I know why    " new_idepth = point->idepth_new / pt[2] ":
+                // dx here is actually du in host frame, so du*idepth_new becomes dx in host frame, real world dx recovered
+                // and then devide by pt[2] which is the depth in the new frame. and this convert
+                // real world dx in target frame into target image frame
                 dp0[idx] = new_idepth * dxInterp;
                 dp1[idx] = new_idepth * dyInterp;
                 dp2[idx] = -new_idepth * (u * dxInterp + v * dyInterp);
