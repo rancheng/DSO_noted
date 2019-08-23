@@ -512,7 +512,7 @@ namespace dso {
             if (!point->isGood_new)
                 continue;
 
-            point->lastHessian_new = JbBuffer_new[i][9];
+            point->lastHessian_new = JbBuffer_new[i][9]; // JbBuffer_new[i][9] is dd*dd which is squared second derivative, the hessian entry
 
             JbBuffer_new[i][8] += alphaOpt * (point->idepth_new - 1);
             JbBuffer_new[i][9] += alphaOpt;
@@ -600,7 +600,7 @@ namespace dso {
     void CoarseInitializer::optReg(int lvl) {
         int npts = numPoints[lvl];
         Pnt *ptsl = points[lvl];
-        if (!snapped) {
+        if (!snapped) { // if not tracked, return... this optReg is only for tracked frame. that means you have already finished track function.
             for (int i = 0; i < npts; i++)
                 ptsl[i].iR = 1; // initialize inverse depth regression for every point.
             return;
@@ -674,19 +674,19 @@ namespace dso {
     void CoarseInitializer::propagateDown(int srcLvl) {
         assert(srcLvl > 0);
         // set idepth of target
-
-        int nptst = numPoints[srcLvl - 1];
-        Pnt *ptss = points[srcLvl];
-        Pnt *ptst = points[srcLvl - 1];
+        // here pts is the selected points by pixelSelector...
+        int nptst = numPoints[srcLvl - 1]; // number of pts in target scale.
+        Pnt *ptss = points[srcLvl]; // ptss is points source, points from smaller scale (upper layer)
+        Pnt *ptst = points[srcLvl - 1]; // ptst is points target, points from larger scale (bottom layer)
 
         for (int i = 0; i < nptst; i++) {
-            Pnt *point = ptst + i;
-            Pnt *parent = ptss + point->parent;
+            Pnt *point = ptst + i; // point is looking to each ptst index.
+            Pnt *parent = ptss + point->parent; // parent is the idx of the upper layer closest point.
 
-            if (!parent->isGood || parent->lastHessian < 0.1) continue;
-            if (!point->isGood) {
-                point->iR = point->idepth = point->idepth_new = parent->iR;
-                point->isGood = true;
+            if (!parent->isGood || parent->lastHessian < 0.1) continue; // skip bad parent point
+            if (!point->isGood) { // initialize the current point in the target scale.
+                point->iR = point->idepth = point->idepth_new = parent->iR; // use parent idepth as the current layer's idepth
+                point->isGood = true; // yes, you have got a valid parent idepth, certainly you should be a good point.
                 point->lastHessian = 0;
             } else {
                 float newiR = (point->iR * point->lastHessian * 2 + parent->iR * parent->lastHessian) /

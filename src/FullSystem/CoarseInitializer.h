@@ -59,7 +59,7 @@ public:
 	float iRSumNum; // aggregated from lastHessian, used to update the idepth and iR. [CoarseInitializer::propagateUp(int srcLvl)]
 
 	float lastHessian;
-	float lastHessian_new;
+	float lastHessian_new; // updated on calculate Residual and GS.
 
 	// max stepsize for idepth (corresponding to max. movement in pixel-space).
 	float maxstep;
