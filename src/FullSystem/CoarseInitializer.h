@@ -135,7 +135,7 @@ private:
 
 	float alphaK;
 	float alphaW;
-	float regWeight;
+	float regWeight; // set as 0.8 by default, regression weight to get idepth from original point idepth or neighbours' regressed iR.
 	float couplingWeight;
 
 	Vec3f calcResAndGS(

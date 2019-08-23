@@ -596,33 +596,39 @@ namespace dso {
         return Vec3f(couplingWeight * E.A1m[0], couplingWeight * E.A1m[1], E.num);
     }
 
+    // idepth regression (use the median) of each point by it's well-tracked nearest neighbours
     void CoarseInitializer::optReg(int lvl) {
         int npts = numPoints[lvl];
         Pnt *ptsl = points[lvl];
         if (!snapped) {
             for (int i = 0; i < npts; i++)
-                ptsl[i].iR = 1;
+                ptsl[i].iR = 1; // initialize inverse depth regression for every point.
             return;
         }
 
 
         for (int i = 0; i < npts; i++) {
             Pnt *point = ptsl + i;
-            if (!point->isGood) continue;
+            if (!point->isGood) continue; // skip all good points.
 
-            float idnn[10];
-            int nnn = 0;
+            float idnn[10]; // idepth regression, actually the iR of nearest neighbour
+            int nnn = 0; // nearest neighbour number
+            // collect the 10 nearest neighbour (if the are good points) inverse depth
             for (int j = 0; j < 10; j++) {
-                if (point->neighbours[j] == -1) continue;
+                if (point->neighbours[j] == -1) continue; //skip uninitialized neighbours
+                // note that neighbours is a list size of 10
+                // remember in flann, neighbours list was storing the neighour points'
+                // index in original pts list, thus this ptsl + point->neighbours[j]
+                // can reach to the neighbour point.
                 Pnt *other = ptsl + point->neighbours[j];
-                if (!other->isGood) continue;
-                idnn[nnn] = other->iR;
+                if (!other->isGood) continue; // again, skip all non-tracking neighbour.
+                idnn[nnn] = other->iR; // this idnn record all the  good neighbour idepth regression.
                 nnn++;
             }
-
+            // more than two good neighbours will trigger idepth regression. (actually normalize the idepth estimation with nearby points)
             if (nnn > 2) {
-                std::nth_element(idnn, idnn + nnn / 2, idnn + nnn);
-                point->iR = (1 - regWeight) * point->idepth + regWeight * idnn[nnn / 2];
+                std::nth_element(idnn, idnn + nnn / 2, idnn + nnn); // find the median of idnn...
+                point->iR = (1 - regWeight) * point->idepth + regWeight * idnn[nnn / 2]; // 0.2 * point->idepth + 0.8*median_idnn...
             }
         }
 
@@ -961,7 +967,7 @@ namespace dso {
                 int myidx = 0;
                 float sumDF = 0;
                 for (int k = 0; k < nn; k++) { // this loop loops the nearest 10 points of pts[i] and dump their expf distance function
-                    pts[i].neighbours[myidx] = ret_index[k];
+                    pts[i].neighbours[myidx] = ret_index[k]; // note that this ret_index is the point index in list pts[]
                     float df = expf(-ret_dist[k] * NNDistFactor); // small number inversely proportional to distance [0, 1]
                     sumDF += df; // sumDF aggregate the 10 nearest distance float, [0,10]
                     pts[i].neighboursDist[myidx] = df;
