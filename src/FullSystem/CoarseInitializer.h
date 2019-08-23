@@ -100,8 +100,9 @@ public:
 	FrameHessian* firstFrame;
 	FrameHessian* newFrame;
 private:
+    // projection is x = P [X] => where P = C[R|t], C is intrinsic, also known as K.
 	Mat33 K[PYR_LEVELS];
-	Mat33 Ki[PYR_LEVELS];
+	Mat33 Ki[PYR_LEVELS]; // Ki is used to recover from image plane into 3d world coordinate.
 	double fx[PYR_LEVELS];
 	double fy[PYR_LEVELS];
 	double fxi[PYR_LEVELS];
@@ -125,7 +126,7 @@ private:
 
 	// temporary buffers for H and b.
 	Vec10f* JbBuffer;			// 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
-	Vec10f* JbBuffer_new;
+	Vec10f* JbBuffer_new; // 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
 
 	Accumulator9 acc9;
 	Accumulator9 acc9SC;

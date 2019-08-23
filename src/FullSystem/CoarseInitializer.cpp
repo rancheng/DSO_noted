@@ -130,7 +130,7 @@ namespace dso {
             // now this iR is updated for each point in each lvl.
             Mat88f H, Hsc; // H and Hsc are 8 by 8 matrix, what are they?
             Vec8f b, bsc; // what does sc mean?
-            resetPoints(lvl);
+            resetPoints(lvl); // normalize the idepth of each points in that lvl (make it gradient friendly)
             Vec3f resOld = calcResAndGS(lvl, H, b, Hsc, bsc, refToNew_current, refToNew_aff_current, false);
             applyStep(lvl);
 
@@ -319,25 +319,26 @@ namespace dso {
             Mat88f &H_out_sc, Vec8f &b_out_sc,
             const SE3 &refToNew, AffLight refToNew_aff,
             bool plot) {
-        int wl = w[lvl], hl = h[lvl];
-        Eigen::Vector3f *colorRef = firstFrame->dIp[lvl];
-        Eigen::Vector3f *colorNew = newFrame->dIp[lvl];
+        int wl = w[lvl], hl = h[lvl]; // width and height in certain lvl.
+        Eigen::Vector3f *colorRef = firstFrame->dIp[lvl]; // dIp is a 3xn matrix. which contains color, dx, dy
+        Eigen::Vector3f *colorNew = newFrame->dIp[lvl]; // same as colorNew, you can see that Vector3f, newFrame was referenced in trackFrame function.
 
-        Mat33f RKi = (refToNew.rotationMatrix() * Ki[lvl]).cast<float>();
-        Vec3f t = refToNew.translation().cast<float>();
-        Eigen::Vector2f r2new_aff = Eigen::Vector2f(exp(refToNew_aff.a), refToNew_aff.b);
+        Mat33f RKi = (refToNew.rotationMatrix() * Ki[lvl]).cast<float>(); // rotation matrix that convert from host frame to target frame.
+        Vec3f t = refToNew.translation().cast<float>(); // original t move point from host frame to target frame.
+        Eigen::Vector2f r2new_aff = Eigen::Vector2f(exp(refToNew_aff.a), refToNew_aff.b); // affine model
 
+        // intrinsic, lvl specific.
         float fxl = fx[lvl];
         float fyl = fy[lvl];
         float cxl = cx[lvl];
         float cyl = cy[lvl];
 
-
+        // defined a set of accumulator to upate H and b.
         Accumulator11 E;
         acc9.initialize();
         E.initialize();
 
-
+        // loop all selected points in this lvl.
         int npts = numPoints[lvl];
         Pnt *ptsl = points[lvl];
         for (int i = 0; i < npts; i++) {
@@ -346,13 +347,14 @@ namespace dso {
 
             point->maxstep = 1e10;
             if (!point->isGood) {
-                E.updateSingle((float) (point->energy[0]));
+                // initialize bad points.
+                E.updateSingle((float) (point->energy[0])); // E[0] += UenergyPhotometric
                 point->energy_new = point->energy;
                 point->isGood_new = false;
                 continue;
             }
 
-            VecNRf dp0;
+            VecNRf dp0; //Vec8f... why this is 8f? well, look at the for loop below, it's storing dp0 of 8 directions.
             VecNRf dp1;
             VecNRf dp2;
             VecNRf dp3;
@@ -362,22 +364,24 @@ namespace dso {
             VecNRf dp7;
             VecNRf dd;
             VecNRf r;
-            JbBuffer_new[i].setZero();
+            JbBuffer_new[i].setZero(); //JbBuffer_new content: 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
 
             // sum over all residuals.
             bool isGood = true;
             float energy = 0;
+            // for each selected point in lvl. loop eight directions:
             for (int idx = 0; idx < patternNum; idx++) {
-                int dx = patternP[idx][0];
+                int dx = patternP[idx][0]; // dx dy in 8 directions.
                 int dy = patternP[idx][1];
 
-
+                // projected point with the offset directions.
+                // this is RKi * x + t*idepth = X in target frame. pt[2] = X[2] = 1 + t[2] * idepth
                 Vec3f pt = RKi * Vec3f(point->u + dx, point->v + dy, 1) + t * point->idepth_new;
-                float u = pt[0] / pt[2];
+                float u = pt[0] / pt[2]; // project to the target frame's image plane.
                 float v = pt[1] / pt[2];
                 float Ku = fxl * u + cxl;
                 float Kv = fyl * v + cyl;
-                float new_idepth = point->idepth_new / pt[2];
+                float new_idepth = point->idepth_new / pt[2]; // idepth_new is the estimated z, and pt[2] is projected z in new frame.
 
                 if (!(Ku > 1 && Kv > 1 && Ku < wl - 2 && Kv < hl - 2 && new_idepth > 0)) {
                     isGood = false;
@@ -825,7 +829,7 @@ namespace dso {
             dGrads[i].setZero(); // dGrads is a vect3f... list of vector.  seems like they have never used this dGrads.
 
     }
-
+    // normalize the idepth of all points in that level with it's neighbours.
     void CoarseInitializer::resetPoints(int lvl) {
         Pnt *pts = points[lvl]; // get selected points in that lvl.
         int npts = numPoints[lvl]; // get the selected point number in that lvl.
