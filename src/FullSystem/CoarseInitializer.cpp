@@ -280,7 +280,7 @@ namespace dso {
 
         MinimalImageB3 iRImg(wl, hl);
 
-        for (int i = 0; i < wl * hl; i++)
+        for (int i = 0; i < wl * hl; i++) // this is just grey scale img
             iRImg.at(i) = Vec3b(colorRef[i][0], colorRef[i][0], colorRef[i][0]);
 
 
@@ -290,11 +290,11 @@ namespace dso {
         for (int i = 0; i < npts; i++) {
             Pnt *point = points[lvl] + i;
             if (point->isGood) {
-                nid++;
-                sid += point->iR;
+                nid++; // number of tracked point, or idepth aggregated
+                sid += point->iR; // this is sum of point idepth regression
             }
         }
-        float fac = nid / sid;
+        float fac = nid / sid; // a normalize factor? for visualization effect?
 
 
         for (int i = 0; i < npts; i++) {

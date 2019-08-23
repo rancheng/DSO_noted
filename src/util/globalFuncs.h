@@ -351,7 +351,7 @@ inline Vec3b makeRainbow3B(float id)
 {
 	id *= freeDebugParam3;
 	if(!(id > 0))
-		return Vec3b(255,255,255);
+		return Vec3b(255,255,255); // white
 
 	int icP = id;
 	float ifP = id-icP;
