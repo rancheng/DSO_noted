@@ -133,7 +133,7 @@ namespace dso {
             // H and b are from the CalcResAndGS func, came from Energy
             resetPoints(lvl); // normalize the idepth of each points in that lvl (make it gradient friendly)
             Vec3f resOld = calcResAndGS(lvl, H, b, Hsc, bsc, refToNew_current, refToNew_aff_current, false);
-            applyStep(lvl);
+            applyStep(lvl); // loop all selected point in lvl, dump every variable ends with _new. set idepth by iR
 
             float lambda = 0.1;
             float eps = 1e-4;
@@ -155,41 +155,47 @@ namespace dso {
             }
 
             int iteration = 0;
-            while (true) {
+            while (true) { // this whole pipeline is Gauss-Newton's iterative method to solve H and b.
                 Mat88f Hl = H;
                 for (int i = 0; i < 8; i++) Hl(i, i) *= (1 + lambda);
-                Hl -= Hsc * (1 / (1 + lambda));
-                Vec8f bl = b - bsc * (1 / (1 + lambda));
+                Hl -= Hsc * (1 / (1 + lambda)); // Hsc is the normalized JbBuffer_new[:8, :8], Hl is H in lvl
+                Vec8f bl = b - bsc * (1 / (1 + lambda)); // bl is b in lvl
+                // wM 0..2 Scale of XI rotation
+                // wM 3..5 Scale of XI translation
+                // wM 6..7 Scale of a and b
+                // wM is a diagnal matrix.
+                // So Hl eigen values in diagnal should be rotation, translation and affine estimation a and b.
+                Hl = wM * Hl * wM * (0.01f / (w[lvl] * h[lvl])); // this normalize with the size of scale
+                bl = wM * bl * (0.01f / (w[lvl] * h[lvl])); // can regard as average to each pixel's H and b
 
-                Hl = wM * Hl * wM * (0.01f / (w[lvl] * h[lvl]));
-                bl = wM * bl * (0.01f / (w[lvl] * h[lvl]));
 
-
-                Vec8f inc;
+                Vec8f inc; // decomposit H and b to get [R\t]
                 if (fixAffine) {
+                    // ldlt is Cholesky decomposition with full pivoting without square root # from Eigen/LDLT.h
                     inc.head<6>() = -(wM.toDenseMatrix().topLeftCorner<6, 6>() *
                                       (Hl.topLeftCorner<6, 6>().ldlt().solve(bl.head<6>())));
                     inc.tail<2>().setZero();
                 } else
                     inc = -(wM * (Hl.ldlt().solve(bl)));    //=-H^-1 * b.
 
-
+                // H^-1 * b contribute into the refToNew_new transformation matrix.
                 SE3 refToNew_new = SE3::exp(inc.head<6>().cast<double>()) * refToNew_current;
                 AffLight refToNew_aff_new = refToNew_aff_current;
-                refToNew_aff_new.a += inc[6];
+                refToNew_aff_new.a += inc[6]; // only update a and b in refToNew_aff_new from inc
                 refToNew_aff_new.b += inc[7];
-                doStep(lvl, lambda, inc);
+                doStep(lvl, lambda, inc); // update idepth_new guess for each point.
 
 
-                Mat88f H_new, Hsc_new;
+                Mat88f H_new, Hsc_new; // evaluate a new set of H and b with new pose estimated.
                 Vec8f b_new, bsc_new;
                 Vec3f resNew = calcResAndGS(lvl, H_new, b_new, Hsc_new, bsc_new, refToNew_new, refToNew_aff_new, false);
-                Vec3f regEnergy = calcEC(lvl);
+                Vec3f regEnergy = calcEC(lvl); // so this will give you SSD on the error of depth estimation with respect to old_depth and new_depth
 
-                float eTotalNew = (resNew[0] + resNew[1] + regEnergy[1]);
-                float eTotalOld = (resOld[0] + resOld[1] + regEnergy[0]);
+                float eTotalNew = (resNew[0] + resNew[1] + regEnergy[1]); // this sums up the residual new with the estimation error (they call it energy)
+                float eTotalOld = (resOld[0] + resOld[1] + regEnergy[0]); // same thing but sum the old energy...
 
-
+                // this compare means less energy wins, pretty intuitive, where energy is actually the loss or error
+                // in other system. They wanna minimize the energy for each point and total energy in the system
                 bool accept = eTotalOld > eTotalNew;
 
                 if (printDebug) {
@@ -210,7 +216,7 @@ namespace dso {
                 }
 
                 if (accept) {
-
+                    // this will keep the loop going towards minimizing energy...
                     if (resNew[1] == alphaK * numPoints[lvl])
                         snapped = true;
                     H = H_new;
@@ -232,7 +238,8 @@ namespace dso {
                 }
 
                 bool quitOpt = false;
-
+                // if converge or out of steps. break the loop and either get a very good depth estimation or
+                // totally lost.
                 if (!(inc.norm() > eps) || iteration >= maxIterations[lvl] || fails >= 2) {
                     Mat88f H, Hsc;
                     Vec8f b, bsc;
@@ -244,9 +251,9 @@ namespace dso {
                 if (quitOpt) break;
                 iteration++;
             }
-            latestRes = resOld;
+            latestRes = resOld; // assign the stable residual to the latestRes
 
-        }
+        }// here end of all lvl loop.
 
 
         thisToNext = refToNew_current;
@@ -617,7 +624,7 @@ namespace dso {
         return factor;
     }
 
-
+    // calculate the ssd of old depth guess and new depth guess. or energy components.
     Vec3f CoarseInitializer::calcEC(int lvl) {
         if (!snapped) return Vec3f(0, 0, numPoints[lvl]);
         AccumulatorX<2> E;
@@ -633,7 +640,7 @@ namespace dso {
             //printf("%f %f %f!\n", point->idepth, point->idepth_new, point->iR);
         }
         E.finish();
-
+        // E here is an SSD of depth estimation over all selected point in lvl.
         //printf("ER: %f %f %f!\n", couplingWeight*E.A1m[0], couplingWeight*E.A1m[1], (float)E.num.numIn1m);
         return Vec3f(couplingWeight * E.A1m[0], couplingWeight * E.A1m[1], E.num);
     }
@@ -904,11 +911,11 @@ namespace dso {
             float step = -b * JbBuffer[i][9] / (1 + lambda);
 
 
-            float maxstep = maxPixelStep * pts[i].maxstep;
-            if (maxstep > idMaxStep) maxstep = idMaxStep;
+            float maxstep = maxPixelStep * pts[i].maxstep; // shrink the step size to smaller size
+            if (maxstep > idMaxStep) maxstep = idMaxStep; // maximum step to solve idepth
 
-            if (step > maxstep) step = maxstep;
-            if (step < -maxstep) step = -maxstep;
+            if (step > maxstep) step = maxstep; // step will contribute to the new idepth guess.
+            if (step < -maxstep) step = -maxstep; // we can now regard step here is a d_{Idepth} (a graident step size)
 
             float newIdepth = pts[i].idepth + step;
             if (newIdepth < 1e-3) newIdepth = 1e-3;
@@ -917,7 +924,8 @@ namespace dso {
         }
 
     }
-
+    // this applyStep is apply everything calculated in CalcResAndGS func and propogateDown func artifacts (idepth, energy, isgood, hessian) back to the
+    // points.
     void CoarseInitializer::applyStep(int lvl) {
         Pnt *pts = points[lvl];
         int npts = numPoints[lvl];
