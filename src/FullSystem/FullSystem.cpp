@@ -857,13 +857,14 @@ void FullSystem::addActiveFrame( ImageAndExposure* image, int id )
 		// use initializer!
 		if(coarseInitializer->frameID<0)	// first frame set. fh is kept by coarseInitializer.
 		{
-
+            // set first will set first frame in carseInitializer and select candidate points in that frame,
+            // build average pyramid space... and many other preparation for trackFrame.
 			coarseInitializer->setFirst(&Hcalib, fh);
 		}
 		else if(coarseInitializer->trackFrame(fh, outputWrapper))	// if SNAPPED
 		{
 
-			initializeFromInitializer(fh);
+			initializeFromInitializer(fh); // successfully tracked, will go into initialization step.
 			lock.unlock();
 			deliverTrackedFrame(fh, true);
 		}
@@ -1222,14 +1223,14 @@ void FullSystem::makeKeyFrame( FrameHessian* fh)
 
 }
 
-
+// note this function is invoked after the successful tracking.
 void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 {
-	boost::unique_lock<boost::mutex> lock(mapMutex);
+	boost::unique_lock<boost::mutex> lock(mapMutex); // lock everything in this function.
 
 	// add firstframe.
-	FrameHessian* firstFrame = coarseInitializer->firstFrame;
-	firstFrame->idx = frameHessians.size();
+	FrameHessian* firstFrame = coarseInitializer->firstFrame; // let the coarseInitializer's host frame as fullsystem's host frame.
+	firstFrame->idx = frameHessians.size(); // note that initialize may happen after reset. frameHessians record all tracked frames.
 	frameHessians.push_back(firstFrame);
 	firstFrame->frameID = allKeyFramesHistory.size();
 	allKeyFramesHistory.push_back(firstFrame->shell);
