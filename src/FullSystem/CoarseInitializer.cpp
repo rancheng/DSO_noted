@@ -944,7 +944,7 @@ namespace dso {
         }
         std::swap<Vec10f *>(JbBuffer, JbBuffer_new);
     }
-
+    // generate the K from different scale lvl.
     void CoarseInitializer::makeK(CalibHessian *HCalib) {
         w[0] = wG[0];
         h[0] = hG[0];
