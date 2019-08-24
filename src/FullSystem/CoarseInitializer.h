@@ -87,7 +87,7 @@ public:
 	bool trackFrame(FrameHessian* newFrameHessian, std::vector<IOWrap::Output3DWrapper*> &wraps);
 	void calcTGrads(FrameHessian* newFrameHessian);
 
-	int frameID;
+	int frameID; // record the number of frame get into keyframes.
 	bool fixAffine;
 	bool printDebug;
 

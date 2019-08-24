@@ -256,23 +256,26 @@ namespace dso {
         }// here end of all lvl loop.
 
 
-        thisToNext = refToNew_current;
-        thisToNext_aff = refToNew_aff_current;
+        thisToNext = refToNew_current; // this is the last accepted transformation matrix.
+        thisToNext_aff = refToNew_aff_current; // last accepted affine model.
 
         for (int i = 0; i < pyrLevelsUsed - 1; i++)
-            propagateUp(i);
+            propagateUp(i); // propogate the precise large scale bottom lvl point-wise estimation up to the parent lvl.
 
 
         frameID++;
-        if (!snapped) snappedAt = 0;
+        if (!snapped) snappedAt = 0; // first frame successfully tracked? yay!!!
 
         if (snapped && snappedAt == 0)
-            snappedAt = frameID;
+            snappedAt = frameID; // point the saved tracked frame to the end of the keframe vector.
 
 
         debugPlot(0, wraps);
 
-
+        // frameID > snappedAt + 5 ??? what is this???
+        // oh, I know, frameID will increase no matter what, but snappedAt will not change if the snappedAt was set
+        // to some frameID... this is telling that if you tracked good in some other frame than first frame,
+        // then will not snap again, this explained what snap is, just for once, no more. nice choice of word...
         return snapped && frameID > snappedAt + 5;
     }
 
