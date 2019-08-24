@@ -458,6 +458,8 @@ namespace dso {
                 if (maxstep < point->maxstep) point->maxstep = maxstep;
 
                 // immediately compute dp*dd' and dd*dd' in JbBuffer1.
+                // from energy functional structs, I found a clue, here dp should be d_prior, which is the
+                // gradient of prior. JbBuffer should be the jacobian buffer for prior and hessian and residual.
                 JbBuffer_new[i][0] += dp0[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][1] += dp1[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][2] += dp2[idx] * dd[idx]; // 0-7: sum(dd * dp)

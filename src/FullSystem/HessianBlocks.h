@@ -141,6 +141,8 @@ struct FrameHessian
 	std::vector<ImmaturePoint*> immaturePoints;		// contains all OUTLIER points (= discarded.).
 
     // Nullity is the complement to the rank of a matrix
+    // since absolute pose and affine and scale is not observable in monocular camera, thus are the nullspace in the
+    // hessian matrix.
 	Mat66 nullspaces_pose; // nullspace is: assume h(v) = A*v that A*v = 0. null-space is equivalently the set of solutions to the homogeneous equation A*v=0
 	Mat42 nullspaces_affine;
 	Vec6 nullspaces_scale;
@@ -176,7 +178,7 @@ struct FrameHessian
 
 
 
-	void setStateZero(const Vec10 &state_zero);
+	void setStateZero(const Vec10 &state_zero); // JbBuffer_new
 	inline void setState(const Vec10 &state)
 	{
 
@@ -262,11 +264,11 @@ struct FrameHessian
 
 	inline Vec10 getPrior()
 	{
-		Vec10 p =  Vec10::Zero();
+		Vec10 p =  Vec10::Zero(); // H and b...
 		if(frameID==0)
 		{
-			p.head<3>() = Vec3::Constant(setting_initialTransPrior);
-			p.segment<3>(3) = Vec3::Constant(setting_initialRotPrior);
+			p.head<3>() = Vec3::Constant(setting_initialTransPrior); // p [0..2] translation prior
+			p.segment<3>(3) = Vec3::Constant(setting_initialRotPrior); // p [3..5] rotation prior
 			if(setting_solverMode & SOLVER_REMOVE_POSEPRIOR) p.head<6>().setZero();
 
 			p[6] = setting_initialAffAPrior;

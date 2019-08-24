@@ -48,12 +48,12 @@ void EFResidual::takeDataF()
 	JpJdF.segment<2>(6) = J->JabJIdx*J->Jpdd;
 }
 
-
+// data is FrameHessian.
 void EFFrame::takeData()
 {
-	prior = data->getPrior().head<8>();
-	delta = data->get_state_minus_stateZero().head<8>();
-	delta_prior =  (data->get_state() - data->getPriorZero()).head<8>();
+	prior = data->getPrior().head<8>(); // sum(dp*dd) in JbBuffer: [rot0 rot1 rot2 trans0 trans1, tran2, aff0, aff1]
+	delta = data->get_state_minus_stateZero().head<8>(); // state - state_zero
+	delta_prior =  (data->get_state() - data->getPriorZero()).head<8>(); // prior gradient.
 
 
 
@@ -70,7 +70,7 @@ void EFFrame::takeData()
 
 	assert(data->frameID != -1);
 
-	frameID = data->frameID;
+	frameID = data->frameID; // assign the frameID.
 }
 
 

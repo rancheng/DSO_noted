@@ -428,7 +428,7 @@ EFResidual* EnergyFunctional::insertResidual(PointFrameResidual* r)
 }
 EFFrame* EnergyFunctional::insertFrame(FrameHessian* fh, CalibHessian* Hcalib)
 {
-	EFFrame* eff = new EFFrame(fh);
+	EFFrame* eff = new EFFrame(fh); // convert frameHessian to energy frame.
 	eff->idx = frames.size();
 	frames.push_back(eff);
 

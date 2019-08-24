@@ -1231,10 +1231,10 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 	// add firstframe.
 	FrameHessian* firstFrame = coarseInitializer->firstFrame; // let the coarseInitializer's host frame as fullsystem's host frame.
 	firstFrame->idx = frameHessians.size(); // note that initialize may happen after reset. frameHessians record all tracked frames.
-	frameHessians.push_back(firstFrame);
-	firstFrame->frameID = allKeyFramesHistory.size();
-	allKeyFramesHistory.push_back(firstFrame->shell);
-	ef->insertFrame(firstFrame, &Hcalib);
+	frameHessians.push_back(firstFrame); // simple, just push the first frame into the frame window.
+	firstFrame->frameID = allKeyFramesHistory.size(); // allKeyFramesHistory's back as id.
+	allKeyFramesHistory.push_back(firstFrame->shell); // just pushback the transformation matrix to visualize
+	ef->insertFrame(firstFrame, &Hcalib); //
 	setPrecalcValues();
 
 	//int numPointsTotal = makePixelStatus(firstFrame->dI, selectionMap, wG[0], hG[0], setting_desiredDensity);

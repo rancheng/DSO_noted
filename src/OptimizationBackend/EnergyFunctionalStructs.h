@@ -146,7 +146,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	EFFrame(FrameHessian* d) : data(d)
 	{
-		takeData();
+		takeData(); // initialize the prior, delta_prior and assign the frame id.
 	}
 	void takeData();
 
