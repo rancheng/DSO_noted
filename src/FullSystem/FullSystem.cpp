@@ -1290,8 +1290,8 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 		ph->hasDepthPrior=true;
 		ph->setPointStatus(PointHessian::ACTIVE); // since it has valid depth prior, will be marked as active map point.
 
-		firstFrame->pointHessians.push_back(ph);
-		ef->insertPoint(ph);
+		firstFrame->pointHessians.push_back(ph); // now push the active point hessian to the host frame.
+		ef->insertPoint(ph); // insert to energy function to optimize in the sliding window later on.
 	}
 
 
