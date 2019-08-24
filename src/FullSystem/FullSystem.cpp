@@ -1241,18 +1241,18 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 	//int numPointsTotal = makePixelStatus(firstFrame->dI, selectionMap, wG[0], hG[0], setting_desiredDensity);
 	//int numPointsTotal = pixelSelector->makeMaps(firstFrame->dIp, selectionMap,setting_desiredDensity);
 
-	firstFrame->pointHessians.reserve(wG[0]*hG[0]*0.2f);
-	firstFrame->pointHessiansMarginalized.reserve(wG[0]*hG[0]*0.2f);
-	firstFrame->pointHessiansOut.reserve(wG[0]*hG[0]*0.2f);
+	firstFrame->pointHessians.reserve(wG[0]*hG[0]*0.2f); // reserve 20% of points in the first frame.
+	firstFrame->pointHessiansMarginalized.reserve(wG[0]*hG[0]*0.2f); // also reserve 20% of marginalized points
+	firstFrame->pointHessiansOut.reserve(wG[0]*hG[0]*0.2f); // the number of points that has been marginalize out.
 
 
 	float sumID=1e-5, numID=1e-5;
-	for(int i=0;i<coarseInitializer->numPoints[0];i++)
+	for(int i=0;i<coarseInitializer->numPoints[0];i++) // numPoints[0] is the point number in the largest scale lvl.
 	{
-		sumID += coarseInitializer->points[0][i].iR;
+		sumID += coarseInitializer->points[0][i].iR; // sumID is the sum of all inverse depth.
 		numID++;
 	}
-	float rescaleFactor = 1 / (sumID / numID);
+	float rescaleFactor = 1 / (sumID / numID); // this rescale factor is the average depth in lvl 0.
 
 	// randomly sub-select the points I need.
 	float keepPercentage = setting_desiredPointDensity / coarseInitializer->numPoints[0];
@@ -1260,12 +1260,14 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
     if(!setting_debugout_runquiet)
         printf("Initialization: keep %.1f%% (need %d, have %d)!\n", 100*keepPercentage,
                 (int)(setting_desiredPointDensity), coarseInitializer->numPoints[0] );
-
+    // to this step, initializer by default regard coarseInitializer has finished all scale space selected point initial tracking
+    // and already get different point's valid depth estimation as prior.
 	for(int i=0;i<coarseInitializer->numPoints[0];i++)
 	{
 		if(rand()/(float)RAND_MAX > keepPercentage) continue;
-
+        // pointer locate in each selected point in lvl0
 		Pnt* point = coarseInitializer->points[0]+i;
+		// create a immature point out of the current point and current frame.
 		ImmaturePoint* pt = new ImmaturePoint(point->u+0.5f,point->v+0.5f,firstFrame,point->my_type, &Hcalib);
         // according to immature point class:
         // energyTH is calculated from the normalized color. so most of the color values in the boundaries will
@@ -1273,18 +1275,20 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 		if(!std::isfinite(pt->energyTH)) { delete pt; continue; }
 
         // !Notice: set all points idepths are 1. -> then update the idepth according to the next frame.
+        // since this is initlization, idepth is the unknown variable, thus will set as 1 for temprory use.
 		pt->idepth_max=pt->idepth_min=1;
 		// !Notice: so initially all points are set from immature point!
-		PointHessian* ph = new PointHessian(pt, &Hcalib);
+		// okay, now they use the immature point to create pointHessian...
+		PointHessian* ph = new PointHessian(pt, &Hcalib); // point hessian should be the actively tracked map point.
 		// delete the immature point ? no tracing? this point has uniformally depth: 1. where do you think you will
 		// update them?
-		delete pt;
+		delete pt; // delete the artifact: immaturePoint.
 		if(!std::isfinite(ph->energyTH)) {delete ph; continue;}
 
-		ph->setIdepthScaled(point->iR*rescaleFactor);
-		ph->setIdepthZero(ph->idepth);
+		ph->setIdepthScaled(point->iR*rescaleFactor); // initialize the idepth by iR
+		ph->setIdepthZero(ph->idepth); // dump initial idepth
 		ph->hasDepthPrior=true;
-		ph->setPointStatus(PointHessian::ACTIVE);
+		ph->setPointStatus(PointHessian::ACTIVE); // since it has valid depth prior, will be marked as active map point.
 
 		firstFrame->pointHessians.push_back(ph);
 		ef->insertPoint(ph);
