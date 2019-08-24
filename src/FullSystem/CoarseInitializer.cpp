@@ -49,7 +49,9 @@ namespace dso {
             points[lvl] = 0;
             numPoints[lvl] = 0;
         }
-
+        // JbBuffer here record the Jacobian of pose prior, residual and affine.
+        // including 8 prior gradients: [rot0, rot1, rot2, trans0, trans1, trans2, aff0, aff1]
+        // and 1 residual entry and 1 hessian entry.
         JbBuffer = new Vec10f[ww * hh]; // 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
         JbBuffer_new = new Vec10f[ww * hh];
 

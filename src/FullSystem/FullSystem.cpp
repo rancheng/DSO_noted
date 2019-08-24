@@ -138,7 +138,7 @@ FullSystem::FullSystem()
 	// mainly used as "coarseTracker->trackNewestCoarse"
 	coarseTracker = new CoarseTracker(wG[0], hG[0]);
 	coarseTracker_forNewKF = new CoarseTracker(wG[0], hG[0]);
-	coarseInitializer = new CoarseInitializer(wG[0], hG[0]);
+	coarseInitializer = new CoarseInitializer(wG[0], hG[0]); // initialize JbBuffer for pose residual and affine prior
 	pixelSelector = new PixelSelector(wG[0], hG[0]);
 
 	statistics_lastNumOptIts=0;
@@ -1234,9 +1234,10 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 	frameHessians.push_back(firstFrame); // simple, just push the first frame into the frame window.
 	firstFrame->frameID = allKeyFramesHistory.size(); // allKeyFramesHistory's back as id.
 	allKeyFramesHistory.push_back(firstFrame->shell); // just pushback the transformation matrix to visualize
-	ef->insertFrame(firstFrame, &Hcalib); //
+    // ########## need to explore the following two functions.
+	ef->insertFrame(firstFrame, &Hcalib);
 	setPrecalcValues();
-
+    // #################################
 	//int numPointsTotal = makePixelStatus(firstFrame->dI, selectionMap, wG[0], hG[0], setting_desiredDensity);
 	//int numPointsTotal = pixelSelector->makeMaps(firstFrame->dIp, selectionMap,setting_desiredDensity);
 

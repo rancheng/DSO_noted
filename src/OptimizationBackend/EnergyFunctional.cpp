@@ -426,6 +426,7 @@ EFResidual* EnergyFunctional::insertResidual(PointFrameResidual* r)
 	r->efResidual = efr;
 	return efr;
 }
+// invoked by FullSystem.
 EFFrame* EnergyFunctional::insertFrame(FrameHessian* fh, CalibHessian* Hcalib)
 {
 	EFFrame* eff = new EFFrame(fh); // convert frameHessian to energy frame.
