@@ -863,9 +863,12 @@ void FullSystem::addActiveFrame( ImageAndExposure* image, int id )
 		}
 		else if(coarseInitializer->trackFrame(fh, outputWrapper))	// if SNAPPED
 		{
-
+            // convert all immature points into point hessians for active tracking, and initialize the depth prior
+            // SE3 prior etc...
 			initializeFromInitializer(fh); // successfully tracked, will go into initialization step.
-			lock.unlock();
+			lock.unlock(); // unlock the mapMutex...
+            // since needKF is true, fh will be set as keyframe.
+            // frame will be projected to front UI and start all tracking thread
 			deliverTrackedFrame(fh, true);
 		}
 		else
@@ -938,7 +941,7 @@ void FullSystem::deliverTrackedFrame(FrameHessian* fh, bool needKF)
 		if(goStepByStep && lastRefStopID != coarseTracker->refFrameID)
 		{
 			MinimalImageF3 img(wG[0], hG[0], fh->dI);
-			IOWrap::displayImage("frameToTrack", &img);
+			IOWrap::displayImage("frameToTrack", &img); // deliver the frame to UI
 			while(true)
 			{
 				char k=IOWrap::waitKey(0);
@@ -954,16 +957,16 @@ void FullSystem::deliverTrackedFrame(FrameHessian* fh, bool needKF)
 		if(needKF) makeKeyFrame(fh);
 		else makeNonKeyFrame(fh);
 	}
-	else
+	else // no linearize operation
 	{
 		boost::unique_lock<boost::mutex> lock(trackMapSyncMutex);
 		unmappedTrackedFrames.push_back(fh);
 		if(needKF) needNewKFAfter=fh->shell->trackingRef->id;
-		trackedFrameSignal.notify_all();
+		trackedFrameSignal.notify_all(); // start all tracking thread
 
 		while(coarseTracker_forNewKF->refFrameID == -1 && coarseTracker->refFrameID == -1 )
 		{
-			mappedFrameSignal.wait(lock);
+			mappedFrameSignal.wait(lock); // pause mapping thread to wait for tracking thread.
 		}
 
 		lock.unlock();
@@ -1296,14 +1299,17 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 
 
 
-	SE3 firstToNew = coarseInitializer->thisToNext;
-	firstToNew.translation() /= rescaleFactor;
+	SE3 firstToNew = coarseInitializer->thisToNext; // coarse initializer has already got the SE3 matrix.
+	firstToNew.translation() /= rescaleFactor; // rescale factor is normalized depth in lvl 0.
 
 
 	// really no lock required, as we are initializing.
 	{
+	    // but you still locked it, you can try to lock the local variables using lock_guard
 		boost::unique_lock<boost::mutex> crlock(shellPoseMutex);
+		// initialize the SE3 for the host frame hessian.
 		firstFrame->shell->camToWorld = SE3();
+		// initialize affine model.
 		firstFrame->shell->aff_g2l = AffLight(0,0);
 		firstFrame->setEvalPT_scaled(firstFrame->shell->camToWorld.inverse(),firstFrame->shell->aff_g2l);
 		firstFrame->shell->trackingRef=0;
@@ -1313,7 +1319,7 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 		newFrame->shell->aff_g2l = AffLight(0,0);
 		newFrame->setEvalPT_scaled(newFrame->shell->camToWorld.inverse(),newFrame->shell->aff_g2l);
 		newFrame->shell->trackingRef = firstFrame->shell;
-		newFrame->shell->camToTrackingRef = firstToNew.inverse();
+		newFrame->shell->camToTrackingRef = firstToNew.inverse(); // this firstToNew is from coarse initializer, set as SE3 prior.
 
 	}
 
