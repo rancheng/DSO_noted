@@ -282,33 +282,35 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 
 
 
-	FrameHessian* lastF = coarseTracker->lastRef;
+	FrameHessian* lastF = coarseTracker->lastRef; // dump the last tracked host frame.
 
-	AffLight aff_last_2_l = AffLight(0,0);
-
+	AffLight aff_last_2_l = AffLight(0,0); // init affine model a and b as 0
+    // last frame to current frame hessian tries, vector of SE3 to store those proposed transformation matrix.
+    // aligned allocator overdrive the memory allocate and release of SE3.
 	std::vector<SE3,Eigen::aligned_allocator<SE3>> lastF_2_fh_tries;
-	if(allFrameHistory.size() == 2)
-		for(unsigned int i=0;i<lastF_2_fh_tries.size();i++) lastF_2_fh_tries.push_back(SE3());
+	if(allFrameHistory.size() == 2) // this means it's in initialization.
+		for(unsigned int i=0;i<lastF_2_fh_tries.size();i++) lastF_2_fh_tries.push_back(SE3()); // initialize with empty SE3
 	else
 	{
-		FrameShell* slast = allFrameHistory[allFrameHistory.size()-2];
-		FrameShell* sprelast = allFrameHistory[allFrameHistory.size()-3];
+		FrameShell* slast = allFrameHistory[allFrameHistory.size()-2]; // -1 is the last one, -2 is the second last one
+		FrameShell* sprelast = allFrameHistory[allFrameHistory.size()-3]; // -3 is the third last one.
+		// sprelast ... slast...
 		SE3 slast_2_sprelast;
 		SE3 lastF_2_slast;
 		{	// lock on global pose consistency!
 			boost::unique_lock<boost::mutex> crlock(shellPoseMutex);
-			slast_2_sprelast = sprelast->camToWorld.inverse() * slast->camToWorld;
-			lastF_2_slast = slast->camToWorld.inverse() * lastF->shell->camToWorld;
-			aff_last_2_l = slast->aff_g2l;
+			slast_2_sprelast = sprelast->camToWorld.inverse() * slast->camToWorld; // SE3 map last to prelast.
+			lastF_2_slast = slast->camToWorld.inverse() * lastF->shell->camToWorld; // prelast to last.
+			aff_last_2_l = slast->aff_g2l; // use the last affine model.
 		}
-		SE3 fh_2_slast = slast_2_sprelast;// assumed to be the same as fh_2_slast.
+		SE3 fh_2_slast = slast_2_sprelast;// assumed to be the same as fh_2_slast. last -> prelast
 
 
 		// get last delta-movement.
 		lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast);	// assume constant motion.
 		lastF_2_fh_tries.push_back(fh_2_slast.inverse() * fh_2_slast.inverse() * lastF_2_slast);	// assume double motion (frame skipped)
-		lastF_2_fh_tries.push_back(SE3::exp(fh_2_slast.log()*0.5).inverse() * lastF_2_slast); // assume half motion.
-		lastF_2_fh_tries.push_back(lastF_2_slast); // assume zero motion.
+		lastF_2_fh_tries.push_back(SE3::exp(fh_2_slast.log()*0.5).inverse() * lastF_2_slast); // assume half motion. this is equivalent as doing sqrt in matrix.
+		lastF_2_fh_tries.push_back(lastF_2_slast); // assume zero motion. this transform back to slast which is the second last frame in the frame history.
 		lastF_2_fh_tries.push_back(SE3()); // assume zero motion FROM KF.
 
 
@@ -317,6 +319,7 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 		// also, if tracking rails here we loose, so we really, really want to avoid that.
 		for(float rotDelta=0.02; rotDelta < 0.05; rotDelta++)
 		{
+		    // 25 different rotaitions. but they are all very small rotation change.
 			lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,rotDelta,0,0), Vec3(0,0,0)));			// assume constant motion.
 			lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,0,rotDelta,0), Vec3(0,0,0)));			// assume constant motion.
 			lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast * SE3(Sophus::Quaterniond(1,0,0,rotDelta), Vec3(0,0,0)));			// assume constant motion.
