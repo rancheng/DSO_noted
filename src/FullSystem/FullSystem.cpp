@@ -396,7 +396,7 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 					coarseTracker->lastResiduals[3],
 					coarseTracker->lastResiduals[4]);
 		}
-
+        // achievedRes is updated in the trackNewestCoarse func
 
 		// do we have a new winner?
 		if(trackingIsGood && std::isfinite((float)coarseTracker->lastResiduals[0]) && !(coarseTracker->lastResiduals[0] >=  achievedRes[0]))

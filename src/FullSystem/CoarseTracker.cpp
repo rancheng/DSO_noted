@@ -533,6 +533,7 @@ void CoarseTracker::setCoarseTrackingRef(
 	firstCoarseRMSE=-1;
 
 }
+// use coarse tracker to update lastToNew and affine estimation.
 bool CoarseTracker::trackNewestCoarse(
 		FrameHessian* newFrameHessian,
 		SE3 &lastToNew_out, AffLight &aff_g2l_out,
@@ -545,10 +546,11 @@ bool CoarseTracker::trackNewestCoarse(
 
 	assert(coarsestLvl < 5 && coarsestLvl < pyrLevelsUsed);
 
-	lastResiduals.setConstant(NAN);
-	lastFlowIndicators.setConstant(1000);
+	lastResiduals.setConstant(NAN); // initialize last residual as empty
+	lastFlowIndicators.setConstant(1000); // flow here is optical flow.
 
-
+    // this part is pretty much same as the coarse initializer tracker...
+    // loop all lvl and find out the residuals and use Gauss-Newton iteration to approximately estimate the pose
 	newFrame = newFrameHessian;
 	int maxIterations[] = {10,20,50,50,50};
 	float lambdaExtrapolationLimit = 0.001;
