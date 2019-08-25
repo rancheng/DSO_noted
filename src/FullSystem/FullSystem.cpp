@@ -356,8 +356,8 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 	}
 
 
-	Vec3 flowVecs = Vec3(100,100,100);
-	SE3 lastF_2_fh = SE3();
+	Vec3 flowVecs = Vec3(100,100,100); // updated from coarse tracker...
+	SE3 lastF_2_fh = SE3(); // lastF_2_fh will be updated from lastF2_fh_tries, this will try to re-track multiple times
 	AffLight aff_g2l = AffLight(0,0);
 
 
