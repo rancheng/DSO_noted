@@ -414,7 +414,7 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 			for(int i=0;i<5;i++)
 			{
 				if(!std::isfinite((float)achievedRes[i]) || achievedRes[i] > coarseTracker->lastResiduals[i])	// take over if achievedRes is either bigger or NAN.
-					achievedRes[i] = coarseTracker->lastResiduals[i];
+					achievedRes[i] = coarseTracker->lastResiduals[i]; // use historical stable tracker
 			}
 		}
 
