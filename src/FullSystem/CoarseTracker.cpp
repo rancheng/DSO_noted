@@ -306,15 +306,15 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 	__m128 minusOne = _mm_set1_ps(-1);
 	__m128 zero = _mm_set1_ps(0);
 
-	int n = buf_warped_n;
+	int n = buf_warped_n; // buf_warped_n is driven by calcRes
 	assert(n%4==0);
-	for(int i=0;i<n;i+=4)
+	for(int i=0;i<n;i+=4) // i+=4?
 	{
-		__m128 dx = _mm_mul_ps(_mm_load_ps(buf_warped_dx+i), fxl);
+		__m128 dx = _mm_mul_ps(_mm_load_ps(buf_warped_dx+i), fxl); // this convert to the realworld coordinate, thus become dx and dy
 		__m128 dy = _mm_mul_ps(_mm_load_ps(buf_warped_dy+i), fyl);
-		__m128 u = _mm_load_ps(buf_warped_u+i);
+		__m128 u = _mm_load_ps(buf_warped_u+i); // loop the surrending pixels.
 		__m128 v = _mm_load_ps(buf_warped_v+i);
-		__m128 id = _mm_load_ps(buf_warped_idepth+i);
+		__m128 id = _mm_load_ps(buf_warped_idepth+i); // load idepth
 
 
 		acc.updateSSE_eighted(
@@ -565,8 +565,9 @@ bool CoarseTracker::trackNewestCoarse(
 	{
 		Mat88 H; Vec8 b;
 		float levelCutoffRepeat=1;
+		// calcRes update hte refToNew pose and affine
 		Vec6 resOld = calcRes(lvl, refToNew_current, aff_g2l_current, setting_coarseCutoffTH*levelCutoffRepeat);
-		while(resOld[5] > 0.6 && levelCutoffRepeat < 50)
+		while(resOld[5] > 0.6 && levelCutoffRepeat < 50) // loop until converge.
 		{
 			levelCutoffRepeat*=2;
 			resOld = calcRes(lvl, refToNew_current, aff_g2l_current, setting_coarseCutoffTH*levelCutoffRepeat);
