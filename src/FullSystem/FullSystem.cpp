@@ -436,13 +436,14 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 	lastCoarseRMSE = achievedRes; // coarse tracker residuals
 
 	// no lock required, as fh is not used anywhere yet.
+	// update the coarse tracked estimation into frame hessian shell for display and marginalization
 	fh->shell->camToTrackingRef = lastF_2_fh.inverse();
 	fh->shell->trackingRef = lastF->shell;
 	fh->shell->aff_g2l = aff_g2l;
 	fh->shell->camToWorld = fh->shell->trackingRef->camToWorld * fh->shell->camToTrackingRef;
 
 
-	if(coarseTracker->firstCoarseRMSE < 0)
+	if(coarseTracker->firstCoarseRMSE < 0) // why this RMSE will below 0?
 		coarseTracker->firstCoarseRMSE = achievedRes[0];
 
     if(!setting_debugout_runquiet)
@@ -463,7 +464,7 @@ Vec4 FullSystem::trackNewCoarse(FrameHessian* fh)
 						<< tryIterations << "\n";
 	}
 
-
+    // achievedRes is the converged residual, flowVecs is lastFlowIndicators from coarseTracker which is the converged optical flow.
 	return Vec4(achievedRes[0], flowVecs[0], flowVecs[1], flowVecs[2]);
 }
 // trace the immature point on the host frame on the target frame: FrameHessian* fh.
