@@ -929,7 +929,7 @@ void CoarseDistanceMap::makeInlierVotes(std::vector<FrameHessian*> frameHessians
 void CoarseDistanceMap::growDistBFS(int bfsNum)
 {
 	assert(w[0] != 0);
-	int w1 = w[1], h1 = h[1];
+	int w1 = w[1], h1 = h[1]; // this only searched the second large scale image space?
 	for(int k=1;k<40;k++)
 	{
 		int bfsNum2 = bfsNum;
