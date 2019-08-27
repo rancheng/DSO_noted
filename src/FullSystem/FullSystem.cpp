@@ -575,19 +575,21 @@ void FullSystem::activatePointsMT()
 	FrameHessian* newestHs = frameHessians.back();
 
 	// make dist map.
-	coarseDistanceMap->makeK(&Hcalib);
-	coarseDistanceMap->makeDistanceMap(frameHessians, newestHs);
+	coarseDistanceMap->makeK(&Hcalib); // intrinsics in different scales.
+	coarseDistanceMap->makeDistanceMap(frameHessians, newestHs); // record all points neigbours in bfsList1 and bfsList2
 
 	//coarseTracker->debugPlotDistMap("distMap");
     // the immature points to optimize in threads. will be used in threadReduce
 	std::vector<ImmaturePoint*> toOptimize; toOptimize.reserve(20000);
 
 
+    // project all frames in the sliding window into last frame (newestHs)
 	for(FrameHessian* host : frameHessians)		// go through all active frames
 	{
-		if(host == newestHs) continue;
-
+		if(host == newestHs) continue; // newestHs is the last frameHessian
 		SE3 fhToNew = newestHs->PRE_worldToCam * host->PRE_camToWorld;
+		// get Rotation and translation matrix.
+		// will be applied in ptp.
 		Mat33f KRKi = (coarseDistanceMap->K[1] * fhToNew.rotationMatrix().cast<float>() * coarseDistanceMap->Ki[0]);
 		Vec3f Kt = (coarseDistanceMap->K[1] * fhToNew.translation().cast<float>());
 
@@ -633,17 +635,21 @@ void FullSystem::activatePointsMT()
 
 
 			// see if we need to activate point due to distance map.
-			Vec3f ptp = KRKi * Vec3f(ph->u, ph->v, 1) + Kt*(0.5f*(ph->idepth_max+ph->idepth_min));
-			int u = ptp[0] / ptp[2] + 0.5f;
+			Vec3f ptp = KRKi * Vec3f(ph->u, ph->v, 1) + Kt*(0.5f*(ph->idepth_max+ph->idepth_min)); // point to point
+			int u = ptp[0] / ptp[2] + 0.5f; // this u and v is the point projected to last frame hessian.
 			int v = ptp[1] / ptp[2] + 0.5f;
-
+            // if not OOB
 			if((u > 0 && v > 0 && u < wG[1] && v < hG[1]))
 			{
-
+                // remember fwdWarpedIDDistFinal is updated in makeDistanceMap, which stores all the
+                // search distances (index k in the loop [0..40]).
+                // search distance plus the decimal part of ptp[0] which is x in world cordinate w.r.t last frame.
 				float dist = coarseDistanceMap->fwdWarpedIDDistFinal[u+wG[1]*v] + (ptp[0]-floorf((float)(ptp[0])));
 				// holy shit, what this my_type is ?????
 				// why can't you find a proper name?????
 				// guessing: my type is a float number
+                // my_type should be a threshold term and this statement is to choose all points that not good enough,
+                // and throw them into the optimizer and re-estimate the depth.
 				if(dist>=currentMinActDist* ph->my_type)
 				{
 					coarseDistanceMap->addIntoDistFinal(u,v);
