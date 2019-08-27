@@ -949,7 +949,7 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 
 				if(fwdWarpedIDDistFinal[idx+1] > k) // k is the loop index? why k is [0..40]
 				{
-					fwdWarpedIDDistFinal[idx+1] = k;
+					fwdWarpedIDDistFinal[idx+1] = k; // k should be recording the depth of search.
 					bfsList1[bfsNum] = Eigen::Vector2i(x+1,y); bfsNum++;
 				}
 				if(fwdWarpedIDDistFinal[idx-1] > k)
