@@ -656,7 +656,7 @@ void FullSystem::activatePointsMT()
 					toOptimize.push_back(ph);
 				}
 			}
-			else
+			else // OOB, just discard.
 			{
 				delete ph;
 				host->immaturePoints[i]=0;
@@ -668,6 +668,8 @@ void FullSystem::activatePointsMT()
 //	printf("ACTIVATE: %d. (del %d, notReady %d, marg %d, good %d, marg-skip %d)\n",
 //			(int)toOptimize.size(), immature_deleted, immature_notReady, immature_needMarg, immature_want, immature_margskip);
 
+    // now toOptimize collected all points that requires to update the idepth estimation.
+    // optimized is used to store those optimized points.
 	std::vector<PointHessian*> optimized; optimized.resize(toOptimize.size());
 
 	if(multiThreading)
