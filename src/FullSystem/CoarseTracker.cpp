@@ -913,7 +913,7 @@ void CoarseDistanceMap::makeDistanceMap(
 		}
 	}
     // now in this function, use dfs to grow distance in the bfslist1 list.
-	growDistBFS(numItems);
+	growDistBFS(numItems); //numItems is the total number of point hessians in all frames in the sliding window.
 }
 
 
