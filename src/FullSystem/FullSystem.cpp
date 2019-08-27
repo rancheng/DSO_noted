@@ -724,7 +724,7 @@ namespace dso {
                     boost::bind(&FullSystem::activatePointsMT_Reductor, this, &optimized, &toOptimize, _1, _2, _3, _4),
                     0, toOptimize.size(), 50);
         } else {
-            activatePointsMT_Reductor(&optimized, &toOptimize, 0, toOptimize.size(), 0, 0);
+            activatePointsMT_Reductor(&optimized, &toOptimize, 0, toOptimize.size(), 0, 0); // run it in main tread.
         }
 
 
