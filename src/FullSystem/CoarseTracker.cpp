@@ -947,7 +947,7 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 				if(x==0 || y== 0 || x==w1-1 || y==h1-1) continue;
 				int idx = x + y * w1; // this makes up the distance index to find in forward warped idepth distance final
 
-				if(fwdWarpedIDDistFinal[idx+1] > k) //
+				if(fwdWarpedIDDistFinal[idx+1] > k) // k is the loop index? why k is [0..40]
 				{
 					fwdWarpedIDDistFinal[idx+1] = k;
 					bfsList1[bfsNum] = Eigen::Vector2i(x+1,y); bfsNum++;
