@@ -925,7 +925,9 @@ void CoarseDistanceMap::makeInlierVotes(std::vector<FrameHessian*> frameHessians
 }
 
 
-
+// record all the neighbourhood of point hessians in the sliding window frames in a BFS fashion
+// they store all the neighbour points in bfsList1 and bfsList2
+// the pattern is interlacing four directions and eight directions.
 void CoarseDistanceMap::growDistBFS(int bfsNum)
 {
 	assert(w[0] != 0);
@@ -949,6 +951,9 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
                 // remember in coarseTracker make Depth map, fwdWarpedIDDistFinal was initialized as 1000 for each value.
                 // fwd's value will be quickly marked as k or k-1 or k-2 or ... any value between 0..k
                 // this way they will keep search the other direction which was not retrieved before.
+                // the following four if statements are searching right left up and down four directions.
+                // the reason they swap the bfsList is that they want to interlace the directions, just merge the
+                // direction patterns into List.
 				if(fwdWarpedIDDistFinal[idx+1] > k) // k is the loop index? why k is [0..40]
 				{
 					fwdWarpedIDDistFinal[idx+1] = k; // k should be recording the depth of search.
@@ -972,7 +977,7 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 			}
 		}
 		else
-		{
+		{   // this is searching for eight directions.
 			for(int i=0;i<bfsNum2;i++)
 			{
 				int x = bfsList2[i][0];
