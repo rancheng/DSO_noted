@@ -946,7 +946,9 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 				int y = bfsList2[i][1];
 				if(x==0 || y== 0 || x==w1-1 || y==h1-1) continue;
 				int idx = x + y * w1; // this makes up the distance index to find in forward warped idepth distance final
-
+                // remember in coarseTracker make Depth map, fwdWarpedIDDistFinal was initialized as 1000 for each value.
+                // fwd's value will be quickly marked as k or k-1 or k-2 or ... any value between 0..k
+                // this way they will keep search the other direction which was not retrieved before.
 				if(fwdWarpedIDDistFinal[idx+1] > k) // k is the loop index? why k is [0..40]
 				{
 					fwdWarpedIDDistFinal[idx+1] = k; // k should be recording the depth of search.
