@@ -930,9 +930,11 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 {
 	assert(w[0] != 0);
 	int w1 = w[1], h1 = h[1]; // this only searched the second large scale image space?
+	// this loops 40 times, and swap bfsList every time.
+	//
 	for(int k=1;k<40;k++)
 	{
-		int bfsNum2 = bfsNum;
+		int bfsNum2 = bfsNum; // bfsNum is used as counter in the bfsList.
 		std::swap<Eigen::Vector2i*>(bfsList1,bfsList2);
 		bfsNum=0;
 
@@ -996,7 +998,11 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 					fwdWarpedIDDistFinal[idx-w1] = k;
 					bfsList1[bfsNum] = Eigen::Vector2i(x,y-1); bfsNum++;
 				}
-
+                // everything above is same when k is even number.
+                // what make this different is it search the points
+                // that is left upper corner of the pixel
+                // and bottom right corner, top right, bottom left
+                // four corners.
 				if(fwdWarpedIDDistFinal[idx+1+w1] > k)
 				{
 					fwdWarpedIDDistFinal[idx+1+w1] = k;
