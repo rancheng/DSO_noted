@@ -940,14 +940,14 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 
 		if(k%2==0)
 		{
-			for(int i=0;i<bfsNum2;i++)
+			for(int i=0;i<bfsNum2;i++) // loop every point in the sliding window.
 			{
-				int x = bfsList2[i][0];
+				int x = bfsList2[i][0]; // bfsList2 records the cordinate of search direction
 				int y = bfsList2[i][1];
 				if(x==0 || y== 0 || x==w1-1 || y==h1-1) continue;
-				int idx = x + y * w1;
+				int idx = x + y * w1; // this makes up the distance index to find in forward warped idepth distance final
 
-				if(fwdWarpedIDDistFinal[idx+1] > k)
+				if(fwdWarpedIDDistFinal[idx+1] > k) //
 				{
 					fwdWarpedIDDistFinal[idx+1] = k;
 					bfsList1[bfsNum] = Eigen::Vector2i(x+1,y); bfsNum++;

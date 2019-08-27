@@ -143,7 +143,8 @@ public:
 
 	void makeK( CalibHessian* HCalib);
 
-
+    // this forward warped idepth distance array is second large scale img size.
+    // why do they choose the second large scale as the idepth anchor?
 	float* fwdWarpedIDDistFinal;
 
 	Mat33f K[PYR_LEVELS];
