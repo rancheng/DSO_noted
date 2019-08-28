@@ -460,16 +460,18 @@ EFFrame* EnergyFunctional::insertFrame(FrameHessian* fh, CalibHessian* Hcalib)
 
 	return eff;
 }
+// note that the pointhessian here is the optimized point with good depth estimation.
+// and converged over all frames in the sliding window.
 EFPoint* EnergyFunctional::insertPoint(PointHessian* ph)
 {
-	EFPoint* efp = new EFPoint(ph, ph->host->efFrame);
-	efp->idxInPoints = ph->host->efFrame->points.size();
+	EFPoint* efp = new EFPoint(ph, ph->host->efFrame); // pointer to point hessian, and host frame pointer.
+	efp->idxInPoints = ph->host->efFrame->points.size(); // record current size as index, since this point will be pushed back to the points vector.
 	ph->host->efFrame->points.push_back(efp);
 
-	nPoints++;
-	ph->efPoint = efp;
+	nPoints++; // active points counter
+	ph->efPoint = efp; // inturn, link the efp (energy functional point) back to the point hessian obj
 
-	EFIndicesValid = false;
+	EFIndicesValid = false; // still don't know what this indice valid works for... pending investigation...
 
 	return efp;
 }
