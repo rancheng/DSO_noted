@@ -736,11 +736,11 @@ namespace dso {
             if (newpoint != 0 && newpoint != (PointHessian * )((long) (-1))) {
                 newpoint->host->immaturePoints[ph->idxInImmaturePoints] = 0; // cancel out the points that was estimated
                 newpoint->host->pointHessians.push_back(newpoint);// record those optimized points as good point in host frame.
-                ef->insertPoint(newpoint);
-                for (PointFrameResidual *r : newpoint->residuals)
-                    ef->insertResidual(r);
+                ef->insertPoint(newpoint); // insert the converged active mature points into ef.
+                for (PointFrameResidual *r : newpoint->residuals) // residuals in each points are created in makeKeyFrame func
+                    ef->insertResidual(r); // residuals was pushed back to the energy function for optimization other immature points.
                 assert(newpoint->efPoint != 0);
-                delete ph;
+                delete ph; // since everything was took over by ef and host, toOptimize pointer is no longer needed.
             } else if (newpoint == (PointHessian * )((long) (-1)) || ph->lastTraceStatus == IPS_OOB) {
                 delete ph;
                 ph->host->immaturePoints[ph->idxInImmaturePoints] = 0;
@@ -1094,9 +1094,11 @@ namespace dso {
 
         // =========================== add new residuals for old points =========================
         int numFwdResAdde = 0;
+        // but this loops all frames in the sliding window...
         for (FrameHessian *fh1 : frameHessians)        // go through all active frames
         {
-            if (fh1 == fh) continue;
+            if (fh1 == fh) continue; // oh, I see, skip here... Im so blind...
+            // now this will push all the (valid) residuals from the all the frame hessian projections into each mature point hessians
             for (PointHessian *ph : fh1->pointHessians) {
                 PointFrameResidual *r = new PointFrameResidual(ph, fh1, fh);
                 r->setState(ResState::IN);
