@@ -556,8 +556,11 @@ namespace dso {
     }
 
 
-// this is the function directly optimize the toOptimize points and store the optimized one
-// into optimized.
+    // this is the function directly optimize the toOptimize points and store the optimized one
+    // into optimized.
+
+    // this reductor is the main thread function, in this thread, they use the residuals of each frames
+    // to optimize the immature points in range [min, max]
     void FullSystem::activatePointsMT_Reductor(
             std::vector<PointHessian *> *optimized,
             std::vector<ImmaturePoint *> *toOptimize,
