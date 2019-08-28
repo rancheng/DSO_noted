@@ -730,12 +730,12 @@ namespace dso {
 
         // loop all to optimize all points
         for (unsigned k = 0; k < toOptimize.size(); k++) {
-            PointHessian *newpoint = optimized[k]; // dump optimized points
-            ImmaturePoint *ph = toOptimize[k];
+            PointHessian *newpoint = optimized[k]; // dump optimized points, new optimized points
+            ImmaturePoint *ph = toOptimize[k]; // this is the bad estimations
 
             if (newpoint != 0 && newpoint != (PointHessian * )((long) (-1))) {
-                newpoint->host->immaturePoints[ph->idxInImmaturePoints] = 0;
-                newpoint->host->pointHessians.push_back(newpoint);
+                newpoint->host->immaturePoints[ph->idxInImmaturePoints] = 0; // cancel out the points that was estimated
+                newpoint->host->pointHessians.push_back(newpoint);// record those optimized points as good point in host frame.
                 ef->insertPoint(newpoint);
                 for (PointFrameResidual *r : newpoint->residuals)
                     ef->insertResidual(r);
