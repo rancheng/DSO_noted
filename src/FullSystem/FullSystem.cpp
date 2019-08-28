@@ -773,18 +773,21 @@ namespace dso {
     void FullSystem::activatePointsOldFirst() {
         assert(false);
     }
-
+    // used in marginalization
     void FullSystem::flagPointsForRemoval() {
         assert(EFIndicesValid);
 
-        std::vector<FrameHessian *> fhsToKeepPoints;
+        std::vector<FrameHessian *> fhsToKeepPoints; // intuitive, no need to explain here.
         std::vector<FrameHessian *> fhsToMargPoints;
 
         //if(setting_margPointVisWindow>0)
         {
+            // loop backwards, if frameHessian was not marked as marginalization, just keep that frame.
+            // strange, i was initialized as fh->size() - 1, and i >= fh->size()?
+            // this is not reachable, unless frameHessians changes when finished first statement.
             for (int i = ((int) frameHessians.size()) - 1; i >= 0 && i >= ((int) frameHessians.size()); i--)
                 if (!frameHessians[i]->flaggedForMarginalization) fhsToKeepPoints.push_back(frameHessians[i]);
-
+            // since the first loop is not as reliable, the author decide to loop again to remove those marginalized frame.
             for (int i = 0; i < (int) frameHessians.size(); i++)
                 if (frameHessians[i]->flaggedForMarginalization) fhsToMargPoints.push_back(frameHessians[i]);
         }
