@@ -742,6 +742,9 @@ namespace dso {
                 assert(newpoint->efPoint != 0);
                 delete ph; // since everything was took over by ef and host, toOptimize pointer is no longer needed.
             } else if (newpoint == (PointHessian * )((long) (-1)) || ph->lastTraceStatus == IPS_OOB) {
+                // this kind of cast is so strange, why it's (long) (-1) -> this will give -1, what is (PointHessian*) -1?
+                // cast -1 into PointHessian? => this gives 0xffffffffffffffff... which is the null pointer.........
+                // okay, fair enough, 秀儿是你吗？
                 delete ph;
                 ph->host->immaturePoints[ph->idxInImmaturePoints] = 0;
             } else {
