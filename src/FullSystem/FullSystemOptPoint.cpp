@@ -203,7 +203,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	p->setPointStatus(PointHessian::ACTIVE); // active map point.
     // update all residuals
 	for(int i=0;i<nres;i++)
-		if(residuals[i].state_state == ResState::IN)
+		if(residuals[i].state_state == ResState::IN) // update those map points
 		{
 			PointFrameResidual* r = new PointFrameResidual(p, p->host, residuals[i].target);
 			r->state_NewEnergy = r->state_energy = 0; // clear out those residual values for optimization since it's optimized.
