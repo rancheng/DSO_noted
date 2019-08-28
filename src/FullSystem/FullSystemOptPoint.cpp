@@ -45,7 +45,7 @@
 
 namespace dso
 {
-
+// this file is to optimize the point.
 
 // TODO: find out what to optimize in the immature point?
 PointHessian* FullSystem::optimizeImmaturePoint(
@@ -57,13 +57,14 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	int nres = 0;
 	for(FrameHessian* fh : frameHessians)
 	{
+	    // in this loop residuals initialize all the states of the residual struct for point.
 		if(fh != point->host)
 		{
 			residuals[nres].state_NewEnergy = residuals[nres].state_energy = 0;
 			residuals[nres].state_NewState = ResState::OUTLIER;
 			residuals[nres].state_state = ResState::IN;
 			residuals[nres].target = fh;
-			nres++;
+			nres++; // nres is eventually the number of frame hessians that's not the current host frame.
 		}
 	}
 	// see if this loops through all frames without expections
@@ -71,7 +72,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
     // print? and print used to be 50 prob? they must be a logging beast
 	bool print = false;//rand()%50==0;
     // Those variables are initialized for the optmization for the idepth of the immature point
-	float lastEnergy = 0;
+	float lastEnergy = 0; // initialize energy and H and b.
 	/*
 	 * ImmaturePoint::linearizeResidual function.
 	 * Hdd += (hw*d_idepth)*d_idepth;
@@ -79,16 +80,17 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	 * here the hw is the width and height production
 	 * idepth is the derivative of inverse depth
 	 * */
-	float lastHdd=0;
+	float lastHdd=0; // H is J'wJ, b is -J^Tw
 	float lastbd=0;
 	// currentIdepth just normalize with max and min idepth
-	float currentIdepth=(point->idepth_max+point->idepth_min)*0.5f;
+	float currentIdepth=(point->idepth_max+point->idepth_min)*0.5f; // rough estimate idepth
 
 
 
 
 
 	// loop through each frame in the sliding window
+	// linearize residuals, residual state_NewState and state_NewEnergy will be updated in the linearization func.
 	for(int i=0;i<nres;i++)
 	{
 	    // aggregate the linearized residual for the point in each frame.
