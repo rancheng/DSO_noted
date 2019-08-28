@@ -752,11 +752,11 @@ namespace dso {
             }
         }
 
-
+        // loop all frames and align the immature points in memory (vector: immaturePoints).
         for (FrameHessian *host : frameHessians) {
             for (int i = 0; i < (int) host->immaturePoints.size(); i++) {
                 if (host->immaturePoints[i] == 0) {
-                    host->immaturePoints[i] = host->immaturePoints.back();
+                    host->immaturePoints[i] = host->immaturePoints.back(); // move last entry back to fill the hole.
                     host->immaturePoints.pop_back();
                     i--;
                 }
