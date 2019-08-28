@@ -724,12 +724,13 @@ namespace dso {
                     boost::bind(&FullSystem::activatePointsMT_Reductor, this, &optimized, &toOptimize, _1, _2, _3, _4),
                     0, toOptimize.size(), 50);
         } else {
-            activatePointsMT_Reductor(&optimized, &toOptimize, 0, toOptimize.size(), 0, 0); // run it in main tread.
+            // run it in main tread.
+            activatePointsMT_Reductor(&optimized, &toOptimize, 0, toOptimize.size(), 0, 0);
         }
 
-
+        // loop all to optimize all points
         for (unsigned k = 0; k < toOptimize.size(); k++) {
-            PointHessian *newpoint = optimized[k];
+            PointHessian *newpoint = optimized[k]; // dump optimized points
             ImmaturePoint *ph = toOptimize[k];
 
             if (newpoint != 0 && newpoint != (PointHessian * )((long) (-1))) {
