@@ -106,7 +106,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 		// and kept all the residuals aggregated into lastEnergy
 	}
     // if there's computation error for the energy or last
-	if(!std::isfinite(lastEnergy) || lastHdd < setting_minIdepthH_act)
+	if(!std::isfinite(lastEnergy) || lastHdd < setting_minIdepthH_act) // Singularity, or failed to converge
 	{
 		if(print)
 			printf("OptPoint: Not well-constrained (%d res, H=%.1f). E=%f. SKIP!\n",
@@ -117,15 +117,16 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	if(print) printf("Activate point. %d residuals. H=%f. Initial Energy: %f. Initial Id=%f\n" ,
 			nres, lastHdd,lastEnergy,currentIdepth);
 
-	float lambda = 0.1;
+	float lambda = 0.1; // gradient move step size
 	for(int iteration=0;iteration<setting_GNItsOnPointActivation;iteration++)
 	{
 		float H = lastHdd;
 		H *= 1+lambda;
-		float step = (1.0/H) * lastbd;
-		float newIdepth = currentIdepth - step;
+		float step = (1.0/H) * lastbd; // step is the gradient of update delta
+		float newIdepth = currentIdepth - step; // use step to update newIdepth estimation
 
 		float newHdd=0; float newbd=0; float newEnergy=0;
+		// collect the energy on the updated idepth, to see if energy decreases
 		for(int i=0;i<nres;i++)
 			newEnergy += point->linearizeResidual(&Hcalib, 1, residuals+i,newHdd, newbd, newIdepth);
 
@@ -145,7 +146,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 				"",
 				lastEnergy, newEnergy, newIdepth);
 
-		if(newEnergy < lastEnergy)
+		if(newEnergy < lastEnergy) // if it decreased, okay, we go towards that way.
 		{
 			currentIdepth = newIdepth;
 			lastHdd = newHdd;
@@ -157,29 +158,31 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 				residuals[i].state_energy = residuals[i].state_NewEnergy;
 			}
 
-			lambda *= 0.5;
+			lambda *= 0.5; // decrease the gradient stepsize (to be more careful and fine-grind)
 		}
 		else
 		{
-			lambda *= 5;
+			lambda *= 5; // else enlarge the step size to stride further, this can easily create over shoot and not converge...
 		}
 
-		if(fabsf(step) < 0.0001*currentIdepth)
+		if(fabsf(step) < 0.0001*currentIdepth) // converged.
 			break;
 	}
-
+	// if for loop can reach successfully here, it for sure converged. or didnt get to the loop at all.
+    // so currentIdepth should be the converged depth estimation with GN method.
 	if(!std::isfinite(currentIdepth))
 	{
 		printf("MAJOR ERROR! point idepth is nan after initialization (%f).\n", currentIdepth);
-		return (PointHessian*)((long)(-1));		// yeah I'm like 99% sure this is OK on 32bit systems.
+		return (PointHessian*)((long)(-1));		// yeah I'm like 99% sure this is OK on 32bit systems. 秀儿，是你么？
 	}
 
 
 	int numGoodRes=0;
+	// see if the point is still observable in the other frames.
 	for(int i=0;i<nres;i++)
 		if(residuals[i].state_state == ResState::IN) numGoodRes++;
 
-	if(numGoodRes < minObs)
+	if(numGoodRes < minObs) // again, point doesn't have enough observations, bad point.
 	{
 		if(print) printf("OptPoint: OUTLIER!\n");
 		return (PointHessian*)((long)(-1));		// yeah I'm like 99% sure this is OK on 32bit systems.
@@ -188,6 +191,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 
 
 	PointHessian* p = new PointHessian(point, &Hcalib);
+	// check if point has valid energyTH. energyTH was maintained on constructor of ImmaturePoint
 	if(!std::isfinite(p->energyTH)) {delete p; return (PointHessian*)((long)(-1));}
 
 	p->lastResiduals[0].first = 0;
