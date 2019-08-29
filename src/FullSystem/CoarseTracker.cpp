@@ -51,9 +51,9 @@ namespace dso
 template<int b, typename T>
 T* allocAligned(int size, std::vector<T*> &rawPtrVec)
 {
-    const int padT = 1 + ((1 << b)/sizeof(T));
-    T* ptr = new T[size + padT];
-    rawPtrVec.push_back(ptr);
+    const int padT = 1 + ((1 << b)/sizeof(T)); // 1 + 2^b/sizeof(T) which is always 1 + 4*n, and will be off aligned.
+    T* ptr = new T[size + padT]; // adding padding to make sure the memory allocated for the vector will be enough space
+    rawPtrVec.push_back(ptr); // the memory addresses point to the array with padding.
     // this will add padding to the left
     /* See how those variables changes
      * uintptr_t convert address into int and use bit operation to align the memory to left
@@ -70,7 +70,8 @@ T* allocAligned(int size, std::vector<T*> &rawPtrVec)
     (T*)(__intptr_t)(ptr+padT) >> b             0x1fc7e84
     (T*)(( ((__intptr_t)(ptr+padT)) >> b) << b) 0x1fc7e80
      */
-
+    // ptr + padT will offset the pointer to the next memory cell
+    // and right left shift b bits will align the ptr+padT address to the next cell starting position is multiple of 4.
     T* alignedPtr = (T*)(( ((uintptr_t)(ptr+padT)) >> b) << b);
     return alignedPtr;
 }
