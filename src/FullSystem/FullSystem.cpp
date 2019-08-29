@@ -263,7 +263,10 @@ namespace dso {
         myfile.close();
     }
 
-
+    // push many tries
+    // calculate residuals according to tries
+    // get jacobian of residuals
+    // optimize pose iteratively
     Vec4 FullSystem::trackNewCoarse(FrameHessian *fh) {
 
         assert(allFrameHistory.size() > 0);

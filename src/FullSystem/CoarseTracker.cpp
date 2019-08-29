@@ -29,6 +29,9 @@
  *      Author: engelj
  */
 
+// coarse tracker is roughly equivalent to coarse initializer
+// which doesn't have the initialization functions.
+
 #include "FullSystem/CoarseTracker.h"
 #include "FullSystem/FullSystem.h"
 #include "FullSystem/HessianBlocks.h"
@@ -36,7 +39,7 @@
 #include "OptimizationBackend/EnergyFunctionalStructs.h"
 #include "IOWrapper/ImageRW.h"
 #include <algorithm>
-
+// SSE optimizer.
 #if !defined(__SSE3__) && !defined(__SSE2__) && !defined(__SSE1__)
 #include "SSE2NEON.h"
 #endif
@@ -51,6 +54,23 @@ T* allocAligned(int size, std::vector<T*> &rawPtrVec)
     const int padT = 1 + ((1 << b)/sizeof(T));
     T* ptr = new T[size + padT];
     rawPtrVec.push_back(ptr);
+    // this will add padding to the left
+    /* See how those variables changes
+     * uintptr_t convert address into int and use bit operation to align the memory to left
+     * with each cell is 4 bytes.
+     * note that (15 >> 4) << 4 = 0 (01111)
+     * and that  (16 >> 4) << 4 = 16(10000)
+     * and that  (19 >> 4) << 4 = 16(10011 -> 10000)
+     * this will align address to the multiple of 4.
+    b                                           4
+    ptr                                         0x1fc7e70
+    padT                                        5
+    (T*)(__intptr_t)(ptr)                       0x1fc7e70
+    (T*)(__intptr_t)(ptr+padT)                  0x1fc7e84
+    (T*)(__intptr_t)(ptr+padT) >> b             0x1fc7e84
+    (T*)(( ((__intptr_t)(ptr+padT)) >> b) << b) 0x1fc7e80
+     */
+
     T* alignedPtr = (T*)(( ((uintptr_t)(ptr+padT)) >> b) << b);
     return alignedPtr;
 }
@@ -354,7 +374,7 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 
 
 
-
+// cutoffTH will be update each iteration resOld[5] > 0.6 && levelCutoffRepeat < 50
 Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, float cutoffTH)
 {
 	float E = 0;
@@ -456,10 +476,10 @@ Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, floa
 
 		if(fabs(residual) > cutoffTH)
 		{
-			if(debugPlot) resImage->setPixel4(lpc_u[i], lpc_v[i], Vec3b(0,0,255));
+			if(debugPlot) resImage->setPixel4(lpc_u[i], lpc_v[i], Vec3b(0,0,255)); // marked as blue point
 			E += maxEnergy;
 			numTermsInE++;
-			numSaturated++;
+			numSaturated++; //Saturated means bad... point point number
 		}
 		else
 		{
@@ -508,7 +528,8 @@ Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, floa
 	rs[2] = sumSquaredShiftT/(sumSquaredShiftNum+0.1);
 	rs[3] = 0;
 	rs[4] = sumSquaredShiftRT/(sumSquaredShiftNum+0.1);
-	rs[5] = numSaturated / (float)numTermsInE;
+	rs[5] = numSaturated / (float)numTermsInE; // this ratio is bad point number to total number contribute to Energy.
+	// if rs[5] is high, that means there's still to many bad points for the tracker to estimate.
 
 	return rs;
 }
@@ -534,6 +555,7 @@ void CoarseTracker::setCoarseTrackingRef(
 
 }
 // use coarse tracker to update lastToNew and affine estimation.
+// notice this is tracking newest coarse...
 bool CoarseTracker::trackNewestCoarse(
 		FrameHessian* newFrameHessian,
 		SE3 &lastToNew_out, AffLight &aff_g2l_out,
