@@ -72,6 +72,8 @@ T* allocAligned(int size, std::vector<T*> &rawPtrVec)
      */
     // ptr + padT will offset the pointer to the next memory cell
     // and right left shift b bits will align the ptr+padT address to the next cell starting position is multiple of 4.
+    // since T* ptr has already allocated padT more elements, padT*sizeof(T), T* alignedPtr will move the pointer head
+    // to the first memory address that's divisble by 2^b, apparently 4 in here.
     T* alignedPtr = (T*)(( ((uintptr_t)(ptr+padT)) >> b) << b);
     return alignedPtr;
 }
