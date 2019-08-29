@@ -565,6 +565,8 @@ namespace dso {
             std::vector<PointHessian *> *optimized,
             std::vector<ImmaturePoint *> *toOptimize,
             int min, int max, Vec10 *stats, int tid) {
+        // min max is the index of toOptimize, Vec10* is Running*, tid is thread id.
+        // ----------------------------------------------------------------
         // create temporal residual for the immature points
         // this temporal residual takes all the points in to optimize
         // that means every immature point to be optimized shares the same residual object
@@ -576,7 +578,7 @@ namespace dso {
         for (int k = min; k < max; k++) {
             // in FullSystemOptPoint.cpp
             // optimizeImmaturePoint function
-            (*optimized)[k] = optimizeImmaturePoint((*toOptimize)[k], 1, tr);
+            (*optimized)[k] = optimizeImmaturePoint((*toOptimize)[k], 1, tr); // linearize residual, optimize point.
         }
         delete[] tr;
     }
@@ -635,7 +637,7 @@ namespace dso {
             Mat33f KRKi = (coarseDistanceMap->K[1] * fhToNew.rotationMatrix().cast<float>() * coarseDistanceMap->Ki[0]);
             Vec3f Kt = (coarseDistanceMap->K[1] * fhToNew.translation().cast<float>());
 
-
+            // loop all points in all frames in the sliding window...
             for (unsigned int i = 0; i < host->immaturePoints.size(); i += 1) {
                 ImmaturePoint *ph = host->immaturePoints[i];
                 ph->idxInImmaturePoints = i;
@@ -723,6 +725,9 @@ namespace dso {
 
             // here this thread reducer is fed with toOptimize vector
             // and final results will push to optimized, notice they are both in reference
+            // so since activePointsMT_Reductor takes 6 arguments in total, first two are passed here, last four will be
+            // passed in function reduce() which contains the start and end position in toOptimize array, where
+            // those points are throw into threads to optimize (linearize residual, GN iterative methods)
             treadReduce.reduce(
                     boost::bind(&FullSystem::activatePointsMT_Reductor, this, &optimized, &toOptimize, _1, _2, _3, _4),
                     0, toOptimize.size(), 50);

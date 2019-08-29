@@ -64,7 +64,7 @@ namespace dso {
             for (int i = 0; i < NUM_THREADS; i++) {
                 isDone[i] = false;
                 gotOne[i] = true;
-                workerThreads[i] = boost::thread(&IndexThreadReduce::workerLoop, this, i);
+                workerThreads[i] = boost::thread(&IndexThreadReduce::workerLoop, this, i); // initialize thread use workerLoop, i is the index
             }
 
         }
@@ -195,10 +195,12 @@ namespace dso {
 
                     assert(callPerIndex != 0);
 
-                    Running s;
+                    Running s; //stats, vec10f
                     memset(&s, 0, sizeof(Running));
                     // 4 parameters are: int start, int end, Running* r, int tid.
-                    callPerIndex(todo, std::min(todo + stepSize, maxIndex), &s, idx);
+                    // here todo is the minimal index, min(..) is the maximum index in toOptimize vector.
+                    // &s should be the
+                    callPerIndex(todo, std::min(todo + stepSize, maxIndex), &s, idx); // those four parameters will be passed to
                     gotOne[idx] = true;
                     lock.lock();
                     stats += s;
