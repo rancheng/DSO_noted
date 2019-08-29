@@ -213,13 +213,13 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 
 			if(r->target == frameHessians.back())
 			{
-				p->lastResiduals[0].first = r;
+				p->lastResiduals[0].first = r; // last Residuals records residuals for last two frames.
 				p->lastResiduals[0].second = ResState::IN;
 			}
-			else if(r->target == (frameHessians.size()<2 ? 0 : frameHessians[frameHessians.size()-2]))
+			else if(r->target == (frameHessians.size()<2 ? 0 : frameHessians[frameHessians.size()-2])) // if size is 2, just first one, else, the second last one.
 			{
-				p->lastResiduals[1].first = r;
-				p->lastResiduals[1].second = ResState::IN;
+				p->lastResiduals[1].first = r; // simple, dump the residual pointer
+				p->lastResiduals[1].second = ResState::IN; // and set the state as IN. which is map point accepted residual.
 			}
 		}
 
