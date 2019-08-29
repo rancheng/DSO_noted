@@ -12,3 +12,4 @@ build/
 /cmake-build-debug
 .idea/
 release/
+workspace.xml
