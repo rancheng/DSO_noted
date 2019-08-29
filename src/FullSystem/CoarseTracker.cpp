@@ -84,13 +84,18 @@ CoarseTracker::CoarseTracker(int ww, int hh) : lastRef_aff_g2l(0,0)
 	// make coarse tracking templates.
 	for(int lvl=0; lvl<pyrLevelsUsed; lvl++)
 	{
+        // make the scale space width and height
 		int wl = ww>>lvl;
         int hl = hh>>lvl;
 
+        // scale space variable content allocate.
+        // strange, why they wanna use the pointer to delete to initialize the idepth?
+        // oh, I know, ptrToDelete is used for sizeof(ptrToDelete) which is just a size unit of float*
+        // which is just a pointer to float size of 4.
         idepth[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
         weightSums[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
         weightSums_bak[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
-
+        // point cloud for each lvl.
         pc_u[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
         pc_v[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
         pc_idepth[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
@@ -117,11 +122,11 @@ CoarseTracker::CoarseTracker(int ww, int hh) : lastRef_aff_g2l(0,0)
 }
 CoarseTracker::~CoarseTracker()
 {
-    for(float* ptr : ptrToDelete)
+    for(float* ptr : ptrToDelete) // delete all points and clear the vector.
         delete[] ptr;
     ptrToDelete.clear();
 }
-
+// no need to explain, just make the camera intrinsic for each scale space.
 void CoarseTracker::makeK(CalibHessian* HCalib)
 {
 	w[0] = wG[0];
@@ -154,7 +159,8 @@ void CoarseTracker::makeK(CalibHessian* HCalib)
 }
 
 
-
+// like coarse initializer, generate the first guess of coarse depth by propogation the smaller scale depth estimation
+// down to the larger scale space.
 void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 {
 	// make coarse tracking templates for latstRef.
@@ -167,20 +173,21 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 		{
 			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
 			{
+			    //only valid map points (active point hessians) can reach into this if statement.
 				PointFrameResidual* r = ph->lastResiduals[0].first;
 				assert(r->efResidual->isActive() && r->target == lastRef);
-				int u = r->centerProjectedTo[0] + 0.5f;
+				int u = r->centerProjectedTo[0] + 0.5f; // + 0.5 will help to prevent OOB.
 				int v = r->centerProjectedTo[1] + 0.5f;
 				float new_idepth = r->centerProjectedTo[2];
 				float weight = sqrtf(1e-3 / (ph->efPoint->HdiF+1e-12));
 
-				idepth[0][u+w[0]*v] += new_idepth *weight;
-				weightSums[0][u+w[0]*v] += weight;
+				idepth[0][u+w[0]*v] += new_idepth *weight; // use the valid map points to update the idepth of scale 0 which is the original scale.
+				weightSums[0][u+w[0]*v] += weight; // same, update the weights... by points' energy hessians.
 			}
 		}
 	}
 
-
+    // propagate up idepths to the smaller scales by average pooling
 	for(int lvl=1; lvl<pyrLevelsUsed; lvl++)
 	{
 		int lvlm1 = lvl-1;
@@ -196,6 +203,7 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 			for(int x=0;x<wl;x++)
 			{
 				int bidx = 2*x   + 2*y*wlm1;
+				// average pooling...
 				idepth_l[x + y*wl] = 		idepth_lm[bidx] +
 											idepth_lm[bidx+1] +
 											idepth_lm[bidx+wlm1] +
@@ -215,25 +223,26 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 		int numIts = 1;
 
 
-		for(int it=0;it<numIts;it++)
+		for(int it=0;it<numIts;it++) // loop 1 time...
 		{
 			int wh = w[lvl]*h[lvl]-w[lvl];
 			int wl = w[lvl];
 			float* weightSumsl = weightSums[lvl];
 			float* weightSumsl_bak = weightSums_bak[lvl];
 			memcpy(weightSumsl_bak, weightSumsl, w[lvl]*h[lvl]*sizeof(float));
-			float* idepthl = idepth[lvl];	// dotnt need to make a temp copy of depth, since I only
+			float* idepthl = idepth[lvl];	// dont need to make a temp copy of depth, since I only
 											// read values with weightSumsl>0, and write ones with weightSumsl<=0.
+											// hmmm... agreed.
 			for(int i=w[lvl];i<wh;i++)
 			{
-				if(weightSumsl_bak[i] <= 0)
+				if(weightSumsl_bak[i] <= 0) // only assign those points that weightSums <= 0 which are unvisited points in the scale spaces.
 				{
 					float sum=0, num=0, numn=0;
 					if(weightSumsl_bak[i+1+wl] > 0) { sum += idepthl[i+1+wl]; num+=weightSumsl_bak[i+1+wl]; numn++;}
 					if(weightSumsl_bak[i-1-wl] > 0) { sum += idepthl[i-1-wl]; num+=weightSumsl_bak[i-1-wl]; numn++;}
 					if(weightSumsl_bak[i+wl-1] > 0) { sum += idepthl[i+wl-1]; num+=weightSumsl_bak[i+wl-1]; numn++;}
 					if(weightSumsl_bak[i-wl+1] > 0) { sum += idepthl[i-wl+1]; num+=weightSumsl_bak[i-wl+1]; numn++;}
-					if(numn>0) {idepthl[i] = sum/numn; weightSumsl[i] = num/numn;}
+					if(numn>0) {idepthl[i] = sum/numn; weightSumsl[i] = num/numn;} // this is essentially to average out those nearby points with idpeth values...
 				}
 			}
 		}
