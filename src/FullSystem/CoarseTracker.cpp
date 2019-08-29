@@ -238,6 +238,13 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 				if(weightSumsl_bak[i] <= 0) // only assign those points that weightSums <= 0 which are unvisited points in the scale spaces.
 				{
 					float sum=0, num=0, numn=0;
+					// notice this is -1 and + 1 which is 2 steps dilation:
+					//
+					//                     x  x
+					//                      -
+					//                    x  x
+					//
+					// here - is the value need to update idepth and x is the nearby points that are sum and averaged for update -
 					if(weightSumsl_bak[i+1+wl] > 0) { sum += idepthl[i+1+wl]; num+=weightSumsl_bak[i+1+wl]; numn++;}
 					if(weightSumsl_bak[i-1-wl] > 0) { sum += idepthl[i-1-wl]; num+=weightSumsl_bak[i-1-wl]; numn++;}
 					if(weightSumsl_bak[i+wl-1] > 0) { sum += idepthl[i+wl-1]; num+=weightSumsl_bak[i+wl-1]; numn++;}
@@ -250,7 +257,9 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 
 
 	// dilate idepth by 1 (2 on lower levels).
-	for(int lvl=2; lvl<pyrLevelsUsed; lvl++)
+	// hmmm..... this not actually 2 on lower lvls. it should be 1.414 (sqrt(2)) on lower lvls.
+	// Notice, lower level is the larger scale lvl.
+	for(int lvl=2; lvl<pyrLevelsUsed; lvl++) // since you already have those dilated depth values in the first two scale spaces...
 	{
 		int wh = w[lvl]*h[lvl]-w[lvl];
 		int wl = w[lvl];
@@ -264,6 +273,13 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 			if(weightSumsl_bak[i] <= 0)
 			{
 				float sum=0, num=0, numn=0;
+				// this is one step dilation:
+				//           x
+				//         x - x
+				//           x
+				// here - is the point that are updated to
+				//
+
 				if(weightSumsl_bak[i+1] > 0) { sum += idepthl[i+1]; num+=weightSumsl_bak[i+1]; numn++;}
 				if(weightSumsl_bak[i-1] > 0) { sum += idepthl[i-1]; num+=weightSumsl_bak[i-1]; numn++;}
 				if(weightSumsl_bak[i+wl] > 0) { sum += idepthl[i+wl]; num+=weightSumsl_bak[i+wl]; numn++;}
@@ -275,6 +291,8 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 
 
 	// normalize idepths and weights.
+	// actually it's using weights to normalize idepths
+	// and set weights to 1...
 	for(int lvl=0; lvl<pyrLevelsUsed; lvl++)
 	{
 		float* weightSumsl = weightSums[lvl];
@@ -297,10 +315,10 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 
 				if(weightSumsl[i] > 0)
 				{
-					idepthl[i] /= weightSumsl[i];
-					lpc_u[lpc_n] = x;
+					idepthl[i] /= weightSumsl[i]; // normalize idepth
+					lpc_u[lpc_n] = x; // record u and v.
 					lpc_v[lpc_n] = y;
-					lpc_idepth[lpc_n] = idepthl[i];
+					lpc_idepth[lpc_n] = idepthl[i]; // save normalized idepth to point cloud.
 					lpc_color[lpc_n] = dIRefl[i][0];
 
 
