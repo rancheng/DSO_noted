@@ -358,7 +358,7 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 
 	int n = buf_warped_n; // buf_warped_n is driven by calcRes
 	assert(n%4==0);
-	for(int i=0;i<n;i+=4) // i+=4? explain, times of 4, this is 
+	for(int i=0;i<n;i+=4) // i+=4? explain, times of 4, this is
 	{
 		__m128 dx = _mm_mul_ps(_mm_load_ps(buf_warped_dx+i), fxl); // this convert to the realworld coordinate, thus become dx and dy
 		__m128 dy = _mm_mul_ps(_mm_load_ps(buf_warped_dy+i), fyl);
