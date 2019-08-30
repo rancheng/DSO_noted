@@ -331,22 +331,22 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 					lpc_n++;
 				}
 				else
-					idepthl[i] = -1;
+					idepthl[i] = -1; // if there's no weightsum, that means nearby points are invalid for idepth estimation, just mark idepth as -1 and re-estimate later on ...
 
-				weightSumsl[i] = 1;
+				weightSumsl[i] = 1; // after that normalization, just set the weights to 1.
 			}
 
-		pc_n[lvl] = lpc_n;
+		pc_n[lvl] = lpc_n; // lvl point cloud number
 	}
 
 }
 
 
-
+// same as coarse initializer in calc-GS-SSE
 void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &refToNew, AffLight aff_g2l)
 {
 	acc.initialize();
-
+    // SSE related variable defines.
 	__m128 fxl = _mm_set1_ps(fx[lvl]);
 	__m128 fyl = _mm_set1_ps(fy[lvl]);
 	__m128 b0 = _mm_set1_ps(lastRef_aff_g2l.b);
@@ -358,7 +358,7 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 
 	int n = buf_warped_n; // buf_warped_n is driven by calcRes
 	assert(n%4==0);
-	for(int i=0;i<n;i+=4) // i+=4?
+	for(int i=0;i<n;i+=4) // i+=4? explain, times of 4, this is 
 	{
 		__m128 dx = _mm_mul_ps(_mm_load_ps(buf_warped_dx+i), fxl); // this convert to the realworld coordinate, thus become dx and dy
 		__m128 dy = _mm_mul_ps(_mm_load_ps(buf_warped_dy+i), fyl);
