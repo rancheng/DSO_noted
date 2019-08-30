@@ -60,7 +60,7 @@ T* allocAligned(int size, std::vector<T*> &rawPtrVec)
      * with each cell is 4 bytes.
      * note that (15 >> 4) << 4 = 0 (01111)
      * and that  (16 >> 4) << 4 = 16(10000)
-     * and that  (19 >> 4) << 4 = 16(10011 -> 10000)
+         * and that  (19 >> 4) << 4 = 16(10011 -> 10000)
      * this will align address to the multiple of 4.
     b                                           4
     ptr                                         0x1fc7e70
@@ -358,7 +358,7 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 
 	int n = buf_warped_n; // buf_warped_n is driven by calcRes
 	assert(n%4==0);
-	for(int i=0;i<n;i+=4) // i+=4? explain, times of 4, this is
+	for(int i=0;i<n;i+=4) // i+=4? explain, times of 4, this is memory aligned so that SSE can calculate 4 loop steps at once.
 	{
 		__m128 dx = _mm_mul_ps(_mm_load_ps(buf_warped_dx+i), fxl); // this convert to the realworld coordinate, thus become dx and dy
 		__m128 dy = _mm_mul_ps(_mm_load_ps(buf_warped_dy+i), fyl);
@@ -366,7 +366,11 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 		__m128 v = _mm_load_ps(buf_warped_v+i);
 		__m128 id = _mm_load_ps(buf_warped_idepth+i); // load idepth
 
-
+        // this is actually 10 entries, last one is the weight that will apply back to all 9 entries above
+        // among 9 entries above, first 8 are pose Jacobian which will contribute into H,
+        // and last one is residual, which will contribute into b.
+        // Hx = -b contains nullspace which is actually absolute pose and scale.
+        // nullspace is the part of equations that can't be solved, where the
 		acc.updateSSE_eighted( // Jacobian matrix of pose.
 				_mm_mul_ps(id,dx), // dx * depth
 				_mm_mul_ps(id,dy), // dy * depth
@@ -383,8 +387,20 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 				_mm_load_ps(buf_warped_residual+i), // residual[i]
 				_mm_load_ps(buf_warped_weight+i)); // weight[i]
 	}
-
-	acc.finish(); // loop all the buffer and cumulate into H and b
+    // loop all the buffer and cumulate into H and b
+	acc.finish(); // acc will collect all values in the memory slots into one: H and b.
+	// remember the arrow shape on the paper:
+	/*      X is H, - is b.
+	 *      x x x x x x x x -
+	 *      x x x x x x x x -
+	 *      x x x x x x x x -
+	 *      x x x x x x x x -
+	 *      x x x x x x x x -
+	 *      x x x x x x x x -
+	 *      x x x x x x x x -
+	 *      x x x x x x x x -
+	 *      - - - - - - - - 1
+	 * */
 	H_out = acc.H.topLeftCorner<8,8>().cast<double>() * (1.0f/n);
 	b_out = acc.H.topRightCorner<8,1>().cast<double>() * (1.0f/n);
     // scale H and b.
