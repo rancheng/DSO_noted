@@ -374,7 +374,8 @@ namespace dso {
                 point->isGood_new = false;
                 continue;
             }
-            // residual ~ a(I_s - I_t) + b and sum on 8 directions.
+            // residual ~ I_s - (a*I_t + b) and sum on 8 directions:
+            // float residual = hitColor[0] - r2new_aff[0] * rlR - r2new_aff[1];
             // dp here 0-5 is d_residual / d_SE3, 6-7 is d_residual / d_a and d_residual / d_b
             VecNRf dp0; //Vec8f... why this is 8f? well, look at the for loop below, it's storing dp0 of 8 directions.
             VecNRf dp1;
@@ -453,6 +454,9 @@ namespace dso {
                 // dp family is the 8 point in that residual pattern project to the target image frame.
                 // ########################################################################################
                 // TODO: Figure out what are all those terms!
+                // as far as I know, dp0-5 is the J_pose, with 6 dimensions on pose, 3 on rotation, 3 on translation.
+                // dp6-7 is the affine model for exposure time...
+                // dd is a normalize term and r is the huber weighted residual.
                 dp0[idx] = new_idepth * dxInterp;
                 dp1[idx] = new_idepth * dyInterp;
                 // u and v are the image coordinate in the target frame.
@@ -463,7 +467,7 @@ namespace dso {
                 dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image.
                 dp7[idx] = -hw * 1; // just minus huber weight, which is negative of 1/residual
                 dd[idx] = dxInterp * dxdd + dyInterp * dydd;
-                r[idx] = hw * residual; // r is stacked residual vector...
+                r[idx] = hw * residual; // r is stacked residual vector... for 8 directions.
                 // #########################################################################################
                 float maxstep = 1.0f / Vec2f(dxdd * fxl, dydd * fyl).norm();
                 if (maxstep < point->maxstep) point->maxstep = maxstep;
