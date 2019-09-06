@@ -374,7 +374,7 @@ namespace dso {
                 point->isGood_new = false;
                 continue;
             }
-
+            // residual ~ a(I_s - I_t) + b and sum on 8 directions.
             // dp here 0-5 is d_residual / d_SE3, 6-7 is d_residual / d_a and d_residual / d_b
             VecNRf dp0; //Vec8f... why this is 8f? well, look at the for loop below, it's storing dp0 of 8 directions.
             VecNRf dp1;
