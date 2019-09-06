@@ -74,7 +74,7 @@ PointFrameResidual::PointFrameResidual(PointHessian* point_, FrameHessian* host_
 
 
 
-
+// this function linearized the residual jacobian
 double PointFrameResidual::linearize(CalibHessian* HCalib)
 {
 	state_NewEnergyWithOutlier=-1;

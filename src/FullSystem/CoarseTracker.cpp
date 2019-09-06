@@ -400,6 +400,9 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 	 *      x x x x x x x x -
 	 *      x x x x x x x x -
 	 *      - - - - - - - - 1
+	 *
+	 *      H is a matrix contains 8 directional column vectors
+	 *      each column is 0-6 residual's jacobian of SE3,
 	 * */
 	H_out = acc.H.topLeftCorner<8,8>().cast<double>() * (1.0f/n);
 	b_out = acc.H.topRightCorner<8,1>().cast<double>() * (1.0f/n);

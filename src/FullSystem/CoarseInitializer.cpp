@@ -169,7 +169,14 @@ namespace dso {
                 // So Hl eigen values in diagnal should be rotation, translation and affine estimation a and b.
                 Hl = wM * Hl * wM * (0.01f / (w[lvl] * h[lvl])); // this normalize with the size of scale
                 bl = wM * bl * (0.01f / (w[lvl] * h[lvl])); // can regard as average to each pixel's H and b
-
+                // here Hl comes from Hsc which is from the H prior
+                // Hl and bl are continuously estimated and updated, thus, once failed
+                // will hard to resume, and the scale will be re-estimated.
+                //
+                // Hl, bl -> T (transform SE3) -> estimate new H and b.
+                // this is the loop that continuous update H and b.
+                // Hx = b will be solved for x
+                // and x here is the accumulated delta-update (SE3 X R^m)
 
                 Vec8f inc; // decomposit H and b to get [R\t]
                 if (fixAffine) {
@@ -338,6 +345,7 @@ namespace dso {
 
         Mat33f RKi = (refToNew.rotationMatrix() * Ki[lvl]).cast<float>(); // rotation matrix that convert from host frame to target frame.
         Vec3f t = refToNew.translation().cast<float>(); // original t move point from host frame to target frame.
+        // note that here use exp(a), e^a + b which is polynomial
         Eigen::Vector2f r2new_aff = Eigen::Vector2f(exp(refToNew_aff.a), refToNew_aff.b); // affine model
 
         // intrinsic, lvl specific.
@@ -356,7 +364,7 @@ namespace dso {
         Pnt *ptsl = points[lvl];
         for (int i = 0; i < npts; i++) {
 
-            Pnt *point = ptsl + i;
+            Pnt *point = ptsl + i; //selected point i in lvl.
 
             point->maxstep = 1e10;
             if (!point->isGood) {
@@ -367,6 +375,7 @@ namespace dso {
                 continue;
             }
 
+            // dp here 0-5 is d_residual / d_SE3, 6-7 is d_residual / d_a and d_residual / d_b
             VecNRf dp0; //Vec8f... why this is 8f? well, look at the for loop below, it's storing dp0 of 8 directions.
             VecNRf dp1;
             VecNRf dp2;
@@ -427,7 +436,7 @@ namespace dso {
                 // dxdd = (x-zu)/(1+z*idepth)
                 // x-zu is dx here, 1+z*idepth ~ depth
                 // dxdd here means dx devide depth
-                float dxdd = (t[0] - t[2] * u) / pt[2];
+                float dxdd = (t[0] - t[2] * u) / pt[2]; // u = pt[0] / pt[2] which is the coordinate in the projected image space (applied the directional offset dx)
                 // same here, dydd is dy devide depth
                 float dydd = (t[1] - t[2] * v) / pt[2];
                 // huber weight shrink by sqrt. hw < 1 means residual is larger than threshold, means the error is high, energy is large.
