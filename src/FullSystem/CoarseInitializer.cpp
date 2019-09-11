@@ -192,13 +192,13 @@ namespace dso {
                 AffLight refToNew_aff_new = refToNew_aff_current;
                 refToNew_aff_new.a += inc[6]; // only update a and b in refToNew_aff_new from inc
                 refToNew_aff_new.b += inc[7];
-                doStep(lvl, lambda, inc); // update idepth_new guess for each point.
+                doStep(lvl, lambda, inc); // update idepth_new guess for each point. and update the step.
 
 
                 Mat88f H_new, Hsc_new; // evaluate a new set of H and b with new pose estimated.
                 Vec8f b_new, bsc_new;
                 Vec3f resNew = calcResAndGS(lvl, H_new, b_new, Hsc_new, bsc_new, refToNew_new, refToNew_aff_new, false);
-                Vec3f regEnergy = calcEC(lvl); // so this will give you SSD on the error of depth estimation with respect to old_depth and new_depth
+                Vec3f regEnergy = calcEC(lvl); // accumulate the residual using AccumulatorX, so this will give you SSD on the error of depth estimation with respect to old_depth and new_depth
 
                 float eTotalNew = (resNew[0] + resNew[1] + regEnergy[1]); // this sums up the residual new with the estimation error (they call it energy)
                 float eTotalOld = (resOld[0] + resOld[1] + regEnergy[0]); // same thing but sum the old energy...
@@ -333,7 +333,8 @@ namespace dso {
             ow->pushDepthImage(&iRImg);
     }
 
-// calculates residual, Hessian and Hessian-block needed for re-substituting depth.
+    // calculates residual, Jacobian, Hessian and Hessian-block needed for re-substituting depth.
+    // here Res means residual and GS means gradients...
     Vec3f CoarseInitializer::calcResAndGS(
             int lvl, Mat88f &H_out, Vec8f &b_out,
             Mat88f &H_out_sc, Vec8f &b_out_sc,
@@ -944,8 +945,9 @@ namespace dso {
         }
 
     }
-    // this applyStep is apply everything calculated in CalcResAndGS func and propogateDown func artifacts (idepth, energy, isgood, hessian) back to the
-    // points.
+    // this applyStep is apply everything calculated in CalcResAndGS func and
+    // propogateDown func artifacts (idepth, energy, isgood, hessian) back to the points.
+    // keep those good tracking points.
     void CoarseInitializer::applyStep(int lvl) {
         Pnt *pts = points[lvl];
         int npts = numPoints[lvl];
