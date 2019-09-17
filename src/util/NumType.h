@@ -51,7 +51,7 @@ typedef Sophus::SO3d SO3;
 
 
 
-#define CPARS 4
+#define CPARS 4 // camera parameters, fx fy cx cy
 
 
 typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MatXX;
@@ -80,8 +80,8 @@ typedef Eigen::Matrix<float,CPARS,8> MatC8f;
 typedef Eigen::Matrix<double,8,8> Mat88;
 typedef Eigen::Matrix<double,7,7> Mat77;
 
-typedef Eigen::Matrix<double,CPARS,1> VecC;
-typedef Eigen::Matrix<float,CPARS,1> VecCf;
+typedef Eigen::Matrix<double,CPARS,1> VecC; // vector that store all the camera intrinsics, in double precision
+typedef Eigen::Matrix<float,CPARS,1> VecCf; // vector that store all the camera intrinsics
 typedef Eigen::Matrix<double,13,1> Vec13;
 typedef Eigen::Matrix<double,10,1> Vec10;
 typedef Eigen::Matrix<double,9,1> Vec9;

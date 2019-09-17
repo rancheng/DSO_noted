@@ -124,9 +124,10 @@ EnergyFunctional::EnergyFunctional()
 	HM = MatXX::Zero(CPARS,CPARS);
 	bM = VecX::Zero(CPARS);
 
-
+    // get residual for each point in each frame, accumulate point residual using accSSE_top_A and accSSE_bot
+    // then stitchDouble top_A and bot to re-evaluate H and b
 	accSSE_top_L = new AccumulatedTopHessianSSE();
-	accSSE_top_A = new AccumulatedTopHessianSSE();
+	accSSE_top_A = new AccumulatedTopHessianSSE(); // top_A and bot is accumulator for residuals of point hessians
 	accSSE_bot = new AccumulatedSCHessianSSE();
 
 	resInA = resInL = resInM = 0;
@@ -193,7 +194,7 @@ void EnergyFunctional::setDeltaF(CalibHessian* HCalib)
 	EFDeltaValid = true;
 }
 
-// accumulates & shifts L.
+// accumulates & shifts L. (shouldn't be shifts A?)
 void EnergyFunctional::accumulateAF_MT(MatXX &H, VecX &b, bool MT)
 {
 	if(MT)
@@ -319,13 +320,13 @@ void EnergyFunctional::resubstituteFPt(
 
 double EnergyFunctional::calcMEnergyF()
 {
-
+    // calculate M energy
 	assert(EFDeltaValid);
 	assert(EFAdjointsValid);
 	assert(EFIndicesValid);
 
-	VecX delta = getStitchedDeltaF();
-	return delta.dot(2*bM + HM*delta);
+	VecX delta = getStitchedDeltaF(); // delta is now a stitched delta vector 8*fh fn is the EFframe number
+	return delta.dot(2*bM + HM*delta); // delta * (2bM + HM * delta)
 }
 
 
@@ -435,12 +436,12 @@ EFFrame* EnergyFunctional::insertFrame(FrameHessian* fh, CalibHessian* Hcalib)
 
 	nFrames++;
 	fh->efFrame = eff;
-
+    // note that HM has not included the current frame fh. Thus it's 8*(nFrames -1) + CPARS
 	assert(HM.cols() == 8*nFrames+CPARS-8);
-	bM.conservativeResize(8*nFrames+CPARS);
+	bM.conservativeResize(8*nFrames+CPARS); // update bM shape after frame insert.
 	HM.conservativeResize(8*nFrames+CPARS,8*nFrames+CPARS);
-	bM.tail<8>().setZero();
-	HM.rightCols<8>().setZero();
+	bM.tail<8>().setZero(); // initialize b for the latest frame as 0, since it's just added
+	HM.rightCols<8>().setZero(); // H is a symmetric sparse matrix.
 	HM.bottomRows<8>().setZero();
 
 	EFIndicesValid = false;
@@ -450,7 +451,8 @@ EFFrame* EnergyFunctional::insertFrame(FrameHessian* fh, CalibHessian* Hcalib)
 	setAdjointsF(Hcalib);
 	makeIDX();
 
-
+    // connectivityMap is a map uint64 : vector2i
+    // used in output wrapper for visualization
 	for(EFFrame* fh2 : frames)
 	{
         connectivityMap[(((uint64_t)eff->frameID) << 32) + ((uint64_t)fh2->frameID)] = Eigen::Vector2i(0,0);
@@ -476,7 +478,7 @@ EFPoint* EnergyFunctional::insertPoint(PointHessian* ph)
 	return efp;
 }
 
-
+// this point is dropped after updated H and b, invoked in marginalization
 void EnergyFunctional::dropResidual(EFResidual* r)
 {
 	EFPoint* p = r->point;
@@ -936,7 +938,7 @@ void EnergyFunctional::makeIDX()
 	EFIndicesValid=true;
 }
 
-
+// stitch all the deltas from all frames into d
 VecX EnergyFunctional::getStitchedDeltaF() const
 {
 	VecX d = VecX(CPARS+nFrames*8); d.head<CPARS>() = cDeltaF.cast<double>();

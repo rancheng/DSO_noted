@@ -135,7 +135,7 @@ namespace dso {
 //	const float minImprovementFactor = 2;		// if pixel-interval is smaller than this, leave it be.
         // ============== project min and max. return if one of them is OOB ===================
         // u, v is initialized on the constructor, which is offered by the outer function.
-        // they are the image coordinates. -> this pr is point in image space.
+        // they are the image coordinates. -> this pr is point in target image space.
         Vec3f pr = hostToFrame_KRKi * Vec3f(u, v, 1);
         // here pr + t*idepth_min should be the minimal inverse depth estimation t here is translation from host frame
         // to target frame.

@@ -155,7 +155,8 @@ namespace dso {
                 std::cout << refToNew_current.log().transpose() << " AFF " << refToNew_aff_current.vec().transpose()
                           << "\n";
             }
-
+            // the endless loop here is gauss newton optimization, which terminate loop if converge in
+            // small residual
             int iteration = 0;
             while (true) { // this whole pipeline is Gauss-Newton's iterative method to solve H and b.
                 Mat88f Hl = H;
