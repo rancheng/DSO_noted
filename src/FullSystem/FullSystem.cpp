@@ -316,6 +316,7 @@ namespace dso {
             // just try a TON of different initializations (all rotations). In the end,
             // if they don't work they will only be tried on the coarsest level, which is super fast anyway.
             // also, if tracking rails here we loose, so we really, really want to avoid that.
+            // here for loop only happens once. Don't know why they want to use this trick...
             for (float rotDelta = 0.02; rotDelta < 0.05; rotDelta++) {
                 // 25 different rotaitions. but they are all very small rotation change.
                 lastF_2_fh_tries.push_back(fh_2_slast.inverse() * lastF_2_slast *
@@ -422,6 +423,8 @@ namespace dso {
         for (unsigned int i = 0; i < lastF_2_fh_tries.size(); i++) {
             AffLight aff_g2l_this = aff_last_2_l;
             SE3 lastF_2_fh_this = lastF_2_fh_tries[i];
+            // note that this is trackNestCoarse in CoarseTracker.cpp, not trackNewCoarse!!!
+            // lastF_2_fh_this is the motions vector that was pushed tons of motions above.
             bool trackingIsGood = coarseTracker->trackNewestCoarse(
                     fh, lastF_2_fh_this, aff_g2l_this,
                     pyrLevelsUsed - 1,
@@ -1257,7 +1260,7 @@ namespace dso {
             sumID += coarseInitializer->points[0][i].iR; // sumID is the sum of all inverse depth.
             numID++;
         }
-        float rescaleFactor = 1 / (sumID / numID); // this rescale factor is the average depth in lvl 0.
+        float rescaleFactor = 1 / (sumID / numID); // this rescale factor is the average depth in lvl 0. It normalized all iR to 1.
 
         // randomly sub-select the points I need.
         float keepPercentage = setting_desiredPointDensity / coarseInitializer->numPoints[0];
@@ -1295,8 +1298,9 @@ namespace dso {
                 delete ph;
                 continue;
             }
-
+            //idepthScaled is setting the normalized GroundTruth idepth
             ph->setIdepthScaled(point->iR * rescaleFactor); // initialize the idepth by iR
+            //idepthZero is setting the estimated GroundTruth idepth, is used to calculate the error.
             ph->setIdepthZero(ph->idepth); // dump initial idepth
             ph->hasDepthPrior = true;
             ph->setPointStatus(

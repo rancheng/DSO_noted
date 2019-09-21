@@ -120,7 +120,7 @@ private:
 	int buf_warped_n;
 
 
-    std::vector<float*> ptrToDelete;
+    std::vector<float*> ptrToDelete; // ptrToDelete is the dummy pointer for allocating memories, just a placeholder..
 
 
 	Accumulator9 acc;
