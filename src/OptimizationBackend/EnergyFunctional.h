@@ -98,6 +98,9 @@ public:
 	std::vector<EFFrame*> frames;
 	int nPoints, nFrames, nResiduals;
 
+	// M energy of H matrix and b vector.
+	// Hx = b is the gauss newton optimization equation, if you dont' understand, please refer to the coarseInitializer
+	// where I have marked the whole process on how they calculated the H and b with GN optimization iterations.
 	MatXX HM;
 	VecX bM;
 

@@ -515,7 +515,8 @@ namespace dso {
         return Vec4(achievedRes[0], flowVecs[0], flowVecs[1], flowVecs[2]);
     }
 
-// trace the immature point on the host frame on the target frame: FrameHessian* fh.
+    // trace the immature point on the host frame on the target frame: FrameHessian* fh.
+    // the key step is ph->traceOn() func, which perform epipolar search
     void FullSystem::traceNewCoarse(FrameHessian *fh) {
         // fh here is target frame.
         // lock the mapMutex on tracking thread.
