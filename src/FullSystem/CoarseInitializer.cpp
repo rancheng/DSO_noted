@@ -699,6 +699,7 @@ namespace dso {
             // more than two good neighbours will trigger idepth regression. (actually normalize the idepth estimation with nearby points)
             if (nnn > 2) {
                 std::nth_element(idnn, idnn + nnn / 2, idnn + nnn); // find the median of idnn...
+                // we can regard iR as the ground truth value of idepth (converged)
                 point->iR = (1 - regWeight) * point->idepth + regWeight * idnn[nnn / 2]; // 0.2 * point->idepth + 0.8*median_idnn...
             }
         }
