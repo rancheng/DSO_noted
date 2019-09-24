@@ -637,7 +637,7 @@ bool CoarseTracker::trackNewestCoarse(
 	{
 		Mat88 H; Vec8 b;
 		float levelCutoffRepeat=1;
-		// calcRes update hte refToNew pose and affine
+		// calcRes update the refToNew pose and affine
 		Vec6 resOld = calcRes(lvl, refToNew_current, aff_g2l_current, setting_coarseCutoffTH*levelCutoffRepeat);
 		while(resOld[5] > 0.6 && levelCutoffRepeat < 50) // loop until converge.
 		{

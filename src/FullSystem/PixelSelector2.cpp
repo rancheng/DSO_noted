@@ -216,7 +216,7 @@ namespace dso {
         float numWant = density;
         float quotia;
         int idealPotential = currentPotential; // I think this current potential should be a percentage... but why it's int?
-
+        // answer: idealPotential is a converged potential space which should be int, and represent the search range
 
 //	if(setting_pixelSelectionUseFast>0 && allowFast)
 //	{
