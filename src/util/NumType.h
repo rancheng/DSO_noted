@@ -170,7 +170,9 @@ struct AffLight
 
 	// Affine Parameters:
 	double a,b;	// I_frame = exp(a)*I_global + b. // I_global = exp(-a)*(I_frame - b).
-
+    // so here a and b are in the equation:
+    // E_{ij} = \sum_p{\sum_{p'}{w_p ||I_j - b_j - \frac{e^{a_j}}{e^{a_i}}(I_i - b_i)}}
+    // so a = \frac{e^{a_j}}{e^{a_i}} * exposureT / exposureF
 	static Vec2 fromToVecExposure(float exposureF, float exposureT, AffLight g2F, AffLight g2T)
 	{
 		if(exposureF==0 || exposureT==0)
@@ -179,7 +181,7 @@ struct AffLight
 			//printf("got exposure value of 0! please choose the correct model.\n");
 			//assert(setting_brightnessTransferFunc < 2);
 		}
-
+        // exp(g2T.a) / exp(g2F.a)
 		double a = exp(g2T.a-g2F.a) * exposureT / exposureF;
 		double b = g2T.b - a*g2F.b;
 		return Vec2(a,b);

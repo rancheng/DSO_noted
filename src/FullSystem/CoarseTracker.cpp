@@ -391,7 +391,7 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 	acc.finish(); // acc will collect all values in the memory slots into one: H and b.
 	// remember the arrow shape on the paper:
 	/*      X is H, - is b.
-	 *      x x x x x x x x -
+	 *      R R R T T T a b -
 	 *      x x x x x x x x -
 	 *      x x x x x x x x -
 	 *      x x x x x x x x -
@@ -632,7 +632,7 @@ bool CoarseTracker::trackNewestCoarse(
 
 	bool haveRepeated = false;
 
-
+    // loop all scale spaces, start from the smallest one (lvl 0 is original image)
 	for(int lvl=coarsestLvl; lvl>=0; lvl--)
 	{
 		Mat88 H; Vec8 b;
@@ -647,8 +647,11 @@ bool CoarseTracker::trackNewestCoarse(
             if(!setting_debugout_runquiet)
                 printf("INCREASING cutoff to %f (ratio is %f)!\n", setting_coarseCutoffTH*levelCutoffRepeat, resOld[5]);
 		}
-
-		calcGSSSE(lvl, H, b, refToNew_current, aff_g2l_current);
+        // refToNew_current is the camera pose
+        // aff_g2l_current is the photometric
+        // refToNew_current is not used in this function
+        // this function only updates H and b and the aff_g2l_current
+		calcGSSSE(lvl, H, b, refToNew_current, aff_g2l_current); // calculate H and b using SSE accumulator
 
 		float lambda = 0.01;
 
