@@ -32,12 +32,14 @@
 namespace dso
 {
 
-
+// is this part of linearization process for inverse depth?
 EIGEN_STRONG_INLINE float derive_idepth(
 		const Vec3f &t, const float &u, const float &v,
 		const int &dx, const int &dy, const float &dxInterp,
 		const float &dyInterp, const float &drescale)
 {
+    // du/dd = (t0 - t3*u)*(dt/dh), this equation means the partial of u w.r.t partial of inverse depth is equal to
+    // (t0 - t3*u)*(dt/dh), dt(dxInterp) here is inverse depth of target frame, and dh(drescale) is hte inverse depth of host frame
 	return (dxInterp*drescale * (t[0]-t[2]*u)
 			+ dyInterp*drescale * (t[1]-t[2]*v))*SCALE_IDEPTH;
 }

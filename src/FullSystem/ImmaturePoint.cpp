@@ -579,7 +579,8 @@ namespace dso {
         return energyLeft;
     }
 
-
+    // since point has only one parameter to optimize: inverse depth, thus, this linearize Residual actually
+    // convert the 2d idepth estimation into a scalar.
     double ImmaturePoint::linearizeResidual(
             CalibHessian *HCalib, const float outlierTHSlack,
             ImmaturePointTemporaryResidual *tmpRes,
@@ -628,6 +629,9 @@ namespace dso {
             // this projectPoint is the overload function which offer more parameter for reprojection
             // there's drescale and dx, dy in it.
             // dx, dy, HCalib are used for calculate KliP which is the point location of world
+            // -------------------------------------
+            // one thing to notice is that drescale is converted as the inverse depth in projecPoint func:
+            // drescale = 1.0f/ptp[2]
             if (!projectPoint(this->u, this->v, idepth, dx, dy, HCalib,
                               PRE_RTll, PRE_tTll, drescale, u, v, Ku, Kv, KliP, new_idepth)) {
                 tmpRes->state_NewState = ResState::OOB; // set OOB to tmpRes and return.
@@ -656,6 +660,7 @@ namespace dso {
             energyLeft += weights[idx] * weights[idx] * hw * residual * residual * (2 - hw); // accumulate energy
 
             // depth derivatives.
+            // x = u*fx, y = v*fy, so this dxInterp and dyInterp is converting to the real-world coordinate dx dy.
             float dxInterp = hitColor[1] * HCalib->fxl(); // note that hitColor is a 1x3 vector: [color, dx, dy], dx * fx = dx in pixel
             float dyInterp = hitColor[2] * HCalib->fyl();
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!! depth estimation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -663,7 +668,7 @@ namespace dso {
 
             hw *= weights[idx] * weights[idx];
 
-            Hdd += (hw * d_idepth) * d_idepth;
+            Hdd += (hw * d_idepth) * d_idepth; // d_idepth is a scalar, but should't it be a 2d vector? (dd/dp) p is 2d point.
             bd += (hw * residual) * d_idepth;
         }
 

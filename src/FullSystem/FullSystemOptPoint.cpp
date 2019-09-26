@@ -48,6 +48,7 @@ namespace dso
 // this file is to optimize the point.
 
 // TODO: find out what to optimize in the immature point?
+// --------------------- explain: -------------------------
 PointHessian* FullSystem::optimizeImmaturePoint(
 		ImmaturePoint* point, int minObs,
 		ImmaturePointTemporaryResidual* residuals)
@@ -58,7 +59,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	for(FrameHessian* fh : frameHessians)
 	{
 	    // in this loop residuals initialize all the states of the residual struct for point.
-		if(fh != point->host)
+		if(fh != point->host) // add fh to the target frame of residuals
 		{
 			residuals[nres].state_NewEnergy = residuals[nres].state_energy = 0;
 			residuals[nres].state_NewState = ResState::OUTLIER;
@@ -78,12 +79,12 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	 * Hdd += (hw*d_idepth)*d_idepth;
 	 * bd += (hw*residual)*d_idepth;
 	 * here the hw is the width and height production
-	 * idepth is the derivative of inverse depth
+	 * d_idepth is the derivative of inverse depth
 	 * */
-	float lastHdd=0; // H is J'wJ, b is -J^Tw
-	float lastbd=0;
+	float lastHdd=0; // notice this is the optimization for the point, which is only one depth to estimate. Hdd is Hassian of derivative of inverse depth
+	float lastbd=0; // bd is b vector of inverse depth
 	// currentIdepth just normalize with max and min idepth
-	float currentIdepth=(point->idepth_max+point->idepth_min)*0.5f; // rough estimate idepth
+	float currentIdepth=(point->idepth_max+point->idepth_min)*0.5f; // rough estimate idepth, average of the max and min estimation... give out the initial guess at least
 
 
 
@@ -96,6 +97,12 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	    // aggregate the linearized residual for the point in each frame.
 	    // residuals is the pointer to the temporal residual, so residuals+i point to ith frame's residual
 	    // here 1000 is the outlier threshold, if the energy is larger than that, considered as outlier.
+	    // linearizeResidual do the following steps:
+	    // 1. project the immature point's 8 residual pattern points into target frame, and accumulate the
+	    //    reprojection error and normalized with huber norm and return as energyLeft
+	    // 2. Hdd and bd are also accumulated from each d_idepth.
+	    //    Hdd += (hw * d_idepth) * d_idepth;
+        //    bd += (hw * residual) * d_idepth;
 		lastEnergy += point->linearizeResidual(&Hcalib, 1000, residuals+i,lastHdd, lastbd, currentIdepth);
 		// set the state as outlier if exceed the energy threshold
 		// otherwise, will still be ResState::IN.
