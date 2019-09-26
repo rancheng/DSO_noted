@@ -92,7 +92,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 
 	// loop through each frame in the sliding window
 	// linearize residuals, residual state_NewState and state_NewEnergy will be updated in the linearization func.
-	for(int i=0;i<nres;i++)
+	for(int i=0;i<nres;i++) // loop all frames in the sliding window
 	{
 	    // aggregate the linearized residual for the point in each frame.
 	    // residuals is the pointer to the temporal residual, so residuals+i point to ith frame's residual
@@ -103,12 +103,13 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	    // 2. Hdd and bd are also accumulated from each d_idepth.
 	    //    Hdd += (hw * d_idepth) * d_idepth;
         //    bd += (hw * residual) * d_idepth;
-		lastEnergy += point->linearizeResidual(&Hcalib, 1000, residuals+i,lastHdd, lastbd, currentIdepth);
+        // 3. Update the residuals.state_NewState according to the energyLeft.
+		lastEnergy += point->linearizeResidual(&Hcalib, 1000, residuals+i,lastHdd, lastbd, currentIdepth); // acumulate energies sum_t{sum_p{E}}
 		// set the state as outlier if exceed the energy threshold
 		// otherwise, will still be ResState::IN.
-		residuals[i].state_state = residuals[i].state_NewState;
+		residuals[i].state_state = residuals[i].state_NewState; // this state_NewState was already updated in linearizeResidual
 		// set the energy as 0
-		residuals[i].state_energy = residuals[i].state_NewEnergy;
+		residuals[i].state_energy = residuals[i].state_NewEnergy; // state_NewEnergy is now energyLeft.
 		// by doing this we wipe out the residual state in the temporal residual struct
 		// and kept all the residuals aggregated into lastEnergy
 	}
@@ -125,16 +126,24 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 			nres, lastHdd,lastEnergy,currentIdepth);
 
 	float lambda = 0.1; // gradient move step size
+    // -------------------------gauss-newton ---------------------------------------------
+    // Hdx = b
+    // dx = H^-1b
+    // x = x + dx
+    // H', b', id', e = LinearizeResidual(x), x here is the idepth...
+    // H <- H'
+    // b <- b'
+    // loop...
 	for(int iteration=0;iteration<setting_GNItsOnPointActivation;iteration++)
 	{
 		float H = lastHdd;
-		H *= 1+lambda;
-		float step = (1.0/H) * lastbd; // step is the gradient of update delta
-		float newIdepth = currentIdepth - step; // use step to update newIdepth estimation
+		H *= 1+lambda; // H = J^TJ(1 + lambda)! this is LM method ...
+		float step = (1.0/H) * lastbd; // step is the gradient of update delta: dx = H^-1b
+		float newIdepth = currentIdepth - step; // use step to update newIdepth estimation: x = x + dx
 
-		float newHdd=0; float newbd=0; float newEnergy=0;
+		float newHdd=0; float newbd=0; float newEnergy=0; // clear out all Hdd, bd and Energy, estimate Residual again:
 		// collect the energy on the updated idepth, to see if energy decreases
-		for(int i=0;i<nres;i++)
+		for(int i=0;i<nres;i++) // loop the whole sliding window once more, update the Hdd, bd, and idepth, and residuals
 			newEnergy += point->linearizeResidual(&Hcalib, 1, residuals+i,newHdd, newbd, newIdepth);
 
 		if(!std::isfinite(lastEnergy) || newHdd < setting_minIdepthH_act)
@@ -153,15 +162,16 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 				"",
 				lastEnergy, newEnergy, newIdepth);
 
-		if(newEnergy < lastEnergy) // if it decreased, okay, we go towards that way.
+		if(newEnergy < lastEnergy) // if energy error decreases, we accept this step and update the estimations.
 		{
+		    // update lastHdd and lastbd ... according to the new ones.
 			currentIdepth = newIdepth;
 			lastHdd = newHdd;
 			lastbd = newbd;
 			lastEnergy = newEnergy;
 			for(int i=0;i<nres;i++)
 			{
-				residuals[i].state_state = residuals[i].state_NewState;
+				residuals[i].state_state = residuals[i].state_NewState; // update the residual states accordingly
 				residuals[i].state_energy = residuals[i].state_NewEnergy;
 			}
 
