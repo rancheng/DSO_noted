@@ -48,7 +48,8 @@ namespace dso
 
 
 
-
+// reducer is the multi-thread thread function
+// linearize all
 void FullSystem::linearizeAll_Reductor(bool fixLinearization, std::vector<PointFrameResidual*>* toRemove, int min, int max, Vec10* stats, int tid)
 {
 	for(int k=min;k<max;k++)
