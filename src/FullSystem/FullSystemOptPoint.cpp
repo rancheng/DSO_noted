@@ -125,7 +125,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 	if(print) printf("Activate point. %d residuals. H=%f. Initial Energy: %f. Initial Id=%f\n" ,
 			nres, lastHdd,lastEnergy,currentIdepth);
 
-	float lambda = 0.1; // gradient move step size
+	float lambda = 0.1; // gradient move step size, lambda is the trust region...
     // -------------------------gauss-newton ---------------------------------------------
     // Hdx = b
     // dx = H^-1b
@@ -175,7 +175,7 @@ PointHessian* FullSystem::optimizeImmaturePoint(
 				residuals[i].state_energy = residuals[i].state_NewEnergy;
 			}
 
-			lambda *= 0.5; // decrease the gradient stepsize (to be more careful and fine-grind)
+			lambda *= 0.5; // decrease the gradient stepsize (to be more careful and fine-grind), lambda here is the trust region
 		}
 		else
 		{

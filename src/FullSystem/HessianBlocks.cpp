@@ -75,7 +75,7 @@ namespace dso {
         residuals.clear();
     }
 
-
+    // set nullspace for scale pose and affine model.
     void FrameHessian::setStateZero(const Vec10 &state_zero) {
         assert(state_zero.head<6>().squaredNorm() < 1e-20);
 

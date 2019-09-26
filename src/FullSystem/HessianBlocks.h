@@ -144,7 +144,7 @@ struct FrameHessian
     // since absolute pose and affine and scale is not observable in monocular camera, thus are the nullspace in the
     // hessian matrix.
 	Mat66 nullspaces_pose; // nullspace is: assume h(v) = A*v that A*v = 0. null-space is equivalently the set of solutions to the homogeneous equation A*v=0
-	Mat42 nullspaces_affine;
+	Mat42 nullspaces_affine; // why affine model's nullspace is 4x2?
 	Vec6 nullspaces_scale;
 
 	// variable info.
