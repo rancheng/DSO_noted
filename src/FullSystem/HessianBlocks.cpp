@@ -235,7 +235,7 @@ namespace dso {
             }
         }
     }
-
+    // precalculate values are calculated from here.
     void FrameFramePrecalc::set(FrameHessian *host, FrameHessian *target, CalibHessian *HCalib) {
         this->host = host;
         this->target = target;

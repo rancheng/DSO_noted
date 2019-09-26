@@ -54,7 +54,10 @@ namespace dso
 {
 
 
-
+// note that marginalization is using the Schur complete in the original paper
+// which basically is using the H matrix special arrow shaped structure to eliminate off diagnal elements
+// and solve camera pose delta update at first and then solve the point hessian depth depth updates
+// shur elimination is just one way, we can definitely use cholsky method to decompose the sparse H matrix.
 void FullSystem::flagFramesForMarginalization(FrameHessian* newFH)
 {
 	if(setting_minFrameAge > setting_maxFrames)
@@ -76,11 +79,12 @@ void FullSystem::flagFramesForMarginalization(FrameHessian* newFH)
 		int in = fh->pointHessians.size() + fh->immaturePoints.size();
 		int out = fh->pointHessiansMarginalized.size() + fh->pointHessiansOut.size();
 
-
+        // extract the affine model a and b to see if it exceed the maximum affine factor in the sliding window
 		Vec2 refToFh=AffLight::fromToVecExposure(frameHessians.back()->ab_exposure, fh->ab_exposure,
 				frameHessians.back()->aff_g2l(), fh->aff_g2l());
 
-
+        // setting_maxLogAffFacInWindow: marg a frame if factor between intensities to current frame is larger than 1/X or X.
+        // here they only compared logf(a)
 		if( (in < setting_minPointsRemaining *(in+out) || fabs(logf((float)refToFh[0])) > setting_maxLogAffFacInWindow)
 				&& ((int)frameHessians.size())-flagged > setting_minFrames)
 		{
