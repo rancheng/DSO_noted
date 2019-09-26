@@ -101,7 +101,7 @@ void KeyFrameDisplay::setFromKF(FrameHessian* fh, CalibHessian* HCalib)
 
     InputPointSparse<MAX_RES_PER_POINT>* pc = originalInputSparse;
 	numSparsePoints=0;
-	for(ImmaturePoint* p : fh->immaturePoints)
+	for(ImmaturePoint* p : fh->immaturePoints) //immature points, no idepth available
 	{
 		for(int i=0;i<patternNum;i++)
 			pc[numSparsePoints].color[i] = p->color[i];
@@ -123,7 +123,7 @@ void KeyFrameDisplay::setFromKF(FrameHessian* fh, CalibHessian* HCalib)
 		pc[numSparsePoints].u = p->u;
 		pc[numSparsePoints].v = p->v;
 		pc[numSparsePoints].idpeth = p->idepth_scaled;
-		pc[numSparsePoints].relObsBaseline = p->maxRelBaseline;
+		pc[numSparsePoints].relObsBaseline = p->maxRelBaseline; // max baseline was set as the real observed baseline now.
 		pc[numSparsePoints].idepth_hessian = p->idepth_hessian;
 		pc[numSparsePoints].numGoodRes =  0;
 		pc[numSparsePoints].status=1;

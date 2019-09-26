@@ -57,7 +57,7 @@ class ImmaturePoint
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	// static values
-	float color[MAX_RES_PER_POINT]; // MAX_RES_PER_POINT is 8 here, why it's a 8 size float array?
+	float color[MAX_RES_PER_POINT]; // MAX_RES_PER_POINT is 8 here, why it's a 8 size float array?, because it stores 8 nearby points' intensity.
 	// this weights and the pattern are exactly the SSD described in the paper. which
 	// they calculate the residual pattern.
 	float weights[MAX_RES_PER_POINT]; // again float array with length 8

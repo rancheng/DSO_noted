@@ -43,7 +43,8 @@ EIGEN_STRONG_INLINE float derive_idepth(
 }
 
 
-
+// point reprojection, return false if it's OOB. normally used when there's precalculated KRKi and Kt matrix.
+// invoked in ImmaturePoint::calcResidual function when calculating residuals.
 EIGEN_STRONG_INLINE bool projectPoint(
 		const float &u_pt,const float &v_pt,
 		const float &idepth,

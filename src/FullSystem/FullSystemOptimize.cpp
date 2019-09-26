@@ -49,11 +49,13 @@ namespace dso
 
 
 // reducer is the multi-thread thread function
-// linearize all
+// warp the point
 void FullSystem::linearizeAll_Reductor(bool fixLinearization, std::vector<PointFrameResidual*>* toRemove, int min, int max, Vec10* stats, int tid)
 {
 	for(int k=min;k<max;k++)
 	{
+	    // loop all the active points in residual block and warp those points into the target frame
+	    // find max baseline in the active points.
 		PointFrameResidual* r = activeResiduals[k];
 		(*stats)[0] += r->linearize(&Hcalib);
 

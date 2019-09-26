@@ -239,9 +239,9 @@ namespace dso {
     void FrameFramePrecalc::set(FrameHessian *host, FrameHessian *target, CalibHessian *HCalib) {
         this->host = host;
         this->target = target;
-
+        // project from target frame to host frame estimated.
         SE3 leftToLeft_0 = target->get_worldToCam_evalPT() * host->get_worldToCam_evalPT().inverse();
-        PRE_RTll_0 = (leftToLeft_0.rotationMatrix()).cast<float>();
+        PRE_RTll_0 = (leftToLeft_0.rotationMatrix()).cast<float>(); // PRE_RTll_0 will be used in the residual linearization
         PRE_tTll_0 = (leftToLeft_0.translation()).cast<float>();
 
 

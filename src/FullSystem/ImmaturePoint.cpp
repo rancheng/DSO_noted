@@ -542,7 +542,7 @@ namespace dso {
         return drescale * sqrtf(dxdd * dxdd + dydd * dydd);
     }
 
-
+    // caluclate residual for each immature point, residual is huber norm of intensity error.
     float ImmaturePoint::calcResidual(
             CalibHessian *HCalib, const float outlierTHSlack,
             ImmaturePointTemporaryResidual *tmpRes,
@@ -557,19 +557,22 @@ namespace dso {
 
         for (int idx = 0; idx < patternNum; idx++) {
             float Ku, Kv;
+            // here use projectPoint to project current point to the local pattern and get different Ku, Kv.
+            // use the pre calculated R and t: PRE_KRKiTll, PRE_KtTll, and idepth.
+            // projectPoint will return false if the projected point OOB.
             if (!projectPoint(this->u + patternP[idx][0], this->v + patternP[idx][1], idepth, PRE_KRKiTll, PRE_KtTll,
-                              Ku, Kv)) { return 1e10; }
+                              Ku, Kv)) { return 1e10; } // return value should be the residual of that point, if it's very large, this point won't be able to activate later.
 
             Vec3f hitColor = (getInterpolatedElement33(dIl, Ku, Kv, wG[0]));
             if (!std::isfinite((float) hitColor[0])) { return 1e10; }
             //if(benchmarkSpecialOption==5) hitColor = (getInterpolatedElement13BiCub(tmpRes->target->I, Ku, Kv, wG[0]));
-
+            // since color[] is a size 8 float vector that stores the intensity of nearby points in 8 directions. (local residual pattern)
             float residual = hitColor[0] - (affLL[0] * color[idx] + affLL[1]);
 
             float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual);
-            energyLeft += weights[idx] * weights[idx] * hw * residual * residual * (2 - hw);
+            energyLeft += weights[idx] * weights[idx] * hw * residual * residual * (2 - hw); // energy left sum up all 8 directional residuals
         }
-
+        // control the ceiling of energyLeft as energyTH*outlierTHSlack.
         if (energyLeft > energyTH * outlierTHSlack) {
             energyLeft = energyTH * outlierTHSlack;
         }
@@ -584,7 +587,12 @@ namespace dso {
             float idepth) {
         //what is Hdd?
         // what is bd?
-        //
+        // Hdd should be the Hessian block
+        // bd should be the b vector. they are the gauss-newton normal equation coefficients.
+        // --------------------------------- Explain: ----------------------------------------------------
+        // since this is just point hessian, for point, there's only one parameter should be estimate: inverse depth
+        // thus here Hdd, H is hessian of inverse depth, dd is inverse depth's gradient.
+        // bd is the b vector for inverse depth.
         if (tmpRes->state_state == ResState::OOB) {
             tmpRes->state_NewState = ResState::OOB;
             return tmpRes->state_energy;
@@ -617,35 +625,40 @@ namespace dso {
             // this step project the immature point to the new frame.
             // if projection fails, set the state as out of boundary
             // else, go get the hitColor and calculate residual of that point.
+            // this projectPoint is the overload function which offer more parameter for reprojection
+            // there's drescale and dx, dy in it.
+            // dx, dy, HCalib are used for calculate KliP which is the point location of world
             if (!projectPoint(this->u, this->v, idepth, dx, dy, HCalib,
                               PRE_RTll, PRE_tTll, drescale, u, v, Ku, Kv, KliP, new_idepth)) {
-                tmpRes->state_NewState = ResState::OOB;
+                tmpRes->state_NewState = ResState::OOB; // set OOB to tmpRes and return.
                 return tmpRes->state_energy;
             }
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // ########################## Core of Paper ####################################
             // normalized color and gradient channel at Ku and Kv.
-            // Ku and Kv are the reprojected point.
+            // Ku and Kv are the reprojected point. (8 directions in the residual pattern)
             Vec3f hitColor = (getInterpolatedElement33(dIl, Ku, Kv, wG[0]));
-
+            // check intensity is finite
             if (!std::isfinite((float) hitColor[0])) {
                 tmpRes->state_NewState = ResState::OOB;
                 return tmpRes->state_energy;
             }
             // residual is propotional to the color and linearly affined by affine model.
             // affLL is affine left to left. I think here affLL[0] is a and affLL[1] is b.
+            // color is the corresponding pattern points intensity (8 residual pattern) that already stored
             float residual = hitColor[0] - (affLL[0] * color[idx] + affLL[1]);
             // here hw is huber weights
             // if residual is less than setting_huberTH got 1
             // otherwise, will be inverse propotional to residual
             // fabsf is float absolute function.
-            float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual);
+            float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual); // huber normal of residual
 
-            energyLeft += weights[idx] * weights[idx] * hw * residual * residual * (2 - hw);
+            energyLeft += weights[idx] * weights[idx] * hw * residual * residual * (2 - hw); // accumulate energy
 
             // depth derivatives.
-            float dxInterp = hitColor[1] * HCalib->fxl();
+            float dxInterp = hitColor[1] * HCalib->fxl(); // note that hitColor is a 1x3 vector: [color, dx, dy], dx * fx = dx in pixel
             float dyInterp = hitColor[2] * HCalib->fyl();
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!! depth estimation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             float d_idepth = derive_idepth(PRE_tTll, u, v, dx, dy, dxInterp, dyInterp, drescale);
 
             hw *= weights[idx] * weights[idx];
