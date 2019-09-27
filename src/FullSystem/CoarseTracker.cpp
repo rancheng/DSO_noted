@@ -653,9 +653,9 @@ bool CoarseTracker::trackNewestCoarse(
         // this function only updates H and b and the aff_g2l_current
 		calcGSSSE(lvl, H, b, refToNew_current, aff_g2l_current); // calculate H and b using SSE accumulator
 
-		float lambda = 0.01;
+		float lambda = 0.01; // trust region, they are actually using LM method.
 
-		if(debugPrint)
+		if(debugPrint) // some debug plots, no need to explain here...
 		{
 			Vec2f relAff = AffLight::fromToVecExposure(lastRef->ab_exposure, newFrame->ab_exposure, lastRef_aff_g2l, aff_g2l_current).cast<float>();
 			printf("lvl%d, it %d (l=%f / %f) %s: %.3f->%.3f (%d -> %d) (|inc| = %f)! \t",
@@ -669,9 +669,9 @@ bool CoarseTracker::trackNewestCoarse(
 		}
 
 
-		for(int iteration=0; iteration < maxIterations[lvl]; iteration++)
+		for(int iteration=0; iteration < maxIterations[lvl]; iteration++) // loop phase in Gauss-Newton optimization
 		{
-			Mat88 Hl = H;
+			Mat88 Hl = H; // H and b are calculated in func calcGSSSE, which is using Intel SSE to perform large matrix computation...
 			for(int i=0;i<8;i++) Hl(i,i) *= (1+lambda);
 			Vec8 inc = Hl.ldlt().solve(-b);
 

@@ -295,6 +295,9 @@ namespace dso {
             SE3 lastF_2_slast;
             {    // lock on global pose consistency!
                 boost::unique_lock <boost::mutex> crlock(shellPoseMutex);
+                // this first convert last frame's points in camera coordinate into world coordinate
+                // then convert from world coordinate into camera coordinate in sprelast frame,
+                // now this point is in sprelast frame.
                 slast_2_sprelast = sprelast->camToWorld.inverse() * slast->camToWorld; // SE3 map last to prelast.
                 lastF_2_slast = slast->camToWorld.inverse() * lastF->shell->camToWorld; // prelast to last.
                 aff_last_2_l = slast->aff_g2l; // use the last affine model.
