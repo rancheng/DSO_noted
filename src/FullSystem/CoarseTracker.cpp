@@ -672,56 +672,67 @@ bool CoarseTracker::trackNewestCoarse(
 		for(int iteration=0; iteration < maxIterations[lvl]; iteration++) // loop phase in Gauss-Newton optimization
 		{
 			Mat88 Hl = H; // H and b are calculated in func calcGSSSE, which is using Intel SSE to perform large matrix computation...
-			for(int i=0;i<8;i++) Hl(i,i) *= (1+lambda);
-			Vec8 inc = Hl.ldlt().solve(-b);
-
+			for(int i=0;i<8;i++) Hl(i,i) *= (1+lambda); // H =  J^TJ(1+lambda). since J^TJ is symmetric, thus they only update the diagonal part
+			Vec8 inc = Hl.ldlt().solve(-b); // this is easy, since H is small matrix which is only 8x8, use normal matrix decomposition will solve it.
+            // inc now is the delta incremental part to update the camera pose and affine model, 1x8: [r r r t t t a b]
 			if(setting_affineOptModeA < 0 && setting_affineOptModeB < 0)	// fix a, b
 			{
 				inc.head<6>() = Hl.topLeftCorner<6,6>().ldlt().solve(-b.head<6>());
-			 	inc.tail<2>().setZero();
+			 	inc.tail<2>().setZero(); // delta update on a and b are set as zero..., so there's nothing change in a and b
 			}
 			if(!(setting_affineOptModeA < 0) && setting_affineOptModeB < 0)	// fix b
 			{
-				inc.head<7>() = Hl.topLeftCorner<7,7>().ldlt().solve(-b.head<7>());
-			 	inc.tail<1>().setZero();
+				inc.head<7>() = Hl.topLeftCorner<7,7>().ldlt().solve(-b.head<7>()); // update [r r r t t t a]
+			 	inc.tail<1>().setZero(); // fix b.
 			}
 			if(setting_affineOptModeA < 0 && !(setting_affineOptModeB < 0))	// fix a
 			{
+			    // since a is the coeffient of the exponential term, to fix a is a bit complex
 				Mat88 HlStitch = Hl;
 				Vec8 bStitch = b;
+				// copy last col and row into the second last one, since H is symmetrical, col and row are the same
+				// so this actually copies the parameter b term into a's slots.
 				HlStitch.col(6) = HlStitch.col(7);
 				HlStitch.row(6) = HlStitch.row(7);
-				bStitch[6] = bStitch[7];
+				bStitch[6] = bStitch[7]; // they update b again...
+				// aha, now I know why they want to copy b to the a's position, they are doing this way to make
+				// up the nullspace in H matrix, so that the solve will have arbitrary solution on b.
+				// since the last two columns/rows are identical, so the nullspace they built on b is actually
+				// controlling the 1 DoF for updating the b parameter itself. (make b estimation independ from parameter a)
 				Vec7 incStitch = HlStitch.topLeftCorner<7,7>().ldlt().solve(-bStitch.head<7>());
 				inc.setZero();
 				inc.head<6>() = incStitch.head<6>();
 				inc[6] = 0;
-				inc[7] = incStitch[6];
+				inc[7] = incStitch[6]; // now use the solved b term to update parameter b...
 			}
 
 
 
 
 			float extrapFac = 1;
+			// this controls the extrapolation of delta incremental update from being too off
+            // In mathematics, extrapolation is the process of estimating, beyond the original observation range,
+            // the value of a variable on the basis of its relationship with another variable
+            // in human words, extrapolation is just guessing the function values outside your defined region
 			if(lambda < lambdaExtrapolationLimit) extrapFac = sqrt(sqrt(lambdaExtrapolationLimit / lambda));
-			inc *= extrapFac;
+			inc *= extrapFac; // since this lambda is getting smaller and smaller, so, inverse lambda will grow large. the author controls it's increasing by double sqrt.
 
-			Vec8 incScaled = inc;
-			incScaled.segment<3>(0) *= SCALE_XI_ROT;
+			Vec8 incScaled = inc; // dump the values in inc, since inc will be used later.
+			incScaled.segment<3>(0) *= SCALE_XI_ROT; // the dumped value got updated by the Scale \xi term
 			incScaled.segment<3>(3) *= SCALE_XI_TRANS;
 			incScaled.segment<1>(6) *= SCALE_A;
 			incScaled.segment<1>(7) *= SCALE_B;
 
-            if(!std::isfinite(incScaled.sum())) incScaled.setZero();
+            if(!std::isfinite(incScaled.sum())) incScaled.setZero(); // numerical sigularity, just ignore this step.
 
-			SE3 refToNew_new = SE3::exp((Vec6)(incScaled.head<6>())) * refToNew_current;
-			AffLight aff_g2l_new = aff_g2l_current;
+			SE3 refToNew_new = SE3::exp((Vec6)(incScaled.head<6>())) * refToNew_current; // se3 got updated from the [r, r, r, t, t, t] matrix
+			AffLight aff_g2l_new = aff_g2l_current; // those steps are updating the parameters: pose, affine
 			aff_g2l_new.a += incScaled[6];
 			aff_g2l_new.b += incScaled[7];
-
+            // calculate the new residual and energy with the latest updated pose and affine model
 			Vec6 resNew = calcRes(lvl, refToNew_new, aff_g2l_new, setting_coarseCutoffTH*levelCutoffRepeat);
 
-			bool accept = (resNew[0] / resNew[1]) < (resOld[0] / resOld[1]);
+			bool accept = (resNew[0] / resNew[1]) < (resOld[0] / resOld[1]); // gradient descent...
 
 			if(debugPrint)
 			{
@@ -738,23 +749,23 @@ bool CoarseTracker::trackNewestCoarse(
 			}
 			if(accept)
 			{
-				calcGSSSE(lvl, H, b, refToNew_new, aff_g2l_new);
+				calcGSSSE(lvl, H, b, refToNew_new, aff_g2l_new); // use the new pose and affine parameter to calculate new H and b.
 				resOld = resNew;
-				aff_g2l_current = aff_g2l_new;
+				aff_g2l_current = aff_g2l_new; // accept this step, update the pose, affine parameter space.
 				refToNew_current = refToNew_new;
-				lambda *= 0.5;
+				lambda *= 0.5; // shrink the trust region
 			}
 			else
 			{
-				lambda *= 4;
-				if(lambda < lambdaExtrapolationLimit) lambda = lambdaExtrapolationLimit;
+				lambda *= 4; // enlarge the trust region.
+				if(lambda < lambdaExtrapolationLimit) lambda = lambdaExtrapolationLimit; // ceiling of the trust region
 			}
 
 			if(!(inc.norm() > 1e-3))
 			{
 				if(debugPrint)
 					printf("inc too small, break!\n");
-				break;
+				break; // converged...
 			}
 		}
 
