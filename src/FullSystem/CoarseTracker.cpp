@@ -752,7 +752,7 @@ bool CoarseTracker::trackNewestCoarse(
 				calcGSSSE(lvl, H, b, refToNew_new, aff_g2l_new); // use the new pose and affine parameter to calculate new H and b.
 				resOld = resNew;
 				aff_g2l_current = aff_g2l_new; // accept this step, update the pose, affine parameter space.
-				refToNew_current = refToNew_new;
+				refToNew_current = refToNew_new; // note that refToNew_new is the reference of lastToNew_out, this will automatically update the lastToNew_out SE3 pose
 				lambda *= 0.5; // shrink the trust region
 			}
 			else

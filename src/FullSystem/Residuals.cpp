@@ -86,8 +86,8 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 	float energyLeft=0;
 	const Eigen::Vector3f* dIl = target->dI;
 	//const float* const Il = target->I;
-	const Mat33f &PRE_KRKiTll = precalc->PRE_KRKiTll;
-	const Vec3f &PRE_KtTll = precalc->PRE_KtTll;
+	const Mat33f &PRE_KRKiTll = precalc->PRE_KRKiTll; // left to left reprojection R
+	const Vec3f &PRE_KtTll = precalc->PRE_KtTll; // left to left translation t
 	const Mat33f &PRE_RTll_0 = precalc->PRE_RTll_0;
 	const Vec3f &PRE_tTll_0 = precalc->PRE_tTll_0;
 	const float * const color = point->color;

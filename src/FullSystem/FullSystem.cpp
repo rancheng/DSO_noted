@@ -816,23 +816,24 @@ namespace dso {
         for (FrameHessian *host : frameHessians)        // go through all active frames
         {
             for (unsigned int i = 0; i < host->pointHessians.size(); i++) {
-                PointHessian *ph = host->pointHessians[i];
-                if (ph == 0) continue;
+                PointHessian *ph = host->pointHessians[i]; // loop all points in that frame
+                if (ph == 0) continue; // skip empty points
 
                 if (ph->idepth_scaled < 0 || ph->residuals.size() == 0) {
-                    host->pointHessiansOut.push_back(ph);
+                    host->pointHessiansOut.push_back(ph); // typically negative idepth should be OOB points, marked as out.
                     ph->efPoint->stateFlag = EFPointStatus::PS_DROP;
                     host->pointHessians[i] = 0;
                     flag_nores++;
                 } else if (ph->isOOB(fhsToKeepPoints, fhsToMargPoints) || host->flaggedForMarginalization) {
+                    // if point is marked as OOB or frame is going to marginalized, marginalization will happen on this point
                     flag_oob++;
-                    if (ph->isInlierNew()) {
-                        flag_in++;
+                    if (ph->isInlierNew()) { // this will recycle some good points
+                        flag_in++; // reclaim those good tracking points
                         int ngoodRes = 0;
-                        for (PointFrameResidual *r : ph->residuals) {
-                            r->resetOOB();
+                        for (PointFrameResidual *r : ph->residuals) { // reset these residual status
+                            r->resetOOB(); // set the state to be IN, and state_NewState as OUTLIER
                             r->linearize(&Hcalib);
-                            r->efResidual->isLinearized = false;
+                            r->efResidual->isLinearized = false; // mark points to optimize later
                             r->applyRes(true);
                             if (r->efResidual->isActive()) {
                                 r->efResidual->fixLinearizationF(ef);
@@ -849,7 +850,7 @@ namespace dso {
                         }
 
 
-                    } else {
+                    } else { // point is invalid for tracking
                         host->pointHessiansOut.push_back(ph);
                         ph->efPoint->stateFlag = EFPointStatus::PS_DROP;
 

@@ -478,21 +478,21 @@ struct PointHessian
 		int visInToMarg = 0;
 		for(PointFrameResidual* r : residuals)
 		{
-			if(r->state_state != ResState::IN) continue;
-			for(FrameHessian* k : toMarg)
-				if(r->target == k) visInToMarg++;
+			if(r->state_state != ResState::IN) continue; // only consider those valid tracked points
+			for(FrameHessian* k : toMarg) // loop all those frames to marginalize
+				if(r->target == k) visInToMarg++; // this term only add up visInToMarg... if the current residual's host frame is k
 		}
-		if((int)residuals.size() >= setting_minGoodActiveResForMarg &&
-				numGoodResiduals > setting_minGoodResForMarg+10 &&
-				(int)residuals.size()-visInToMarg < setting_minGoodActiveResForMarg)
-			return true;
+		if((int)residuals.size() >= setting_minGoodActiveResForMarg && // the frame is contribute a lot more residual
+				numGoodResiduals > setting_minGoodResForMarg+10 && // we got enough points to track, so it's safe to delete some
+				(int)residuals.size()-visInToMarg < setting_minGoodActiveResForMarg) // not enough visibility in frames.
+			return true; // this point should be marginalized
 
 
 
 
 
-		if(lastResiduals[0].second == ResState::OOB) return true;
-		if(residuals.size() < 2) return false;
+		if(lastResiduals[0].second == ResState::OOB) return true; // this is marked in calcRes func, OOB directly
+		if(residuals.size() < 2) return false; // not enough residuals, still initialization, no need to marginalize
 		if(lastResiduals[0].second == ResState::OUTLIER && lastResiduals[1].second == ResState::OUTLIER) return true;
 		return false;
 	}
@@ -500,6 +500,7 @@ struct PointHessian
 
 	inline bool isInlierNew()
 	{
+        // minimum number of residuals for a point to become valid
 		return (int)residuals.size() >= setting_minGoodActiveResForMarg
                     && numGoodResiduals >= setting_minGoodResForMarg;
 	}

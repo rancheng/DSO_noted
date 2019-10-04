@@ -53,7 +53,7 @@ EIGEN_STRONG_INLINE bool projectPoint(
 		const Mat33f &KRKi, const Vec3f &Kt,
 		float &Ku, float &Kv)
 {
-	Vec3f ptp = KRKi * Vec3f(u_pt,v_pt, 1) + Kt*idepth;
+	Vec3f ptp = KRKi * Vec3f(u_pt,v_pt, 1) + Kt*idepth; // reprojection from [u_pt, v_pt] to [Ku, Kv]
 	Ku = ptp[0] / ptp[2];
 	Kv = ptp[1] / ptp[2];
 	return Ku>1.1f && Kv>1.1f && Ku<wM3G && Kv<hM3G;
