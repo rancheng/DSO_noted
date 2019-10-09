@@ -127,6 +127,7 @@ CoarseTracker::~CoarseTracker()
     ptrToDelete.clear();
 }
 // no need to explain, just make the camera intrinsic for each scale space.
+// notice this is the pointer to HCalib, so the modification of fx[0] ... will write the value into HCalib.
 void CoarseTracker::makeK(CalibHessian* HCalib)
 {
 	w[0] = wG[0];

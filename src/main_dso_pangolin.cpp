@@ -391,7 +391,7 @@ int main( int argc, char** argv )
 
 
 	FullSystem* fullSystem = new FullSystem();
-	fullSystem->setGammaFunction(reader->getPhotometricGamma());
+	fullSystem->setGammaFunction(reader->getPhotometricGamma()); // this will create Hcalib's B and Binv
 	fullSystem->linearizeOperation = (playbackSpeed==0);
 
 
@@ -489,9 +489,9 @@ int main( int argc, char** argv )
 
 
 
-            if(!skipFrame) fullSystem->addActiveFrame(img, i);
+            if(!skipFrame) fullSystem->addActiveFrame(img, i); // entrence of the full system functions.
 
-
+            // addActiveFrame -> deliverTrackedFrame -> MakeKeyFrame
 
 
             delete img;

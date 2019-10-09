@@ -215,7 +215,7 @@ namespace dso {
     void FullSystem::setOriginalCalib(const VecXf &originalCalib, int originalW, int originalH) {
 
     }
-
+    // invoked in the first like of main function, which firstly create those gamma function for Hcalib
     void FullSystem::setGammaFunction(float *BInv) {
         if (BInv == 0) return;
 
