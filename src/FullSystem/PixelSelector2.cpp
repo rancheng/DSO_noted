@@ -40,7 +40,7 @@ namespace dso {
     PixelSelector::PixelSelector(int w, int h) {
         randomPattern = new unsigned char[w * h];
         std::srand(3141592);    // want to be deterministic.
-        for (int i = 0; i < w * h; i++) randomPattern[i] = rand() & 0xFF;
+        for (int i = 0; i < w * h; i++) randomPattern[i] = rand() & 0xFF; // & 0xFF will keep last 8 bits, and set 0 of rest. which is make a random number in range [0..255]
 
         currentPotential = 3; // this current potiential search field is initialized as 3 which is a relative large space. will shrink on MakeMaps function to select enough points.
 
@@ -191,7 +191,7 @@ namespace dso {
                 // ################################################
                 // so, here it should be a normalized threshold index
                 // for each pixel location in the smallest scale space.
-                thsSmoothed[x + y * w32] = (sum / num) * (sum / num);
+                thsSmoothed[x + y * w32] = (sum / num) * (sum / num); // mean normalized neighbourhood.
 
             }
 
@@ -417,7 +417,9 @@ namespace dso {
 
         // and they change directions in each loop step in each scale space.
 
-        // eventually, in the loop body, they capture those largest dirNorm (which means gradient vector are collinear)
+        // eventually, in the loop body, they capture those largest dirNorm (which means gradient vector are collinear
+
+        // with the random direction)
 
         // intuitively, we can regard all point like that are matched point and considered as selected point.
 
@@ -479,6 +481,8 @@ namespace dso {
                                         if (xf < 4 || xf >= w - 5 || yf < 4 || yf > h - 4) continue;
 
                                         // this is the pixels index, why the hell they will down weight those index??????
+                                        // beacause xf>>5 = xf/2^5 = xf/32, which is the smallest scale
+                                        // this is indexing thsSmoothed[x32, y32]
                                         float pixelTH0 = thsSmoothed[(xf >> 5) + (yf >> 5) * thsStep]; // thsStep is w32
                                         // down weight those index will shrink those points in the threshold.
                                         // multiply dw1 and dw1 they lifted the bar of the threshold.
