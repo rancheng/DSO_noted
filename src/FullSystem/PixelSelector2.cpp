@@ -365,6 +365,7 @@ namespace dso {
         float *mapmax2 = fh->absSquaredGrad[2];
 
         // why they don't define h1, h2???? do they default set the image as squared?????
+        // because they reshaped the matrix into 1d, so only width is needed
         int w = wG[0];
         int w1 = wG[1];
         int w2 = wG[2];
