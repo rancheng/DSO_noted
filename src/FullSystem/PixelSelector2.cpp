@@ -311,12 +311,12 @@ namespace dso {
             }
         }
 
-//	printf("PixelSelector: have %.2f%%, need %.2f%%. KEEPCURR with pot %d -> %d. Subsampled to %.2f%%\n",
-//			100*numHave/(float)(wG[0]*hG[0]),
-//			100*numWant/(float)(wG[0]*hG[0]),
-//			currentPotential,
-//			idealPotential,
-//			100*numHaveSub/(float)(wG[0]*hG[0]));
+	printf("PixelSelector: have %.2f%%, need %.2f%%. KEEPCURR with pot %d -> %d. Subsampled to %.2f%%\n",
+			100*numHave/(float)(wG[0]*hG[0]),
+			100*numWant/(float)(wG[0]*hG[0]),
+			currentPotential,
+			idealPotential,
+			100*numHaveSub/(float)(wG[0]*hG[0]));
         currentPotential = idealPotential;
 
 
