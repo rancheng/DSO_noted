@@ -97,24 +97,24 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 	float b0 = precalc->PRE_b0_mode;
 
 
-	Vec6f d_xi_x, d_xi_y;
-	Vec4f d_C_x, d_C_y;
-	float d_d_x, d_d_y;
+	Vec6f d_xi_x, d_xi_y; // partial \xi / partial x; partial \xi / partial y, camera pose
+	Vec4f d_C_x, d_C_y; // partial C / partial x; partial C / partial y, camera intrinsic
+	float d_d_x, d_d_y; // depth partial with respect to x and y
 	{
 		float drescale, u, v, new_idepth;
 		float Ku, Kv;
 		Vec3f KliP;
-
+        // reprojection using the idepth_zero_saled... which is updated during the optimization... in FullSystemOptimize.cpp
 		if(!projectPoint(point->u, point->v, point->idepth_zero_scaled, 0, 0,HCalib,
 				PRE_RTll_0,PRE_tTll_0, drescale, u, v, Ku, Kv, KliP, new_idepth))
 			{ state_NewState = ResState::OOB; return state_energy; }
 
-		centerProjectedTo = Vec3f(Ku, Kv, new_idepth);
+		centerProjectedTo = Vec3f(Ku, Kv, new_idepth); // Ku, Kv should be the projected points, together with new_idepth will be the point in the center of residual pattern.
 
 
 		// diff d_idepth
-		d_d_x = drescale * (PRE_tTll_0[0]-PRE_tTll_0[2]*u)*SCALE_IDEPTH*HCalib->fxl();
-		d_d_y = drescale * (PRE_tTll_0[1]-PRE_tTll_0[2]*v)*SCALE_IDEPTH*HCalib->fyl();
+		d_d_x = drescale * (PRE_tTll_0[0]-PRE_tTll_0[2]*u)*SCALE_IDEPTH*HCalib->fxl(); // x - zu
+		d_d_y = drescale * (PRE_tTll_0[1]-PRE_tTll_0[2]*v)*SCALE_IDEPTH*HCalib->fyl(); // y - zv
 
 
 
