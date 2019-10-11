@@ -820,7 +820,7 @@ namespace dso {
                                     2); // selected points in random directions.
             else
                 npts = makePixelStatus(firstFrame->dIp[lvl], statusMapB, w[lvl], h[lvl],
-                                       densities[lvl] * w[0] * h[0]); // select points in max gradient direction...
+                                       densities[lvl] * w[0] * h[0]); // select points in max gradient direction locally...
             // npts is the number of points selected.
 
             if (points[lvl] != 0) delete[] points[lvl]; // clear the memory
@@ -841,7 +841,7 @@ namespace dso {
                     if ((lvl != 0 && statusMapB[x + y * wl]) || (lvl == 0 && statusMap[x + y * wl] != 0)) {
                         // initialize and assign the content of selected point in lvl
                         //assert(patternNum==9);
-                        pl[nl].u = x + 0.1;
+                        pl[nl].u = x + 0.1; // small offset...
                         pl[nl].v = y + 0.1;
                         pl[nl].idepth = 1;
                         pl[nl].iR = 1;

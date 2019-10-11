@@ -121,7 +121,7 @@ inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h,
 	return numGood; // this is the final selected point number.
 }
 
-// this is identical to the above function, the only difference is the above function has template...
+// this is identical to the above function, the only difference is the above function has template: pot
 inline int gridMaxSelection(Eigen::Vector3f* grads, bool* map_out, int w, int h, int pot, float THFac)
 {
 
@@ -219,7 +219,7 @@ inline int makePixelStatus(Eigen::Vector3f* grads, bool* map, int w, int h, floa
 	else if(sparsityFactor==9) numGoodPoints = gridMaxSelection<9>(grads, map, w, h, THFac);
 	else if(sparsityFactor==10) numGoodPoints = gridMaxSelection<10>(grads, map, w, h, THFac);
 	else if(sparsityFactor==11) numGoodPoints = gridMaxSelection<11>(grads, map, w, h, THFac);
-	else numGoodPoints = gridMaxSelection(grads, map, w, h, sparsityFactor, THFac);
+	else numGoodPoints = gridMaxSelection(grads, map, w, h, sparsityFactor, THFac); // sparsityFactor now is pot
 
 
 	/*
