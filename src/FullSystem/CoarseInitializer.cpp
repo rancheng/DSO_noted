@@ -159,6 +159,7 @@ namespace dso {
             // small residual
             int iteration = 0;
             while (true) { // this whole pipeline is Gauss-Newton's iterative method to solve H and b.
+                // actually this is LM method, since they are using the trust region lambda to control the search step size.
                 Mat88f Hl = H;
                 for (int i = 0; i < 8; i++) Hl(i, i) *= (1 + lambda);
                 Hl -= Hsc * (1 / (1 + lambda)); // Hsc is the normalized JbBuffer_new[:8, :8], Hl is H in lvl
