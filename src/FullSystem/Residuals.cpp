@@ -141,7 +141,7 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 		d_C_y[3] = (d_C_y[3]+1)*SCALE_C;
 
 
-		d_xi_x[0] = new_idepth*HCalib->fxl();
+		d_xi_x[0] = new_idepth*HCalib->fxl(); // partial xi (pose) / partial x  == inverse depth * fx
 		d_xi_x[1] = 0;
 		d_xi_x[2] = -new_idepth*u*HCalib->fxl();
 		d_xi_x[3] = -u*v*HCalib->fxl();
@@ -158,7 +158,7 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 
 
 	{
-		J->Jpdxi[0] = d_xi_x;
+		J->Jpdxi[0] = d_xi_x; // partial p / partial camera pose
 		J->Jpdxi[1] = d_xi_y;
 
 		J->Jpdc[0] = d_C_x;
