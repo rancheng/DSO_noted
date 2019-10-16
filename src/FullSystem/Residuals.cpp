@@ -180,26 +180,26 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 
 	float wJI2_sum = 0;
 
-	for(int idx=0;idx<patternNum;idx++)
+	for(int idx=0;idx<patternNum;idx++) // 8 dimensional residual pattern point's partial
 	{
 		float Ku, Kv;
 		if(!projectPoint(point->u+patternP[idx][0], point->v+patternP[idx][1], point->idepth_scaled, PRE_KRKiTll, PRE_KtTll, Ku, Kv))
 			{ state_NewState = ResState::OOB; return state_energy; }
 
-		projectedTo[idx][0] = Ku;
+		projectedTo[idx][0] = Ku; // reproject to get the error
 		projectedTo[idx][1] = Kv;
 
 
-        Vec3f hitColor = (getInterpolatedElement33(dIl, Ku, Kv, wG[0]));
-        float residual = hitColor[0] - (float)(affLL[0] * color[idx] + affLL[1]);
+        Vec3f hitColor = (getInterpolatedElement33(dIl, Ku, Kv, wG[0])); // get the bilinear interpolated intensity
+        float residual = hitColor[0] - (float)(affLL[0] * color[idx] + affLL[1]); // calculate photometric error here
 
 
 
-		float drdA = (color[idx]-b0);
-		if(!std::isfinite((float)hitColor[0]))
+		float drdA = (color[idx]-b0); // partial residual / partial affine.a
+		if(!std::isfinite((float)hitColor[0])) // OOB points ...
 		{ state_NewState = ResState::OOB; return state_energy; }
 
-
+        // w is the  weights
 		float w = sqrtf(setting_outlierTHSumComponent / (setting_outlierTHSumComponent + hitColor.tail<2>().squaredNorm()));
         w = 0.5f*(w + weights[idx]);
 
