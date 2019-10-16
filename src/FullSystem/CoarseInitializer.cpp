@@ -287,6 +287,9 @@ namespace dso {
         // oh, I know, frameID will increase no matter what, but snappedAt will not change if the snappedAt was set
         // to some frameID... this is telling that if you tracked good in some other frame than first frame,
         // then will not snap again, this explained what snap is, just for once, no more. nice choice of word...
+        // this spanned && frameID > snappedAt + 5 will be returned as tracking result
+        // snapped is easy, last time successful tracked frameID, and frameID > snappedAt + 5 controls the frame
+        // from 5th frame afterwards so that there are enough translation for DSO to triangulate (MONO-cular)
         return snapped && frameID > snappedAt + 5;
     }
 
