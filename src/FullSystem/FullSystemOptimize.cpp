@@ -554,7 +554,7 @@ float FullSystem::optimize(int mnumOptIts)
 	newStateZero.segment<2>(6) = frameHessians.back()->get_state().segment<2>(6);
 
 	frameHessians.back()->setEvalPT(frameHessians.back()->PRE_worldToCam,
-			newStateZero);
+			newStateZero); // push the camera pose back to the frame hessian
 	EFDeltaValid=false;
 	EFAdjointsValid=false;
 	ef->setAdjointsF(&Hcalib);

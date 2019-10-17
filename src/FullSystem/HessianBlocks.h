@@ -179,7 +179,7 @@ struct FrameHessian
 
 
 	void setStateZero(const Vec10 &state_zero); // JbBuffer_new
-	inline void setState(const Vec10 &state)
+	inline void setState(const Vec10 &state) // used in the step optimization from backups.
 	{
 
 		this->state = state;
@@ -190,7 +190,7 @@ struct FrameHessian
 		state_scaled[8] = SCALE_A * state[8];
 		state_scaled[9] = SCALE_B * state[9];
 
-		PRE_worldToCam = SE3::exp(w2c_leftEps()) * get_worldToCam_evalPT();
+		PRE_worldToCam = SE3::exp(w2c_leftEps()) * get_worldToCam_evalPT(); // update the camera pose estimation here
 		PRE_camToWorld = PRE_worldToCam.inverse();
 		//setCurrentNullspace();
 	};

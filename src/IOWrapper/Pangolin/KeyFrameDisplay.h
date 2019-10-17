@@ -86,7 +86,7 @@ public:
 
 	int id;
 	bool active;
-	SE3 camToWorld;
+	SE3 camToWorld; // camera pose
 
     inline bool operator < (const KeyFrameDisplay& other) const
     {
