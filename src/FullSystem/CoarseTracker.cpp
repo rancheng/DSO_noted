@@ -426,13 +426,15 @@ void CoarseTracker::calcGSSSE(int lvl, Mat88 &H_out, Vec8 &b_out, const SE3 &ref
 
 
 // cutoffTH will be update each iteration resOld[5] > 0.6 && levelCutoffRepeat < 50
+// this function will return the residual and some artifacts alongside this residual thus makes it a size 6 vector
+// actually this will contribute into resOld and we only care about resOld[0] to update lastResidual in CoarseTracker
 Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, float cutoffTH)
 {
-	float E = 0;
-	int numTermsInE = 0;
+	float E = 0; // total error, or you can say, loss
+	int numTermsInE = 0; // how many points contributed in this Error
 	int numTermsInWarped = 0;
-	int numSaturated=0;
-
+	int numSaturated=0; // point number which residual collected reach to the cutoffThreshold
+	// width, height, intrinsics
 	int wl = w[lvl];
 	int hl = h[lvl];
 	Eigen::Vector3f* dINewl = newFrame->dIp[lvl];
@@ -441,7 +443,7 @@ Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, floa
 	float cxl = cx[lvl];
 	float cyl = cy[lvl];
 
-
+    // extrinsics
 	Mat33f RKi = (refToNew.rotationMatrix().cast<float>() * Ki[lvl]);
 	Vec3f t = (refToNew.translation()).cast<float>();
 	Vec2f affLL = AffLight::fromToVecExposure(lastRef->ab_exposure, newFrame->ab_exposure, lastRef_aff_g2l, aff_g2l).cast<float>();
@@ -528,15 +530,15 @@ Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, floa
 		if(fabs(residual) > cutoffTH)
 		{
 			if(debugPlot) resImage->setPixel4(lpc_u[i], lpc_v[i], Vec3b(0,0,255)); // marked as blue point
-			E += maxEnergy;
-			numTermsInE++;
+			E += maxEnergy; // predefined energy ceiling
+			numTermsInE++; // numTermsInE aggretates no matter what
 			numSaturated++; //Saturated means bad... point point number
 		}
 		else
 		{
 			if(debugPlot) resImage->setPixel4(lpc_u[i], lpc_v[i], Vec3b(residual+128,residual+128,residual+128));
 
-			E += hw *residual*residual*(2-hw);
+			E += hw *residual*residual*(2-hw); // E, or residual is aggregated  with the huber normalized residual on each point
 			numTermsInE++;
 
 			buf_warped_idepth[numTermsInWarped] = new_idepth;
@@ -771,7 +773,7 @@ bool CoarseTracker::trackNewestCoarse(
 		}
 
 		// set last residual for that level, as well as flow indicators.
-		lastResiduals[lvl] = sqrtf((float)(resOld[0] / resOld[1]));
+		lastResiduals[lvl] = sqrtf((float)(resOld[0] / resOld[1])); // this makes last
 		lastFlowIndicators = resOld.segment<3>(2);
 		if(lastResiduals[lvl] > 1.5*minResForAbort[lvl]) return false;
 

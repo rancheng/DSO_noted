@@ -913,7 +913,7 @@ namespace dso {
                 lock.unlock(); // unlock the mapMutex...
                 // since needKF is true, fh will be set as keyframe.
                 // frame will be projected to front UI and start all tracking thread
-                deliverTrackedFrame(fh, true);
+                deliverTrackedFrame(fh, true); // will make keyframe, select new points to track
             } else {
                 // if still initializing
                 fh->shell->poseValid = false;
@@ -922,6 +922,7 @@ namespace dso {
             return;
         } else    // do front-end operation.
         {
+            // for not initialized case, they are swapping the coarseTracker pointer
             // =========================== SWAP tracking reference?. =========================
             if (coarseTracker_forNewKF->refFrameID > coarseTracker->refFrameID) {
                 boost::unique_lock <boost::mutex> crlock(coarseTrackerSwapMutex);
@@ -945,11 +946,13 @@ namespace dso {
                                (fh->shell->timestamp - allKeyFramesHistory.back()->timestamp) >
                                0.95f / setting_keyframesPerSecond;
             } else {
+                // this is when needToMakeFK <= 0
+                // coarseTracker is now pointing to the last frame hessian
                 Vec2 refToFh = AffLight::fromToVecExposure(coarseTracker->lastRef->ab_exposure, fh->ab_exposure,
                                                            coarseTracker->lastRef_aff_g2l, fh->shell->aff_g2l);
 
                 // BRIGHTNESS CHECK
-                needToMakeKF = allFrameHistory.size() == 1 ||
+                needToMakeKF = allFrameHistory.size() == 1 || //when there's only one frame
                                setting_kfGlobalWeight * setting_maxShiftWeightT * sqrtf((double) tres[1]) /
                                (wG[0] + hG[0]) +
                                setting_kfGlobalWeight * setting_maxShiftWeightR * sqrtf((double) tres[2]) /
@@ -975,8 +978,8 @@ namespace dso {
     void FullSystem::deliverTrackedFrame(FrameHessian *fh, bool needKF) {
 
 
-        if (linearizeOperation) {
-            if (goStepByStep && lastRefStopID != coarseTracker->refFrameID) {
+        if (linearizeOperation) { // linearized optimization
+            if (goStepByStep && lastRefStopID != coarseTracker->refFrameID) { // this is debug stuff, frame by frame
                 MinimalImageF3 img(wG[0], hG[0], fh->dI);
                 IOWrap::displayImage("frameToTrack", &img); // deliver the frame to UI
                 while (true) {
@@ -987,7 +990,7 @@ namespace dso {
                 lastRefStopID = coarseTracker->refFrameID;
             } else handleKey(IOWrap::waitKey(1));
 
-
+            // needKF was given as parameter on deliverTrackedFrame,
             if (needKF) makeKeyFrame(fh);
             else makeNonKeyFrame(fh);
         } else // no linearize operation
@@ -1211,7 +1214,7 @@ namespace dso {
 
 
         // =========================== add new Immature points & new residuals =========================
-        makeNewTraces(fh, 0);
+        makeNewTraces(fh, 0); // after dropping some points, we are going to select some new points in
 
 
         for (IOWrap::Output3DWrapper *ow : outputWrapper) {
@@ -1344,11 +1347,16 @@ namespace dso {
         printf("INITIALIZE FROM INITIALIZER (%d pts)!\n", (int) firstFrame->pointHessians.size());
     }
 
+    // okay, this selects the points frame latest frame.
+    // I guess this author wanted to select those already mature points in the newframe, otherwise there's
+    // no way to get gtDepth.
+    // note that this is happening on each new frame come in.
     void FullSystem::makeNewTraces(FrameHessian *newFrame, float *gtDepth) {
         pixelSelector->allowFast = true;
         //int numPointsTotal = makePixelStatus(newFrame->dI, selectionMap, wG[0], hG[0], setting_desiredDensity);
+        // okay, this is same trick, select the desired number of points with locally higher gradients
         int numPointsTotal = pixelSelector->makeMaps(newFrame, selectionMap, setting_desiredImmatureDensity);
-
+        // reserve for those newly selected points, note that they might contains those already activated points
         newFrame->pointHessians.reserve(numPointsTotal * 1.2f);
         //fh->pointHessiansInactive.reserve(numPointsTotal*1.2f);
         newFrame->pointHessiansMarginalized.reserve(numPointsTotal * 1.2f);
