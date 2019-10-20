@@ -620,7 +620,7 @@ namespace dso {
             int dx = patternP[idx][0];
             int dy = patternP[idx][1];
 
-            float drescale, u, v, new_idepth;
+            float drescale, u, v, new_idepth; // drescale is actually the 1/idepth
             float Ku, Kv;
             Vec3f KliP;
             // this step project the immature point to the new frame.

@@ -72,13 +72,14 @@ EIGEN_STRONG_INLINE bool projectPoint(
 {
     // K^-1*P
 	KliP = Vec3f(
-			(u_pt+dx-HCalib->cxl())*HCalib->fxli(),
-			(v_pt+dy-HCalib->cyl())*HCalib->fyli(),
+			(u_pt+dx-HCalib->cxl())*HCalib->fxli(), // recover 3d x, fxli => 1/fx
+			(v_pt+dy-HCalib->cyl())*HCalib->fyli(), // recover 3d y, fyli => 1/fy
 			1);
     // extrinsic: T*K^-1*P -> point in new frame (3D)
-	Vec3f ptp = R * KliP + t*idepth;
-	drescale = 1.0f/ptp[2]; // depth in new frame, or you can say, "predicted depth"
-	new_idepth = idepth*drescale;
+    // why they multiply t by idepth ? why do it with inverse depth??????? shouldn't it be depth?
+	Vec3f ptp = R * KliP + t*idepth; // R t is transformation matrix to new frame, so this ptp is 3d point in new frame
+	drescale = 1.0f/ptp[2]; // depth in new frame, or you can say, "predicted depth", its actually = 1/t[2]*id = d/t[2]
+	new_idepth = idepth*drescale; // new_idepth was never in use
 
 	if(!(drescale>0)) return false;
 
