@@ -70,13 +70,14 @@ EIGEN_STRONG_INLINE bool projectPoint(
 		float &drescale, float &u, float &v,
 		float &Ku, float &Kv, Vec3f &KliP, float &new_idepth)
 {
+    // K^-1*P
 	KliP = Vec3f(
 			(u_pt+dx-HCalib->cxl())*HCalib->fxli(),
 			(v_pt+dy-HCalib->cyl())*HCalib->fyli(),
 			1);
-
+    // extrinsic: T*K^-1*P -> point in new frame (3D)
 	Vec3f ptp = R * KliP + t*idepth;
-	drescale = 1.0f/ptp[2];
+	drescale = 1.0f/ptp[2]; // depth in new frame, or you can say, "predicted depth"
 	new_idepth = idepth*drescale;
 
 	if(!(drescale>0)) return false;

@@ -664,12 +664,18 @@ namespace dso {
             float dxInterp = hitColor[1] * HCalib->fxl(); // note that hitColor is a 1x3 vector: [color, dx, dy], dx * fx = dx in pixel
             float dyInterp = hitColor[2] * HCalib->fyl();
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!! depth estimation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // no wonder they are keeping 3 channels, dx and dy layers are reserved here
+            // the author regard this depth gradient propotional to linear combination of
+            // local gradient of x and y
+            // here is the question, now d_idepth = dx*rescale*(x - zu) + dy*rescale*(y - zv), u and v are reprojected point coordinate
+            // and x y z is from extrinsic translation vector...
+            // there's a rescale factor that scaled u and v in reprojection
             float d_idepth = derive_idepth(PRE_tTll, u, v, dx, dy, dxInterp, dyInterp, drescale);
 
             hw *= weights[idx] * weights[idx];
 
-            Hdd += (hw * d_idepth) * d_idepth; // d_idepth is a scalar, but should't it be a 2d vector? (dd/dp) p is 2d point.
-            bd += (hw * residual) * d_idepth;
+            Hdd += (hw * d_idepth) * d_idepth; // d_idepth is a scalar, but should't it be a 2d vector? (dd/dp) p is 2d point. (explained above)
+            bd += (hw * residual) * d_idepth; // so actually d_idepth is Jacobian of error w.r.t idepth
         }
 
 
