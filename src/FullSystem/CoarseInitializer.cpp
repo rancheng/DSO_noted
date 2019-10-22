@@ -194,6 +194,7 @@ namespace dso {
                 AffLight refToNew_aff_new = refToNew_aff_current;
                 refToNew_aff_new.a += inc[6]; // only update a and b in refToNew_aff_new from inc
                 refToNew_aff_new.b += inc[7];
+                // inc: [0..5] is the SE3, inc: [6..7] is exposure affine
                 doStep(lvl, lambda, inc); // update idepth_new guess for each point. and update the step.
 
 
@@ -481,6 +482,8 @@ namespace dso {
                 // immediately compute dp*dd' and dd*dd' in JbBuffer1.
                 // from energy functional structs, I found a clue, here dp should be d_prior, which is the
                 // gradient of prior. JbBuffer should be the jacobian buffer for prior and hessian and residual.
+                // JbBuffer_new: [0..7], dp means derivative of pose, dd means derivative of depth
+                // JbBuffer_new: [8..9], residual with inverse depth
                 JbBuffer_new[i][0] += dp0[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][1] += dp1[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][2] += dp2[idx] * dd[idx]; // 0-7: sum(dd * dp)
@@ -489,6 +492,8 @@ namespace dso {
                 JbBuffer_new[i][5] += dp5[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][6] += dp6[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][7] += dp7[idx] * dd[idx]; // 0-7: sum(dd * dp)
+
+
                 JbBuffer_new[i][8] += r[idx] * dd[idx]; // sum(res*dd)
                 JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse hessian entry, while now is just sum(dd*dd)
             }
@@ -923,7 +928,7 @@ namespace dso {
             }
         }
     }
-
+    // this function update the inverse depth for each point
     void CoarseInitializer::doStep(int lvl, float lambda, Vec8f inc) {
 
         const float maxPixelStep = 0.25;
@@ -934,8 +939,8 @@ namespace dso {
             if (!pts[i].isGood) continue;
 
 
-            float b = JbBuffer[i][8] + JbBuffer[i].head<8>().dot(inc);
-            float step = -b * JbBuffer[i][9] / (1 + lambda);
+            float b = JbBuffer[i][8] + JbBuffer[i].head<8>().dot(inc); // reprojected to 8 dimensions, thus 8D idepth
+            float step = -b * JbBuffer[i][9] / (1 + lambda); // lambda is trust region, from LM method
 
 
             float maxstep = maxPixelStep * pts[i].maxstep; // shrink the step size to smaller size

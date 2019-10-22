@@ -40,6 +40,7 @@ EIGEN_STRONG_INLINE float derive_idepth(
 {
     // du/dd = (t0 - t3*u)*(dt/dh), this equation means the partial of u w.r.t partial of inverse depth is equal to
     // (t0 - t3*u)*(dt/dh), dt(dxInterp) here is inverse depth of target frame, and dh(drescale) is hte inverse depth of host frame
+    // remember the variable "dd" in CaorseInitializer function CalResAndGS, dd[idx] = dxInterp * dxdd + dyInterp * dydd
 	return (dxInterp*drescale * (t[0]-t[2]*u)
 			+ dyInterp*drescale * (t[1]-t[2]*v))*SCALE_IDEPTH;
 }
