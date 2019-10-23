@@ -113,8 +113,8 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 
 
 		// diff d_idepth
-		d_d_x = drescale * (PRE_tTll_0[0]-PRE_tTll_0[2]*u)*SCALE_IDEPTH*HCalib->fxl(); // x - zu
-		d_d_y = drescale * (PRE_tTll_0[1]-PRE_tTll_0[2]*v)*SCALE_IDEPTH*HCalib->fyl(); // y - zv
+		d_d_x = drescale * (PRE_tTll_0[0]-PRE_tTll_0[2]*u)*SCALE_IDEPTH*HCalib->fxl(); // d(t0 - t2u)fx
+		d_d_y = drescale * (PRE_tTll_0[1]-PRE_tTll_0[2]*v)*SCALE_IDEPTH*HCalib->fyl(); // d(t0 - t2v)fy
 
 
 
