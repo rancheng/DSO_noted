@@ -435,8 +435,8 @@ namespace dso {
                 // c1 - [a*c2 + b]
                 float residual = hitColor[0] - r2new_aff[0] * rlR - r2new_aff[1];
                 // huber weight of residual. -> inverse propotional to residual if above threshold.
-                float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
-                // nenergy is the huber normalized residual.
+                float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual); // hw is always 0-1
+                // energy is the huber normalized residual.
                 energy += hw * residual * residual * (2 - hw);
 
                 // t is translation matrix. t[0] is x, t[1] is y, and t[2] is z
