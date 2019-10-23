@@ -113,8 +113,8 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 
 
 		// diff d_idepth
-		d_d_x = drescale * (PRE_tTll_0[0]-PRE_tTll_0[2]*u)*SCALE_IDEPTH*HCalib->fxl(); // x - zu
-		d_d_y = drescale * (PRE_tTll_0[1]-PRE_tTll_0[2]*v)*SCALE_IDEPTH*HCalib->fyl(); // y - zv
+		d_d_x = drescale * (PRE_tTll_0[0]-PRE_tTll_0[2]*u)*SCALE_IDEPTH*HCalib->fxl(); // d(t0 - t2u)fx
+		d_d_y = drescale * (PRE_tTll_0[1]-PRE_tTll_0[2]*v)*SCALE_IDEPTH*HCalib->fyl(); // d(t0 - t2v)fy
 
 
 
@@ -140,14 +140,14 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 		d_C_y[2] *= SCALE_C;
 		d_C_y[3] = (d_C_y[3]+1)*SCALE_C;
 
-
+        // partial pose / partial pixel x
 		d_xi_x[0] = new_idepth*HCalib->fxl(); // partial xi (pose) / partial x  == inverse depth * fx
 		d_xi_x[1] = 0;
 		d_xi_x[2] = -new_idepth*u*HCalib->fxl();
 		d_xi_x[3] = -u*v*HCalib->fxl();
 		d_xi_x[4] = (1+u*u)*HCalib->fxl();
 		d_xi_x[5] = -v*HCalib->fxl();
-
+        // partial pose / partial pixel y
 		d_xi_y[0] = 0;
 		d_xi_y[1] = new_idepth*HCalib->fyl();
 		d_xi_y[2] = -new_idepth*v*HCalib->fyl();
@@ -204,16 +204,17 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
         w = 0.5f*(w + weights[idx]);
 
 
+        // samething, collect the huber weights for normalize the energy
+		float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual);
+		energyLeft += w*w*hw *residual*residual*(2-hw);
 
-		float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual); // same huber weight
-		energyLeft += w*w*hw *residual*residual*(2-hw); // same energy as in CoarseTracker or CoarseInitializer
 
 		{
 			if(hw < 1) hw = sqrtf(hw);
 			hw = hw*w; // weighted huber weight
 
-			hitColor[1]*=hw;
-			hitColor[2]*=hw;
+			hitColor[1]*=hw; //normalized Ix
+			hitColor[2]*=hw; //normalized Iy
 
 			J->resF[idx] = residual*hw;
 
