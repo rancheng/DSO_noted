@@ -204,7 +204,7 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
         w = 0.5f*(w + weights[idx]);
 
 
-
+        // samething, collect the huber weights for normalize the energy
 		float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual);
 		energyLeft += w*w*hw *residual*residual*(2-hw);
 
@@ -212,8 +212,8 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 			if(hw < 1) hw = sqrtf(hw);
 			hw = hw*w;
 
-			hitColor[1]*=hw;
-			hitColor[2]*=hw;
+			hitColor[1]*=hw; //normalized Ix
+			hitColor[2]*=hw; //normalized Iy
 
 			J->resF[idx] = residual*hw;
 
