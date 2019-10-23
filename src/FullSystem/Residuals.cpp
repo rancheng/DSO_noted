@@ -205,22 +205,22 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 
 
 
-		float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual);
-		energyLeft += w*w*hw *residual*residual*(2-hw);
+		float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual); // same huber weight
+		energyLeft += w*w*hw *residual*residual*(2-hw); // same energy as in CoarseTracker or CoarseInitializer
 
 		{
 			if(hw < 1) hw = sqrtf(hw);
-			hw = hw*w;
+			hw = hw*w; // weighted huber weight
 
 			hitColor[1]*=hw;
 			hitColor[2]*=hw;
 
 			J->resF[idx] = residual*hw;
 
-			J->JIdx[0][idx] = hitColor[1];
-			J->JIdx[1][idx] = hitColor[2];
-			J->JabF[0][idx] = drdA*hw;
-			J->JabF[1][idx] = hw;
+			J->JIdx[0][idx] = hitColor[1]; // I_x
+			J->JIdx[1][idx] = hitColor[2]; // I_y
+			J->JabF[0][idx] = drdA*hw; // \frac{\partial residual}{\partial a}
+			J->JabF[1][idx] = hw; // use huber weight directly?
 
 			JIdxJIdx_00+=hitColor[1]*hitColor[1];
 			JIdxJIdx_11+=hitColor[2]*hitColor[2];
