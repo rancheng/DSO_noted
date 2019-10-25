@@ -158,6 +158,7 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 
 
 	{
+        // two rows of d[x,y]/d[xi], 2x6
 		J->Jpdxi[0] = d_xi_x; // partial p / partial camera pose
 		J->Jpdxi[1] = d_xi_y;
 
@@ -180,7 +181,7 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 
 	float wJI2_sum = 0;
 
-	for(int idx=0;idx<patternNum;idx++) // 8 dimensional residual pattern point's partial
+	for(int idx=0;idx<patternNum;idx++) // 8 dimensional residual pattern point's partial, plus 1 center point, which is 9 iterations
 	{
 		float Ku, Kv;
 		if(!projectPoint(point->u+patternP[idx][0], point->v+patternP[idx][1], point->idepth_scaled, PRE_KRKiTll, PRE_KtTll, Ku, Kv))
@@ -217,15 +218,15 @@ double PointFrameResidual::linearize(CalibHessian* HCalib)
 			hitColor[2]*=hw; //normalized Iy
 
 			J->resF[idx] = residual*hw;
-
-			J->JIdx[0][idx] = hitColor[1]; // I_x
-			J->JIdx[1][idx] = hitColor[2]; // I_y
+            // JIdx -> d[r]/d[x,y] residual partial w.r.t image point p, 9x2
+			J->JIdx[0][idx] = hitColor[1]; // Jr / Jx
+			J->JIdx[1][idx] = hitColor[2]; // Jr / Jy
 			J->JabF[0][idx] = drdA*hw; // \frac{\partial residual}{\partial a}
 			J->JabF[1][idx] = hw; // use huber weight directly?
 
-			JIdxJIdx_00+=hitColor[1]*hitColor[1];
-			JIdxJIdx_11+=hitColor[2]*hitColor[2];
-			JIdxJIdx_10+=hitColor[1]*hitColor[2];
+			JIdxJIdx_00+=hitColor[1]*hitColor[1];  // I_x * I_x
+			JIdxJIdx_11+=hitColor[2]*hitColor[2];  // I_y * I_y
+			JIdxJIdx_10+=hitColor[1]*hitColor[2];  // I_x * I_y
 
 			JabJIdx_00+= drdA*hw * hitColor[1];
 			JabJIdx_01+= drdA*hw * hitColor[2];
