@@ -75,7 +75,7 @@ public:
 	PointHessian* point; // point hessian that was projected from host to target
 	FrameHessian* host; // host frame
 	FrameHessian* target; // target frame
-	RawResidualJacobian* J;
+	RawResidualJacobian* J; // linearized jacobian matrix
 
 
 	bool isNew;
