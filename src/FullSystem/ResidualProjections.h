@@ -84,12 +84,12 @@ EIGEN_STRONG_INLINE bool projectPoint(
 
 	if(!(drescale>0)) return false;
 
-	u = ptp[0] * drescale;
-	v = ptp[1] * drescale;
-	Ku = u*HCalib->fxl() + HCalib->cxl();
+	u = ptp[0] * drescale; // x/z, u and v here are not pixel coordinate yet
+	v = ptp[1] * drescale; // y/z
+	Ku = u*HCalib->fxl() + HCalib->cxl(); // converted to pixel coordinates
 	Kv = v*HCalib->fyl() + HCalib->cyl();
 
-	return Ku>1.1f && Kv>1.1f && Ku<wM3G && Kv<hM3G;
+	return Ku>1.1f && Kv>1.1f && Ku<wM3G && Kv<hM3G; // if not OOB, then return true, else false.
 }
 
 
