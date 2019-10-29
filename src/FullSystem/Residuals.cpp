@@ -219,7 +219,7 @@ namespace dso {
             w = 0.5f * (w + weights[idx]);
 
 
-            // samething, collect the huber weights for normalize the energy
+            // same thing, collect the huber weights for normalize the energy
             float hw = fabsf(residual) < setting_huberTH ? 1 : setting_huberTH / fabsf(residual);
             energyLeft += w * w * hw * residual * residual * (2 - hw);
 
