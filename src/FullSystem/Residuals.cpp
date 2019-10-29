@@ -214,6 +214,9 @@ namespace dso {
             }
 
             // w is the weight in the paper which is inversely proportional to the local gradient
+            // Thisweighting function can be probabilistically interpreted as adding small, independent geometric noise
+            // on the projected point position and immediately marginalizing it
+            // approximating small geometric error to increase the robustness of system.
             // here the Squared norm of dx, dy is \Delta I_i(p)
             // hitColor is a Vec3f variable: [color, Ix, Iy]
             float w = sqrtf(
