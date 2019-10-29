@@ -213,7 +213,9 @@ namespace dso {
                 return state_energy;
             }
 
-            // w is the  weights
+            // w is the weight in the paper which is inversely proportional to the local gradient
+            // here the Squared norm of dx, dy is \Delta I_i(p)
+            // hitColor is a Vec3f variable: [color, Ix, Iy]
             float w = sqrtf(
                     setting_outlierTHSumComponent / (setting_outlierTHSumComponent + hitColor.tail<2>().squaredNorm()));
             w = 0.5f * (w + weights[idx]);
