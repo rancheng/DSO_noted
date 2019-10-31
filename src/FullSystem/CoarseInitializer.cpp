@@ -400,6 +400,10 @@ namespace dso {
             bool isGood = true;
             float energy = 0;
             // for each selected point in lvl. loop eight directions:
+            // 2.2 Model Formulation
+            // "evaluating the SSD over such a small neighborhood of pixels is similar to adding
+            // first- and second-order irradiance derivative constancy terms (in addition to irradiance constancy)
+            // for the central pixel"
             for (int idx = 0; idx < patternNum; idx++) {
                 int dx = patternP[idx][0]; // dx dy in 8 directions.
                 int dy = patternP[idx][1];
