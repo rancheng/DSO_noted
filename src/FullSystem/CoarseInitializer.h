@@ -91,7 +91,7 @@ public:
 	bool fixAffine;
 	bool printDebug;
 
-	Pnt* points[PYR_LEVELS];
+	Pnt* points[PYR_LEVELS]; // intialized in funciton setFirst, they are selected points in first frame
 	int numPoints[PYR_LEVELS];
 	AffLight thisToNext_aff;
 	SE3 thisToNext; // transformation matrix from current host frame to new target frame.

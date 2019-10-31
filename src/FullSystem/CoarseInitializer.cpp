@@ -419,7 +419,7 @@ namespace dso {
                     break;
                 }
                 // get the color, dx, dy (linear normalized with neighbour)
-                Vec3f hitColor = getInterpolatedElement33(colorNew, Ku, Kv, wl);
+                Vec3f hitColor = getInterpolatedElement33(colorNew, Ku, Kv, wl); // this is the color in target frame
                 //Vec3f hitColor = getInterpolatedElement33BiCub(colorNew, Ku, Kv, wl);
 
                 //float rlR = colorRef[point->u+dx + (point->v+dy) * wl][0];
@@ -432,7 +432,11 @@ namespace dso {
                 }
 
                 // residual is the grey scale color difference (with the affine model applied)
-                // c1 - [a*c2 + b]
+                // c2 - [a*c1 + b]
+                // hmm... interesting, actually the original paper has a b2 term to compensate c2, where is it now?
+                // oh, I see, this is r2new means:
+                // r2new[0] = exp(a_j)/exp(a_i)
+                // r2new[1] =  - b_j - ( - b_i) = b_i - b_j
                 float residual = hitColor[0] - r2new_aff[0] * rlR - r2new_aff[1];
                 // huber weight of residual. -> inverse propotional to residual if above threshold.
                 float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual); // hw is always 0-1
