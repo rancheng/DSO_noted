@@ -429,6 +429,8 @@ namespace dso {
 
                 //float rlR = colorRef[point->u+dx + (point->v+dy) * wl][0];
                 // this is only color in reference frame (host frame)
+                // notice that it is getting the color from [u+dx, v+dy]
+                // and hitColor is also taken from the reprojected point from [u+dx, v+dy]
                 float rlR = getInterpolatedElement31(colorRef, point->u + dx, point->v + dy, wl);
                 // if OOB or illegal color point, just break the 8 direction loop and set this point as not good.
                 if (!std::isfinite(rlR) || !std::isfinite((float) hitColor[0])) {
