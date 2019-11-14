@@ -114,8 +114,8 @@ public:
 
 
 
-	float priorF;
-	float deltaF;
+	float priorF; // what this F mean in EFPoint?
+	float deltaF; // I guess this F here is just naming convention, maybe represent functional
 
 
 	// constant info (never changes in-between).
@@ -126,7 +126,7 @@ public:
 	std::vector<EFResidual*> residualsAll;
 
 	float bdSumF;
-	float HdiF;
+	float HdiF; // inverse depth hessian
 	float Hdd_accLF;
 	VecCf Hcd_accLF;
 	float bd_accLF;
