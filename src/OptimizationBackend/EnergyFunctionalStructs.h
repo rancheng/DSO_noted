@@ -139,7 +139,8 @@ public:
 };
 
 
-
+// wrapper for frame hessian, contains the priors
+// priors are used to update the hessians
 class EFFrame
 {
 public:
@@ -157,8 +158,8 @@ public:
 
 
 
-	std::vector<EFPoint*> points;
-	FrameHessian* data;
+	std::vector<EFPoint*> points; // point hessian pointer
+	FrameHessian* data; // frame hessian pointer
 	int idx;	// idx in frames.
 
 	int frameID;
