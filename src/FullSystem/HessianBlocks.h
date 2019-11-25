@@ -218,7 +218,7 @@ struct FrameHessian
 	};
 
 
-
+    // invoked in CoarseInitializer
 	inline void setEvalPT_scaled(const SE3 &worldToCam_evalPT, const AffLight &aff_g2l)
 	{
 		Vec10 initial_state = Vec10::Zero();
