@@ -56,7 +56,8 @@ void EnergyFunctional::setAdjointsF(CalibHessian* Hcalib)
 		{
 			FrameHessian* host = frames[h]->data;
 			FrameHessian* target = frames[t]->data;
-            // this worldToCam_evalPT() was initialized in coarse initializer and updated aftwards in CoarseInitializer.cpp
+            // this worldToCam_evalPT() was initialized in coarse initializer and
+            // updated aftwards in CoarseInitializer.cpp
 			SE3 hostToTarget = target->get_worldToCam_evalPT() * host->get_worldToCam_evalPT().inverse();
 
 			Mat88 AH = Mat88::Identity();
