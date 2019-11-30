@@ -73,6 +73,7 @@ void EnergyFunctional::setAdjointsF(CalibHessian* Hcalib)
 			AT(7,7) = -1;
 			AH(7,7) = affLL[0];
 
+
 			AH.block<3,8>(0,0) *= SCALE_XI_TRANS;
 			AH.block<3,8>(3,0) *= SCALE_XI_ROT;
 			AH.block<1,8>(6,0) *= SCALE_A;
