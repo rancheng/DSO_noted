@@ -125,6 +125,16 @@ namespace dso {
         // answer: that's why they call their method as coarse to fine fashion...
         // so, by doing this inverse order loop, the globally stable points are selected to loop out the
         // coarse SE3 matrix in a global manner, and will be kept refined in the loop on the larger scales.
+        // ###########################################################################################################
+        // ###########################################################################################################
+        // ###########################################################################################################
+        // the refToNew_current will be updated by the H^-1b
+        // if converged in the while loop, the pose will be updated:
+        // refToNew_current = refToNew_new;
+        // and this refToNew_current will be carried into the larger scales which will be continuously refined.
+        // ###########################################################################################################
+        // ###########################################################################################################
+        // ###########################################################################################################
         for (int lvl = pyrLevelsUsed - 1; lvl >= 0; lvl--) { //start from lvl=5... which is the 6th scale in the index..
 
 
@@ -245,7 +255,7 @@ namespace dso {
                     bsc = bsc_new;
                     resOld = resNew;
                     refToNew_aff_current = refToNew_aff_new;
-                    refToNew_current = refToNew_new;
+                    refToNew_current = refToNew_new; // note that this will do on each lvl
                     applyStep(lvl);
                     optReg(lvl);
                     lambda *= 0.5;
