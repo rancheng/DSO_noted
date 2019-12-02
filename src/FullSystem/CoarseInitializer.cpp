@@ -387,6 +387,7 @@ namespace dso {
         // loop all selected points in this lvl.
         int npts = numPoints[lvl];
         Pnt *ptsl = points[lvl];
+        // loop all the selected points
         for (int i = 0; i < npts; i++) {
 
             Pnt *point = ptsl + i; //selected point i in lvl.
@@ -422,6 +423,7 @@ namespace dso {
             // "evaluating the SSD over such a small neighborhood of pixels is similar to adding
             // first- and second-order irradiance derivative constancy terms (in addition to irradiance constancy)
             // for the central pixel"
+            // accumulate all residual pattern
             for (int idx = 0; idx < patternNum; idx++) {
                 int dx = patternP[idx][0]; // dx dy in 8 directions.
                 int dy = patternP[idx][1];
@@ -989,6 +991,9 @@ namespace dso {
     // this applyStep is apply everything calculated in CalcResAndGS func and
     // propogateDown func artifacts (idepth, energy, isgood, hessian) back to the points.
     // keep those good tracking points.
+
+    // doStep only updates the inverse depth
+    // while applyStep updates both inverse depth and the Jacobians, Hessians, energy and point status
     void CoarseInitializer::applyStep(int lvl) {
         Pnt *pts = points[lvl];
         int npts = numPoints[lvl];
