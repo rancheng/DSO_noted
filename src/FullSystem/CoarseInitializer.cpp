@@ -600,7 +600,7 @@ namespace dso {
             alphaOpt = alphaW;
         }
 
-
+        // accumulator collect 8 buffers and update Hessian matrix...
         acc9SC.initialize();
         for (int i = 0; i < npts; i++) {
             Pnt *point = ptsl + i;
