@@ -186,8 +186,8 @@ namespace dso {
                 if (fixAffine) {
                     // ldlt is Cholesky decomposition with full pivoting without square root # from Eigen/LDLT.h
                     inc.head<6>() = -(wM.toDenseMatrix().topLeftCorner<6, 6>() *
-                                      (Hl.topLeftCorner<6, 6>().ldlt().solve(bl.head<6>())));
-                    inc.tail<2>().setZero();
+                                      (Hl.topLeftCorner<6, 6>().ldlt().solve(bl.head<6>()))); // poses
+                    inc.tail<2>().setZero(); // affine models
                 } else
                     inc = -(wM * (Hl.ldlt().solve(bl)));    //=-H^-1 * b.
 
