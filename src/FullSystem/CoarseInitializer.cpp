@@ -122,6 +122,7 @@ namespace dso {
 
         Vec3f latestRes = Vec3f::Zero();
         // hmm... interesting, this loop start from smaller scale side
+        // answer: that's why they call their method as coarse to fine fashion...
         // so, by doing this inverse order loop, the globally stable points are selected to loop out the
         // coarse SE3 matrix in a global manner, and will be kept refined in the loop on the larger scales.
         for (int lvl = pyrLevelsUsed - 1; lvl >= 0; lvl--) { //start from lvl=5... which is the 6th scale in the index..
@@ -136,7 +137,8 @@ namespace dso {
             resetPoints(lvl); // normalize the idepth of each points in that lvl (make it gradient friendly)
             Vec3f resOld = calcResAndGS(lvl, H, b, Hsc, bsc, refToNew_current, refToNew_aff_current, false);
             applyStep(lvl); // loop all selected point in lvl, dump every variable ends with _new. set idepth by iR
-
+            // applyStep is more like update the pose (or depth)
+            // then the loop start to run within the while loop until converge...
             float lambda = 0.1;
             float eps = 1e-4;
             int fails = 0;
