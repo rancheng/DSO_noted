@@ -746,7 +746,7 @@ namespace dso {
 
     }
 
-
+    // propogate the depth from coarse layers into larger fine layers
     void CoarseInitializer::propagateUp(int srcLvl) {
         assert(srcLvl + 1 < pyrLevelsUsed);
         // set idepth of target
