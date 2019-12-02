@@ -838,6 +838,7 @@ namespace dso {
                              1}; // I see, this is density for sample: 3% on largest scale. and 100% on smallest scale.
         // float numWant = density; this is in PixelSelector2.cpp. which is the point number makeMaps want.
         // loop through all level of scales
+        // they select the points in each lvl, higher density in smaller scales.
         for (int lvl = 0; lvl < pyrLevelsUsed; lvl++) {
             sel.currentPotential = 3; // okay, start from largest potential patch size, and will reach to 1 in pixel selector.
             int npts;
