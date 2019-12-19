@@ -35,7 +35,7 @@
 namespace dso
 {
 
-
+// Energy Functional Residual
 void EFResidual::takeDataF()
 {
 	std::swap<RawResidualJacobian*>(J, data->J);
