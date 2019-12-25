@@ -101,10 +101,11 @@ namespace dso {
             A = SSEData1m[0 + 0] + SSEData1m[0 + 1] + SSEData1m[0 + 2] + SSEData1m[0 + 3];
         }
 
-
+        // this function is used in update the normalized residuals in the coarseInitializer
+        // it's purpose is sum, doing this is just for efficiency. (using Intel SSE accumulator)
         inline void updateSingle(
                 const float val) {
-            SSEData[0] += val;
+            SSEData[0] += val; // update the first element?
             num++;
             numIn1++;
             shiftUp(false);

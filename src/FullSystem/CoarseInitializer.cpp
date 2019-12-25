@@ -587,15 +587,20 @@ namespace dso {
         // calculate alpha energy, and decide if we cap it.
         Accumulator11 EAlpha;
         EAlpha.initialize(); // this set the memroy of SSEData ... in EAlpha to be 0
+        // energy is the huber normalized residual.
+        /////////////////////////////// This loop Accumulates the normalized residuals ///////////////////////////////
         for (int i = 0; i < npts; i++) {
             Pnt *point = ptsl + i;
             if (!point->isGood_new) {
+                // updateSingle will accumulate the energy to SSEData, and when SSEData reach 1000, it will shift up
+                // automatically to SSEData1k
                 E.updateSingle((float) (point->energy[1])); // this will update the same memory value in EAlpha.
             } else {
                 point->energy_new[1] = (point->idepth_new - 1) * (point->idepth_new - 1); // (d-1)^2
                 E.updateSingle((float) (point->energy_new[1])); // update the memory block of SSEData by energy_new
             }
         }
+
         EAlpha.finish(); // this finish() will wrap up all SSEData buffer into float A.
         // alphaW is 150*150, EAlpha.A is accumulated squared idepth, dpeth + translation.squaredNorm() * num_points...
         float alphaEnergy = alphaW * (EAlpha.A + refToNew.translation().squaredNorm() * npts);
