@@ -220,7 +220,9 @@ namespace dso {
                 Vec8f b_new, bsc_new;
                 Vec3f resNew = calcResAndGS(lvl, H_new, b_new, Hsc_new, bsc_new, refToNew_new, refToNew_aff_new, false);
                 Vec3f regEnergy = calcEC(lvl); // accumulate the residual using AccumulatorX, so this will give you SSD on the error of depth estimation with respect to old_depth and new_depth
-
+                // regEnergy: idepth-iR, idepth_new-iR, number of good points
+                // resNew and resOld are for camera pose
+                // regEnergy is energy from idepth
                 float eTotalNew = (resNew[0] + resNew[1] + regEnergy[1]); // this sums up the residual new with the estimation error (they call it energy)
                 float eTotalOld = (resOld[0] + resOld[1] + regEnergy[0]); // same thing but sum the old energy...
 
@@ -588,6 +590,7 @@ namespace dso {
         Accumulator11 EAlpha;
         EAlpha.initialize(); // this set the memroy of SSEData ... in EAlpha to be 0
         // energy is the huber normalized residual.
+        // point->energy or point->energy_new are vec2f, which is (normalized residual, inverse depth squared)
         /////////////////////////////// This loop Accumulates the normalized residuals ///////////////////////////////
         for (int i = 0; i < npts; i++) {
             Pnt *point = ptsl + i;
@@ -709,7 +712,7 @@ namespace dso {
         E.finish();
         // E here is an SSD of depth estimation over all selected point in lvl.
         //printf("ER: %f %f %f!\n", couplingWeight*E.A1m[0], couplingWeight*E.A1m[1], (float)E.num.numIn1m);
-        return Vec3f(couplingWeight * E.A1m[0], couplingWeight * E.A1m[1], E.num);
+        return Vec3f(couplingWeight * E.A1m[0], couplingWeight * E.A1m[1], E.num); // E.num here equals to the number of good point (point->isGood_new).
     }
 
     // idepth regression (use the median) of each point by it's well-tracked nearest neighbours

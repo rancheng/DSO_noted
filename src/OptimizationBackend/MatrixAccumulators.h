@@ -85,7 +85,7 @@ namespace dso {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-        float A;
+        float A; // A is the overall results, see function finish
         size_t num;
 
         inline void initialize() {
@@ -98,6 +98,7 @@ namespace dso {
 
         inline void finish() {
             shiftUp(true);
+            // A sum up every element in SSEData1m
             A = SSEData1m[0 + 0] + SSEData1m[0 + 1] + SSEData1m[0 + 2] + SSEData1m[0 + 3];
         }
 
