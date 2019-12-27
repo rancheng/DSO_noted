@@ -553,7 +553,8 @@ namespace dso {
             }
 
 
-            // add into energy.
+            // add into energy. Notice that this E will aggregate both energy and point->energy_new[1]
+            // which is the sum of error from residual and depth
             E.updateSingle(energy); // note that energy is the aggregated error through 8 nearby pattern points.
             point->isGood_new = true; // point error is ok, and point is good, add as a good tracking point
             point->energy_new[0] = energy; // dump the error to the point.
