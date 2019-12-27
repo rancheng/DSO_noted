@@ -516,7 +516,7 @@ namespace dso {
                 // ################################## affine #################################
                 dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image. r = hw(I1 - (exp(a)*I2 + b)), dr/da = -hw*exp(a)*I2, dr/db = -hw
                 dp7[idx] = -hw * 1; // just minus huber weight, which is negative of 1/residual
-                dd[idx] = dxInterp * dxdd + dyInterp * dydd;
+                dd[idx] = dxInterp * dxdd + dyInterp * dydd; // partial to the inverse depth
                 r[idx] = hw * residual; // r is stacked residual vector... for 8 directions.
                 // #########################################################################################
                 float maxstep = 1.0f / Vec2f(dxdd * fxl, dydd * fyl).norm();
