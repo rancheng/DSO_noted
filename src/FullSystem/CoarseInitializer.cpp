@@ -498,13 +498,17 @@ namespace dso {
                 // as far as I know, dp0-5 is the J_pose, with 6 dimensions on pose, 3 on rotation, 3 on translation.
                 // dp6-7 is the affine model for exposure time...
                 // dd is a normalize term and r is the huber weighted residual.
-                dp0[idx] = new_idepth * dxInterp;
-                dp1[idx] = new_idepth * dyInterp;
+                // ################################## pose ##################################
+                // J = dI2/du * du/dxi, here dI2 is the gradient of second frame, du is the reprojected point, xi is the pose
+                dp0[idx] = new_idepth * dxInterp; // fx*dx/Z (new_idepth = 1/Z)
+                dp1[idx] = new_idepth * dyInterp; // fy*dy/Z
                 // u and v are the image coordinate in the target frame.
-                dp2[idx] = -new_idepth * (u * dxInterp + v * dyInterp); // why this gives u*dxInterp + v*dyInterp? udu + vdv?
-                dp3[idx] = -u * v * dxInterp - (1 + v * v) * dyInterp;
-                dp4[idx] = (1 + u * u) * dxInterp + u * v * dyInterp;
-                dp5[idx] = -v * dxInterp + u * dyInterp;
+                // why this gives u*dxInterp + v*dyInterp? udu + vdv?
+                dp2[idx] = -new_idepth * (u * dxInterp + v * dyInterp); // -(fxXdx + fyYdy)/Z
+                dp3[idx] = -u * v * dxInterp - (1 + v * v) * dyInterp; // -(fxdxXY)/Z^2 - (fydy + fydyY^2/Z^2), since u = X/Z, v = Y/Z, dxInterp = fxdx, dyInterp = fydy
+                dp4[idx] = (1 + u * u) * dxInterp + u * v * dyInterp; // same as above
+                dp5[idx] = -v * dxInterp + u * dyInterp; //
+                // ################################## affine #################################
                 dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image.
                 dp7[idx] = -hw * 1; // just minus huber weight, which is negative of 1/residual
                 dd[idx] = dxInterp * dxdd + dyInterp * dydd;
