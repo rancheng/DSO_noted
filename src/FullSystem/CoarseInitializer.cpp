@@ -172,7 +172,7 @@ namespace dso {
             int iteration = 0;
             while (true) { // this whole pipeline is Gauss-Newton's iterative method to solve H and b.
                 // actually this is LM method, since they are using the trust region lambda to control the search step size.
-                Mat88f Hl = H;
+                Mat88f Hl = H; // Hl derive the pose (inc), H will be updated when accepted, continue this loop until converge.
                 for (int i = 0; i < 8; i++) Hl(i, i) *= (1 + lambda);
                 Hl -= Hsc * (1 / (1 + lambda)); // Hsc is the normalized JbBuffer_new[:8, :8], Hl is H in lvl
                 Vec8f bl = b - bsc * (1 / (1 + lambda)); // bl is b in lvl
@@ -195,6 +195,7 @@ namespace dso {
                 Vec8f inc; // decomposit H and b to get [R\t]
                 if (fixAffine) {
                     // ldlt is Cholesky decomposition with full pivoting without square root # from Eigen/LDLT.h
+                    // \Delta x = -(H)^-1*b
                     inc.head<6>() = -(wM.toDenseMatrix().topLeftCorner<6, 6>() *
                                       (Hl.topLeftCorner<6, 6>().ldlt().solve(bl.head<6>()))); // poses
                     inc.tail<2>().setZero(); // affine models
