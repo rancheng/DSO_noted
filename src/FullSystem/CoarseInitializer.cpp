@@ -434,12 +434,15 @@ namespace dso {
                 // projected point with the offset directions.
                 // this is RKi * x + t*idepth = X in target frame. pt[2] = X[2] = 1 + t[2] * idepth
                 // Notice that the 8 dimensional reprojection points are sharing the same depth estimation!
+                // point->idepth_new is the inverse depth of the host frame
                 Vec3f pt = RKi * Vec3f(point->u + dx, point->v + dy, 1) + t * point->idepth_new;
                 float u = pt[0] / pt[2]; // project to the target frame's image plane.
                 float v = pt[1] / pt[2];
                 float Ku = fxl * u + cxl;
                 float Kv = fyl * v + cyl;
                 // hmm... interesting, why they want to use one idepth to devide another idepth? and generate a new_idepth ? is this new_idepth
+                // rho_T = rho_H / Z
+                // Z = rho_H / rho_T
                 float new_idepth = point->idepth_new / pt[2]; // idepth_new is the estimated z, and pt[2] is projected z in new frame.
                 // OOB...
                 if (!(Ku > 1 && Kv > 1 && Ku < wl - 2 && Kv < hl - 2 && new_idepth > 0)) {
@@ -477,7 +480,9 @@ namespace dso {
                 // t[0] - t[2] * u = x - z*u
                 // dxdd = (x-zu)/(1+z*idepth)
                 // x-zu is dx here, 1+z*idepth ~ depth
-                // dxdd here means dx devide depth
+                // dxdd here means partial u partial inverse depth
+                // dxdd = (t0 - t2*u)*(idepth_new/idepth)
+                // RKi is the rotation and inverse K, t is the relative translation
                 float dxdd = (t[0] - t[2] * u) / pt[2]; // u = pt[0] / pt[2] which is the coordinate in the projected image space (applied the directional offset dx)
                 // same here, dydd is dy devide depth
                 float dydd = (t[1] - t[2] * v) / pt[2];
