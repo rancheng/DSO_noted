@@ -507,9 +507,9 @@ namespace dso {
                 dp2[idx] = -new_idepth * (u * dxInterp + v * dyInterp); // -(fxXdx + fyYdy)/Z
                 dp3[idx] = -u * v * dxInterp - (1 + v * v) * dyInterp; // -(fxdxXY)/Z^2 - (fydy + fydyY^2/Z^2), since u = X/Z, v = Y/Z, dxInterp = fxdx, dyInterp = fydy
                 dp4[idx] = (1 + u * u) * dxInterp + u * v * dyInterp; // same as above
-                dp5[idx] = -v * dxInterp + u * dyInterp; //
+                dp5[idx] = -v * dxInterp + u * dyInterp; // -dxfxY/Z + dyfyX/Z
                 // ################################## affine #################################
-                dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image.
+                dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image. r = hw(I1 - (exp(a)*I2 + b)), dr/da = -hw*exp(a)*I2, dr/db = -hw
                 dp7[idx] = -hw * 1; // just minus huber weight, which is negative of 1/residual
                 dd[idx] = dxInterp * dxdd + dyInterp * dydd;
                 r[idx] = hw * residual; // r is stacked residual vector... for 8 directions.
