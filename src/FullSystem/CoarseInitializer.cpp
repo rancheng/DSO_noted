@@ -595,21 +595,22 @@ namespace dso {
 
 
 
-
+        // E.updateSingle(x) is equivalent to E += x
 
         // calculate alpha energy, and decide if we cap it.
         Accumulator11 EAlpha;
         EAlpha.initialize(); // this set the memroy of SSEData ... in EAlpha to be 0
         // energy is the huber normalized residual.
         // point->energy or point->energy_new are vec2f, which is (normalized residual, inverse depth squared)
-        /////////////////////////////// This loop Accumulates the normalized residuals ///////////////////////////////
+        /////////////////////////////// This loop Accumulates the energy from depth ///////////////////////////////
         for (int i = 0; i < npts; i++) {
             Pnt *point = ptsl + i;
-            if (!point->isGood_new) {
+            if (!point->isGood_new) { // if not good tracking point, use it's last squared idepth
                 // updateSingle will accumulate the energy to SSEData, and when SSEData reach 1000, it will shift up
                 // automatically to SSEData1k
                 E.updateSingle((float) (point->energy[1])); // this will update the same memory value in EAlpha.
             } else {
+                // point->idepth_new here is the converged host frame point depth, square of (idepth - 1)
                 point->energy_new[1] = (point->idepth_new - 1) * (point->idepth_new - 1); // (d-1)^2
                 E.updateSingle((float) (point->energy_new[1])); // update the memory block of SSEData by energy_new
             }
