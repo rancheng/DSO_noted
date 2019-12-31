@@ -568,7 +568,7 @@ namespace dso {
             //                           r * r
             for (int i = 0; i + 3 < patternNum; i += 4) // this for loop has 2 steps each step step 4 stride. (align with SSE)
                 acc9.updateSSE(
-                        _mm_load_ps(((float *) (&dp0)) + i),
+                        _mm_load_ps(((float *) (&dp0)) + i), // _mm_load_ps load 4 float values from pointer address at a time
                         _mm_load_ps(((float *) (&dp1)) + i),
                         _mm_load_ps(((float *) (&dp2)) + i),
                         _mm_load_ps(((float *) (&dp3)) + i),
@@ -580,6 +580,8 @@ namespace dso {
 
             // ((patternNum >> 2) << 2) this will align the patternNum to be n*4 which is required by SSE.
             // ((8 >> 2) << 2) = 8 so, this will jump this for loop directly.
+            // this loop is prepared for the patternNum more than 8
+            // for example if it's 10, then ((10 >> 2) << 2) = 8. i then loop start from 8 to 10
             for (int i = ((patternNum >> 2) << 2); i < patternNum; i++)
                 acc9.updateSingle(
                         (float) dp0[i], (float) dp1[i], (float) dp2[i], (float) dp3[i],
