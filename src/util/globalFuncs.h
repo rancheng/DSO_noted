@@ -137,13 +137,13 @@ EIGEN_ALWAYS_INLINE float getInterpolatedElement31(const Eigen::Vector3f* const 
 	float dx = x - ix;
 	float dy = y - iy;
 	float dxdy = dx*dy;
-	const Eigen::Vector3f* bp = mat +ix+iy*width;
+	const Eigen::Vector3f* bp = mat +ix+iy*width; // the original coordinate of the element
 
 
-	return dxdy * (*(const Eigen::Vector3f*)(bp+1+width))[0]
-	        + (dy-dxdy) * (*(const Eigen::Vector3f*)(bp+width))[0]
-	        + (dx-dxdy) * (*(const Eigen::Vector3f*)(bp+1))[0]
-			+ (1-dx-dy+dxdy) * (*(const Eigen::Vector3f*)(bp))[0];
+	return dxdy * (*(const Eigen::Vector3f*)(bp+1+width))[0] // dxdy is the production of decimal part of x and y, bp+1+width is the bottom right pixel coordinate
+	        + (dy-dxdy) * (*(const Eigen::Vector3f*)(bp+width))[0] // one point below
+	        + (dx-dxdy) * (*(const Eigen::Vector3f*)(bp+1))[0] // one point right
+			+ (1-dx-dy+dxdy) * (*(const Eigen::Vector3f*)(bp))[0]; // original point
 }
 
 EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement13BiLin(const float* const mat, const float x, const float y, const int width)
