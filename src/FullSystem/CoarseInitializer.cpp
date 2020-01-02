@@ -686,6 +686,7 @@ namespace dso {
 
 
         // why add the npts?
+        // the top left corner should be the rotation, why only scale up the rotation?
         H_out(0, 0) += alphaOpt * npts;
         H_out(1, 1) += alphaOpt * npts;
         H_out(2, 2) += alphaOpt * npts;
