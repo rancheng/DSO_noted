@@ -612,12 +612,13 @@ namespace dso {
                 // automatically to SSEData1k
                 E.updateSingle((float) (point->energy[1])); // this will update the same memory value in EAlpha.
             } else {
-                // point->idepth_new here is the converged host frame point depth, square of (idepth - 1)
+                // point->idepth_new here is the converged host frame point depth, (idepth - 1)^2
+                // that means point with larger z (depth) will carry larger energy
                 point->energy_new[1] = (point->idepth_new - 1) * (point->idepth_new - 1); // (d-1)^2
                 E.updateSingle((float) (point->energy_new[1])); // update the memory block of SSEData by energy_new
             }
         }
-
+        // EAlpha was never updated in the loop. why????????????????
         EAlpha.finish(); // this finish() will wrap up all SSEData buffer into float A.
         // alphaW is 150*150, EAlpha.A is accumulated squared idepth, dpeth + translation.squaredNorm() * num_points...
         float alphaEnergy = alphaW * (EAlpha.A + refToNew.translation().squaredNorm() * npts);
