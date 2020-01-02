@@ -621,6 +621,14 @@ namespace dso {
         // EAlpha was never updated in the loop. why????????????????
         EAlpha.finish(); // this finish() will wrap up all SSEData buffer into float A.
         // alphaW is 150*150, EAlpha.A is accumulated squared idepth, dpeth + translation.squaredNorm() * num_points...
+        // if they don't aggregate EAlpha, then EAlpha.A is 0 now, so this will be:
+        // alphaEnergy = alphaW * (sqrt(t^2))*npts
+        // since alphaK is 2.5*2.5, alphaW is 22500, that means if (sqrt(t^2)) > 1/3600 the alphaOpt will be 0
+        // otherwise alphaOpt will be 22500
+        // this regualrize the translation estimation for certain reason I don't know
+        // if the translation is not big enough, the energy will be adding a very large alphaOpt
+        // hessian and B will also be scaled up.
+        // I think the author do this because they want to prevent the error from being too small and vanish to 0
         float alphaEnergy = alphaW * (EAlpha.A + refToNew.translation().squaredNorm() * npts);
 
         //printf("AE = %f * %f + %f\n", alphaW, EAlpha.A, refToNew.translation().squaredNorm() * npts);
@@ -632,7 +640,7 @@ namespace dso {
             alphaOpt = 0;
             alphaEnergy = alphaK * npts;
         } else {
-            alphaOpt = alphaW;
+            alphaOpt = alphaW; // 22500
         }
 
         // accumulator collect 8 buffers and update Hessian matrix...
@@ -641,10 +649,11 @@ namespace dso {
             Pnt *point = ptsl + i;
             if (!point->isGood_new)
                 continue;
-
-            point->lastHessian_new = JbBuffer_new[i][9]; // JbBuffer_new[i][9] is dd*dd which is squared second derivative, the hessian entry
-
-            JbBuffer_new[i][8] += alphaOpt * (point->idepth_new - 1);
+            // should name as the hessian of depth, point->lastHessian_new is a float variable
+            point->lastHessian_new = JbBuffer_new[i][9]; // JbBuffer_new[i][9] is dd*dd which is sum-squared depth derivatives
+            // J[8]: J += r*dd
+            JbBuffer_new[i][8] += alphaOpt * (point->idepth_new - 1); // add the depth energy to J[8]
+            // J[9]: J += dd*dd
             JbBuffer_new[i][9] += alphaOpt; // hessian is now 0 or alphaW = 2.5*2.5
 
             if (alphaOpt == 0) { // couplingWeight = 1. which is aggregating JBuffer_new[8] with dd , JBuffer_new[9] with 1.
