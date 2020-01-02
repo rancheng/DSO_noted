@@ -1123,8 +1123,8 @@ namespace dso {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-        Mat99f H;
-        Vec9f b;
+        Mat99f H; // 9x9 matrix since J is 1x9 vector, 9 means 6 DoF R,t, 2 DoF affine a,b, 1 Residual
+        Vec9f b; // b is error, not in use here, since they put the error (Residual) in the last dim of H.
         size_t num;
 
         inline void initialize() {

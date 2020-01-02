@@ -667,6 +667,8 @@ namespace dso {
         // in the paper H = J'WJ, b = -J'Wr where J is Jacobian of r, and r is stacked residual, W is diagnal weight matrix.
         // is the H_out and b_out here the same as above?
         // why they aggregate the npts on the first 3 diagnals?
+        // since H is 6 DoF R,t, 2 DoF a,b, 1 DoF residual (error), b_out is the last column of acc9.H.
+        // this H is 9x9 matrix and aggregate each time with J_i, i means number of points selected (npts)
         H_out = acc9.H.topLeftCorner<8, 8>();// / acc9.num;
         b_out = acc9.H.topRightCorner<8, 1>();// / acc9.num;
         H_out_sc = acc9SC.H.topLeftCorner<8, 8>();// / acc9.num;
