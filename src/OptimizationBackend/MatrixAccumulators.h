@@ -1388,7 +1388,7 @@ namespace dso {
             shiftUp(false);
         }
 
-
+        // H = JJ^T
         inline void updateSingle(
                 const float J0, const float J1,
                 const float J2, const float J3,
@@ -1505,7 +1505,7 @@ namespace dso {
             numIn1++;
             shiftUp(false);
         }
-
+        // H += JWJ^T
         inline void updateSingleWeighted(
                 float J0, float J1,
                 float J2, float J3,
