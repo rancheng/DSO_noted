@@ -538,6 +538,7 @@ namespace dso {
 
 
                 JbBuffer_new[i][8] += r[idx] * dd[idx]; // sum(res*dd)
+                // dd * dd is the weight
                 JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse hessian entry, while now is just sum(dd*dd)
             }
             // end of loop 8 directions
@@ -663,6 +664,7 @@ namespace dso {
 
             JbBuffer_new[i][9] = 1 / (1 + JbBuffer_new[i][9]); // 9: 1/(1+sum(dd*dd))=inverse hessian entry.
             // this func update 0-8 entry weighted by JbBuffer_new[i][9]. which is the coupling weight or alphaW.
+            // this is equivalent to  H_sc += JWJ^T
             acc9SC.updateSingleWeighted(
                     (float) JbBuffer_new[i][0], (float) JbBuffer_new[i][1], (float) JbBuffer_new[i][2],
                     (float) JbBuffer_new[i][3],
