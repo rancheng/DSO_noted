@@ -447,6 +447,9 @@ namespace dso {
                 // Z = rho_H / rho_T
                 float new_idepth = point->idepth_new / pt[2]; // idepth_new is the estimated z, and pt[2] is projected z in new frame.
                 // OOB...
+                // why 1 to w-2 and 1 to h-2
+                // because the interpolatedElement33 will access Ku + 1 and Kv + 1
+                // so that these index must be wl-1-1 and hl-1-1 (the wl and hl start from 1 but index start from 0)
                 if (!(Ku > 1 && Kv > 1 && Ku < wl - 2 && Kv < hl - 2 && new_idepth > 0)) {
                     isGood = false;
                     break;
