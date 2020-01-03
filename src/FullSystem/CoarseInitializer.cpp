@@ -569,6 +569,9 @@ namespace dso {
             //            dp1*dp1 + .. + dp1*r
             //                      ..
             //                           r * r
+            // here ((float *) (&dp0)) + i we can see that &dp0 get the address of dp0
+            // convert this address into float * which occupy 4 size_of space.
+            // and i is the offsets, which shift size_of 4 for each loop
             for (int i = 0; i + 3 < patternNum; i += 4) // this for loop has 2 steps each step step 4 stride. (align with SSE)
                 acc9.updateSSE(
                         _mm_load_ps(((float *) (&dp0)) + i), // _mm_load_ps load 4 float values from pointer address at a time
