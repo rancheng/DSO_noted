@@ -398,6 +398,8 @@ namespace dso {
             point->maxstep = 1e10;
             if (!point->isGood) {
                 // initialize bad points.
+                // since the point->energy is not good, so there's no update on the point->energy
+                // which is E.updateSingle(point_last_good_energy) energy[0] is the residual sum, energy[1] is the (idepth-1)^2
                 E.updateSingle((float) (point->energy[0])); // E[0] += UenergyPhotometric
                 point->energy_new = point->energy;
                 point->isGood_new = false;
@@ -591,7 +593,7 @@ namespace dso {
 
 
         }
-
+        // E += energy
         E.finish(); // E.finish() will shift different scale of data up to 1 million scale. and clear the memroy
         acc9.finish(); // acc9 is doing the same thing.
 
@@ -611,6 +613,7 @@ namespace dso {
             if (!point->isGood_new) { // if not good tracking point, use it's last squared idepth
                 // updateSingle will accumulate the energy to SSEData, and when SSEData reach 1000, it will shift up
                 // automatically to SSEData1k
+                // update the last good energy[1] which is (d-1)^2
                 E.updateSingle((float) (point->energy[1])); // this will update the same memory value in EAlpha.
             } else {
                 // point->idepth_new here is the converged host frame point depth, (idepth - 1)^2
@@ -698,7 +701,11 @@ namespace dso {
         b_out[1] += tlog[1] * alphaOpt * npts;
         b_out[2] += tlog[2] * alphaOpt * npts;
 
-
+        // E.A is actually equal to residual + (1-d)^2, this (1-d)^2 came from all good tracking points
+        // return vector is total error, alphaEnergy, and the good tracking number point
+        // E.num will be npts + num_good_points
+        // since the E += energy is for every point, but E += (d-1)^2 is only when the point is good
+        // so E.A = sum_npts(energy) + sum_isgood((d-1)^2)
         return Vec3f(E.A, alphaEnergy, E.num); // Energy and alphaEnergy and Energy's aggregation number.
     }
 
