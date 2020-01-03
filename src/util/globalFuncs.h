@@ -130,6 +130,7 @@ EIGEN_ALWAYS_INLINE Eigen::Vector3f getInterpolatedElement33OverOr(const Eigen::
 			+ (1-dx-dy+dxdy) * *(const Eigen::Vector3f*)(bp);
 }
 
+// just return the interpolated color channel so that it's 31, interpolated33 means get intensity, Ix, Iy.
 EIGEN_ALWAYS_INLINE float getInterpolatedElement31(const Eigen::Vector3f* const mat, const float x, const float y, const int width)
 {
 	int ix = (int)x;
