@@ -445,7 +445,8 @@ namespace dso {
                 // hmm... interesting, why they want to use one idepth to devide another idepth? and generate a new_idepth ? is this new_idepth
                 // rho_T = rho_H / Z
                 // Z = rho_H / rho_T
-                float new_idepth = point->idepth_new / pt[2]; // idepth_new is the estimated z, and pt[2] is projected z in new frame.
+                // new_idepth = Z, rho_H = point->idepth_new, pt[2] = rho_T
+                float new_idepth = point->idepth_new / pt[2]; // idepth_new is the estimated z in host frame, and pt[2] is projected z in new frame.
                 // OOB...
                 // why 1 to w-2 and 1 to h-2
                 // because the interpolatedElement33 will access Ku + 1 and Kv + 1
@@ -620,12 +621,12 @@ namespace dso {
                 // updateSingle will accumulate the energy to SSEData, and when SSEData reach 1000, it will shift up
                 // automatically to SSEData1k
                 // update the last good energy[1] which is (d-1)^2
-                E.updateSingle((float) (point->energy[1])); // this will update the same memory value in EAlpha.
+                EAlpha.updateSingle((float) (point->energy[1])); // this will update the same memory value in EAlpha.
             } else {
                 // point->idepth_new here is the converged host frame point depth, (idepth - 1)^2
                 // that means point with larger z (depth) will carry larger energy
                 point->energy_new[1] = (point->idepth_new - 1) * (point->idepth_new - 1); // (d-1)^2
-                E.updateSingle((float) (point->energy_new[1])); // update the memory block of SSEData by energy_new
+                EAlpha.updateSingle((float) (point->energy_new[1])); // update the memory block of SSEData by energy_new
             }
         }
         // EAlpha was never updated in the loop. why????????????????
