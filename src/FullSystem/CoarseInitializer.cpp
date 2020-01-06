@@ -442,6 +442,8 @@ namespace dso {
                 // pt now is just [x2, y2, z2].T/z1 = RKi[u,v,1] + t/z1
                 // z1 here is the point->idepth_new
                 Vec3f pt = RKi * Vec3f(point->u + dx, point->v + dy, 1) + t * point->idepth_new;
+                // u and v are x2/z2 and y2/z2, Ku and Kv are exactly the pixel coordinates
+                // pt[0] / pt[2] = (x2/z1) / (z2/z1), so z1 here was canceled out
                 float u = pt[0] / pt[2]; // project to the target frame's image plane.
                 float v = pt[1] / pt[2];
                 float Ku = fxl * u + cxl;
