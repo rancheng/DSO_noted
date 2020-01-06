@@ -437,6 +437,10 @@ namespace dso {
                 // this is RKi * x + t*idepth = X in target frame. pt[2] = X[2] = 1 + t[2] * idepth
                 // Notice that the 8 dimensional reprojection points are sharing the same depth estimation!
                 // point->idepth_new is the inverse depth of the host frame
+                // pt now is just the normalized point in camera coordinate
+                // p2 = K[R|t]Kip1
+                // pt now is just [x2, y2, z2].T/z1 = RKi[u,v,1] + t/z1
+                // z1 here is the point->idepth_new
                 Vec3f pt = RKi * Vec3f(point->u + dx, point->v + dy, 1) + t * point->idepth_new;
                 float u = pt[0] / pt[2]; // project to the target frame's image plane.
                 float v = pt[1] / pt[2];
