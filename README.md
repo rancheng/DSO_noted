@@ -3,6 +3,8 @@
 For more information see
 [https://vision.in.tum.de/dso](https://vision.in.tum.de/dso)
 
+[https://github.com/JakobEngel/dso](https://github.com/JakobEngel/dso)
+
 ### 1. Related Papers
 * **Direct Sparse Odometry**, *J. Engel, V. Koltun, D. Cremers*, In arXiv:1607.02565, 2016
 * **A Photometrically Calibrated Benchmark For Monocular Visual Odometry**, *J. Engel, V. Usenko, D. Cremers*, In arXiv:1607.02555, 2016
