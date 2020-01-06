@@ -1513,7 +1513,8 @@ namespace dso {
                 float J6, float J7,
                 float J8, float w,
                 int off = 0) {
-
+            // they just calculated the upper half
+            // since H is symmetrical
             float *pt = SSEData + off;
             *pt += J0 * J0 * w;
             pt += 4;
