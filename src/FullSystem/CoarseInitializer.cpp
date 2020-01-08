@@ -60,6 +60,7 @@ namespace dso {
         fixAffine = true;
         printDebug = false;
         // wM is a diagonal matrix dump all the scale information
+        // it will be used to scale the hessian matrix.
         wM.diagonal()[0] = wM.diagonal()[1] = wM.diagonal()[2] = SCALE_XI_ROT;
         wM.diagonal()[3] = wM.diagonal()[4] = wM.diagonal()[5] = SCALE_XI_TRANS;
         wM.diagonal()[6] = SCALE_A;
@@ -181,6 +182,8 @@ namespace dso {
                 // wM 6..7 Scale of a and b
                 // wM is a diagnal matrix.
                 // So Hl eigen values in diagnal should be rotation, translation and affine estimation a and b.
+                // (0.01f / (w[lvl] * h[lvl])) this is the inverse surface of the image in current scale level
+                // why they normalize the Hl and bl together, if this shouldn't the Hl.ldlt.solve(bl) cancel them out?
                 Hl = wM * Hl * wM * (0.01f / (w[lvl] * h[lvl])); // this normalize with the size of scale
                 bl = wM * bl * (0.01f / (w[lvl] * h[lvl])); // can regard as average to each pixel's H and b
                 // here Hl comes from Hsc which is from the H prior
