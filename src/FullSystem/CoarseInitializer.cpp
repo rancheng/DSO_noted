@@ -182,14 +182,10 @@ namespace dso {
                 // wM 6..7 Scale of a and b
                 // wM is a diagnal matrix.
                 // So Hl eigen values in diagnal should be rotation, translation and affine estimation a and b.
-                // (0.01f / (w[lvl] * h[lvl])) this is the inverse surface of the image in current scale level
+                // (0.01f / (w[lvl] * h[lvl])) this is a very small constant applied to both Hl and bl to prevent
+                // numerical zero.
                 // why they normalize the Hl and bl together, if this shouldn't the Hl.ldlt.solve(bl) cancel them out?
                 // I have wrote a small test case on it and it seems like they are cancelled out (wM)
-                // however, the (0.01f / (w[lvl] * h[lvl])) part is still there and will affect the solved result
-                // this constant scale in both Hl and bl will
-                // the right hand side term will make the solved x smaller roughly by the degree of 1e4 depend on the
-                // scale level, then the solved x (inc) will be multiplied by wM, this maybe compensate back.
-                // this code is so confusing...
                 Hl = wM * Hl * wM * (0.01f / (w[lvl] * h[lvl])); // this normalize with the size of scale
                 bl = wM * bl * (0.01f / (w[lvl] * h[lvl])); // can regard as average to each pixel's H and b
                 // here Hl comes from Hsc which is from the H prior

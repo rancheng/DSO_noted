@@ -773,7 +773,7 @@ bool CoarseTracker::trackNewestCoarse(
 		}
 
 		// set last residual for that level, as well as flow indicators.
-		lastResiduals[lvl] = sqrtf((float)(resOld[0] / resOld[1])); // this makes last
+		lastResiduals[lvl] = sqrtf((float)(resOld[0] / resOld[1])); // this makes lastResidual = E_total / E_num_p
 		lastFlowIndicators = resOld.segment<3>(2);
 		if(lastResiduals[lvl] > 1.5*minResForAbort[lvl]) return false;
 

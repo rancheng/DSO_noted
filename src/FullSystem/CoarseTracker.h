@@ -84,7 +84,7 @@ public:
 	int refFrameID;
 
 	// act as pure ouptut
-	Vec5 lastResiduals; //updated in function TrackNewCoarselast
+	Vec5 lastResiduals; //updated in function TrackNewCoarselast, lastResiduals = E_total / E_number_p
 	Vec3 lastFlowIndicators;
 	double firstCoarseRMSE;
 private:
