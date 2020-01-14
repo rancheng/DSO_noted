@@ -486,6 +486,9 @@ Vec6 CoarseTracker::calcRes(int lvl, const SE3 &refToNew, AffLight aff_g2l, floa
 		if(lvl==0 && i%32==0)
 		{
 			// translation only (positive)
+			// those code parts are simple and obvious, calculate the target image coordinates according to the R, and t
+			// R and t are given from Ref2New, Ref2New will be updated on each GN iteration and will eventually converge
+			// with the given residual converges.
 			Vec3f ptT = Ki[lvl] * Vec3f(x, y, 1) + t*id;
 			float uT = ptT[0] / ptT[2];
 			float vT = ptT[1] / ptT[2];
