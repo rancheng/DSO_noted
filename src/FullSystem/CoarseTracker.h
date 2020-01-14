@@ -85,7 +85,7 @@ public:
 
 	// act as pure ouptut
 	Vec5 lastResiduals; //updated in function TrackNewCoarselast, lastResiduals = E_total / E_number_p
-	Vec3 lastFlowIndicators;
+	Vec3 lastFlowIndicators; // normalized shiftT and shiftRT
 	double firstCoarseRMSE;
 private:
 
