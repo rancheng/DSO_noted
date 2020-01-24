@@ -136,6 +136,7 @@ namespace dso {
         // ============== project min and max. return if one of them is OOB ===================
         // u, v is initialized on the constructor, which is offered by the outer function.
         // they are the image coordinates. -> this pr is point in target image space.
+        // pr is the 3d point in the camera frame.
         Vec3f pr = hostToFrame_KRKi * Vec3f(u, v, 1);
         // here pr + t*idepth_min should be the minimal inverse depth estimation t here is translation from host frame
         // to target frame.
