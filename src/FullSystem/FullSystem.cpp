@@ -544,7 +544,7 @@ namespace dso {
                                                     fh->aff_g2l()).cast<float>();
 
             for (ImmaturePoint *ph : host->immaturePoints) {
-                ph->traceOn(fh, KRKi, Kt, aff, &Hcalib, false);
+                ph->traceOn(fh, KRKi, Kt, aff, &Hcalib, false); // this is where the point idepth get estimated
 
                 if (ph->lastTraceStatus == ImmaturePointStatus::IPS_GOOD) trace_good++;
                 if (ph->lastTraceStatus == ImmaturePointStatus::IPS_BADCONDITION) trace_badcondition++;
