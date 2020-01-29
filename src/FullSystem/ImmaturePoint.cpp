@@ -426,8 +426,8 @@ namespace dso {
                 // code below calculate the energy and aggregated for 8 directions.
                 float hw = fabs(residual) < setting_huberTH ? 1 : setting_huberTH / fabs(residual);
 
-                H += hw * dResdDist * dResdDist;
-                b += hw * residual * dResdDist;
+                H += hw * dResdDist * dResdDist; // since the inverse depth is a scalar
+                b += hw * residual * dResdDist; // h and b are thus calculated through scalar
                 energy += weights[idx] * weights[idx] * hw * residual * residual * (2 - hw);
             }
 
@@ -496,11 +496,27 @@ namespace dso {
         // ============== set new interval ===================
         if (dx * dx > dy * dy) {
             // error on x direction is smaller. use best U to update idepth.
+            // pr is pure rotation
+            // errorInPixel is regard as the variance
+            std::cout << "pr[2]: " << pr[2] << "\n"
+            << "bestU: " << bestU <<"\n"
+            << "errorInPixel: "<< errorInPixel << "\n"
+            << "dx: " << dx << "\n"
+            << "hostToFrame_Kt[0]: " << hostToFrame_Kt[0] << "\n"
+            << "hostToFrame_Kt[2]: " << hostToFrame_Kt[2] << "\n"
+            << "pr[0]" << pr[0] << std::endl;
             idepth_min = (pr[2] * (bestU - errorInPixel * dx) - pr[0]) /
                          (hostToFrame_Kt[0] - hostToFrame_Kt[2] * (bestU - errorInPixel * dx));
             idepth_max = (pr[2] * (bestU + errorInPixel * dx) - pr[0]) /
                          (hostToFrame_Kt[0] - hostToFrame_Kt[2] * (bestU + errorInPixel * dx));
         } else {
+            std::cout << "pr[2]: " << pr[2] << "\n"
+                      << "bestV: " << bestV <<"\n"
+                      << "errorInPixel: "<< errorInPixel << "\n"
+                      << "dy: " << dy << "\n"
+                      << "hostToFrame_Kt[0]: " << hostToFrame_Kt[0] << "\n"
+                      << "hostToFrame_Kt[2]: " << hostToFrame_Kt[2] << "\n"
+                      << "pr[1]" << pr[1] << std::endl;
             // error on y direction is smaller. use best V as update idepth.
             idepth_min = (pr[2] * (bestV - errorInPixel * dy) - pr[1]) /
                          (hostToFrame_Kt[1] - hostToFrame_Kt[2] * (bestV - errorInPixel * dy));
