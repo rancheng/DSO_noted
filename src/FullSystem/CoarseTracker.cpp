@@ -612,6 +612,7 @@ void CoarseTracker::setCoarseTrackingRef(
 }
 // use coarse tracker to update lastToNew (SE3) and affine (ab) estimation.
 // notice this is tracking newest coarse, in between two frames.
+// lastToNew_out is updated through GN optimizer.
 bool CoarseTracker::trackNewestCoarse(
 		FrameHessian* newFrameHessian,
 		SE3 &lastToNew_out, AffLight &aff_g2l_out,
