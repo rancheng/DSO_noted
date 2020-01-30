@@ -428,6 +428,7 @@ namespace dso {
             SE3 lastF_2_fh_this = lastF_2_fh_tries[i];
             // note that this is trackNestCoarse in CoarseTracker.cpp, not trackNewCoarse!!!
             // lastF_2_fh_this is the motions vector that was pushed tons of motions above.
+            // trackNewestCoarse update the lastF_2_fh_this pose into optimal pose.
             bool trackingIsGood = coarseTracker->trackNewestCoarse(
                     fh, lastF_2_fh_this, aff_g2l_this,
                     pyrLevelsUsed - 1,
@@ -458,7 +459,7 @@ namespace dso {
                 //printf("take over. minRes %f -> %f!\n", achievedRes[0], coarseTracker->lastResiduals[0]);
                 flowVecs = coarseTracker->lastFlowIndicators;
                 aff_g2l = aff_g2l_this;
-                lastF_2_fh = lastF_2_fh_this;
+                lastF_2_fh = lastF_2_fh_this; // lastF_2_fh is now optimal camera pose
                 haveOneGood = true;
             }
 
