@@ -933,7 +933,7 @@ namespace dso {
             }
 
 
-            Vec4 tres = trackNewCoarse(fh);
+            Vec4 tres = trackNewCoarse(fh);  // for each frame, initialize the coarse pose with 27 different trials.
             if (!std::isfinite((double) tres[0]) || !std::isfinite((double) tres[1]) ||
                 !std::isfinite((double) tres[2]) || !std::isfinite((double) tres[3])) {
                 printf("Initial Tracking failed: LOST!\n");
