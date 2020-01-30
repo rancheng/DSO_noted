@@ -657,6 +657,7 @@ bool CoarseTracker::trackNewestCoarse(
         // aff_g2l_current is the photometric
         // refToNew_current is not used in this function
         // this function only updates H and b and the aff_g2l_current
+        // calculate GradientS use intel SSE.
 		calcGSSSE(lvl, H, b, refToNew_current, aff_g2l_current); // calculate H and b using SSE accumulator
 
 		float lambda = 0.01; // trust region, they are actually using LM method.
@@ -721,6 +722,7 @@ bool CoarseTracker::trackNewestCoarse(
             // the value of a variable on the basis of its relationship with another variable
             // in human words, extrapolation is just guessing the function values outside your defined region
 			if(lambda < lambdaExtrapolationLimit) extrapFac = sqrt(sqrt(lambdaExtrapolationLimit / lambda));
+			// inc is now the delta pose and affine.
 			inc *= extrapFac; // since this lambda is getting smaller and smaller, so, inverse lambda will grow large. the author controls it's increasing by double sqrt.
 
 			Vec8 incScaled = inc; // dump the values in inc, since inc will be used later.
@@ -756,6 +758,7 @@ bool CoarseTracker::trackNewestCoarse(
 			if(accept)
 			{
 				calcGSSSE(lvl, H, b, refToNew_new, aff_g2l_new); // use the new pose and affine parameter to calculate new H and b.
+				// after calcGSSSE, refToNew_new and aff_g2l_new are updated.
 				resOld = resNew;
 				aff_g2l_current = aff_g2l_new; // accept this step, update the pose, affine parameter space.
 				refToNew_current = refToNew_new; // note that refToNew_new is the reference of lastToNew_out, this will automatically update the lastToNew_out SE3 pose
