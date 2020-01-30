@@ -429,7 +429,7 @@ namespace dso {
             // note that this is trackNestCoarse in CoarseTracker.cpp, not trackNewCoarse!!!
             // lastF_2_fh_this is the motions vector that was pushed tons of motions above.
             // trackNewestCoarse update the lastF_2_fh_this pose into optimal pose.
-            // ################################### !!!!!!!!! important part !!!!!!!!!!! ###############################
+            // ################################### !!!!!!!!! important part !!!!!!!!!!! ##############################
             bool trackingIsGood = coarseTracker->trackNewestCoarse(
                     fh, lastF_2_fh_this, aff_g2l_this,
                     pyrLevelsUsed - 1,
