@@ -913,7 +913,7 @@ void EnergyFunctional::solveSystemF(int iteration, double lambda, CalibHessian* 
 
 	//resubstituteF(x, HCalib);
 	currentLambda= lambda;
-	resubstituteF_MT(x, HCalib,multiThreading);
+	resubstituteF_MT(x, HCalib,multiThreading); // this will update step in multi-thread
 	currentLambda=0;
 
 
