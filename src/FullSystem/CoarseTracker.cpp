@@ -790,7 +790,7 @@ bool CoarseTracker::trackNewestCoarse(
 	}
 
 	// set!
-	lastToNew_out = refToNew_current;
+	lastToNew_out = refToNew_current; // updated SE(3)
 	aff_g2l_out = aff_g2l_current;
 
 
