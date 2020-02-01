@@ -128,8 +128,9 @@ private:
 	Vec10f* JbBuffer;			// 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
 	Vec10f* JbBuffer_new; // 0-7: sum(dd * dp). 8: sum(res*dd). 9: 1/(1+sum(dd*dd))=inverse hessian entry.
 
-	Accumulator9 acc9;
-	Accumulator9 acc9SC;
+	// equation (17) in DSO: \hat{H_{\alpha \alpha}} =  H_out - H_out_SC
+	Accumulator9 acc9; // acc9 is to aggregate H_{\alpha \alpha}
+	Accumulator9 acc9SC; // acc9SC is to aggretate H_{\apha \beta} H^{-1}_{\beta \beta} H_{\beta \alpha}
 
 
 	Vec3f dGrads[PYR_LEVELS];

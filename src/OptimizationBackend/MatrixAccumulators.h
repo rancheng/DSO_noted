@@ -1505,7 +1505,8 @@ namespace dso {
             numIn1++;
             shiftUp(false);
         }
-        // H += JWJ^T
+        // H_{\alpha \beta} H^{-1}_{\beta \beta} H_{\beta \alpha}
+        // w = H^{-1}_{\beta \beta}, since this goes to the inverse depth dd * dd
         inline void updateSingleWeighted(
                 float J0, float J1,
                 float J2, float J3,

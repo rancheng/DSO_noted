@@ -146,6 +146,7 @@ namespace dso {
             Vec8f b, bsc; // what does sc mean?
             // H and b are from the CalcResAndGS func, came from Energy
             resetPoints(lvl); // normalize the idepth of each points in that lvl (make it gradient friendly)
+            // H and b is accumulated for each selected point
             Vec3f resOld = calcResAndGS(lvl, H, b, Hsc, bsc, refToNew_current, refToNew_aff_current, false);
             applyStep(lvl); // loop all selected point in lvl, dump every variable ends with _new. set idepth by iR
             // applyStep is more like update the pose (or depth)
@@ -506,7 +507,7 @@ namespace dso {
                 // huber weight shrink by sqrt. hw < 1 means residual is larger than threshold, means the error is high, energy is large.
                 if (hw < 1) hw = sqrtf(hw);
                 // hitColor[1] is dx and this gives the hw normalized dx in the image space. which should be named as uxInterp in target frame.
-                float dxInterp = hw * hitColor[1] * fxl; // hitColor is the (color, dx dy) tuple in target frame.
+                float dxInterp = hw * hitColor[1] * fxl; // hitColor is the (color, dIdx dIdy) tuple in target frame.
                 // dy which normalized by hubwe weight and project into pixel plane.
                 float dyInterp = hw * hitColor[2] * fyl;
                 // dp0 is Vec8f. so this dump the dx projection in target img plane in 8 direction
@@ -533,7 +534,8 @@ namespace dso {
                 // ################################## affine #################################
                 dp6[idx] = -hw * r2new_aff[0] * rlR; // this is the huber weighted and affined color in new image. r = hw(I1 - (exp(a)*I2 + b)), dr/da = -hw*exp(a)*I2, dr/db = -hw
                 dp7[idx] = -hw * 1; // just minus huber weight, which is negative of 1/residual
-                dd[idx] = dxInterp * dxdd + dyInterp * dydd; // partial to the inverse depth
+                // \frac{\partial r}{\partial \rho_H} = [f_x(t_1 - u*t_3)*\rho_T*\rho_H^{-1}, f_y(t_2 - v*t_3)*\rho_T*\rho_H^{-1}]^T
+                dd[idx] = dxInterp * dxdd + dyInterp * dydd; // partial to the inverse depth fx*dx*((t[0] - t[2] * u) / pt[2])
                 r[idx] = hw * residual; // r is stacked residual vector... for 8 directions.
                 // #########################################################################################
                 float maxstep = 1.0f / Vec2f(dxdd * fxl, dydd * fyl).norm();
@@ -556,7 +558,7 @@ namespace dso {
 
                 JbBuffer_new[i][8] += r[idx] * dd[idx]; // sum(res*dd)
                 // dd * dd is the weight
-                JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse hessian entry, while now is just sum(dd*dd)
+                JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse depth hessian entry, while now is just sum(dd*dd), H_{\beta \beta}
             }
             // end of loop 8 directions
 
@@ -682,10 +684,10 @@ namespace dso {
                 JbBuffer_new[i][8] += couplingWeight * (point->idepth_new - point->iR);
                 JbBuffer_new[i][9] += couplingWeight;
             }
-
+            // refer to the equation (17) in DSO, here JbBuffer_new[i][9] is H^{-1}_{\beta \beta}
             JbBuffer_new[i][9] = 1 / (1 + JbBuffer_new[i][9]); // 9: 1/(1+sum(dd*dd))=inverse hessian entry.
             // this func update 0-8 entry weighted by JbBuffer_new[i][9]. which is the coupling weight or alphaW.
-            // this is equivalent to  H_sc += JWJ^T
+            // this is equivalent to  H_sc = H_{\alpha \beta} H^{-1}_{\beta \beta} H_{\beta \alpha}, please refer equation (17) in DSO paper.
             acc9SC.updateSingleWeighted(
                     (float) JbBuffer_new[i][0], (float) JbBuffer_new[i][1], (float) JbBuffer_new[i][2],
                     (float) JbBuffer_new[i][3],
@@ -702,6 +704,8 @@ namespace dso {
         // why they aggregate the npts on the first 3 diagnals?
         // since H is 6 DoF R,t, 2 DoF a,b, 1 DoF residual (error), b_out is the last column of acc9.H.
         // this H is 9x9 matrix and aggregate each time with J_i, i means number of points selected (npts)
+        // Here H and b are aggretated through all points, but not normalized by the num? why not normalize them ?
+        // since x = -H^-1*b cancelled out the num.
         H_out = acc9.H.topLeftCorner<8, 8>();// / acc9.num;
         b_out = acc9.H.topRightCorner<8, 1>();// / acc9.num;
         H_out_sc = acc9SC.H.topLeftCorner<8, 8>();// / acc9.num;
@@ -714,6 +718,8 @@ namespace dso {
         H_out(1, 1) += alphaOpt * npts;
         H_out(2, 2) += alphaOpt * npts;
 
+        // since H and b are scaled at the same time, solve of this linear system will cancel out the scale effect
+        // but here tlog is the translation, why use translation to scale b?
         Vec3f tlog = refToNew.log().head<3>().cast<float>();
         b_out[0] += tlog[0] * alphaOpt * npts;
         b_out[1] += tlog[1] * alphaOpt * npts;
