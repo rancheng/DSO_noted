@@ -1036,7 +1036,7 @@ namespace dso {
                 needToKetchupMapping = true;
 
 
-            if (unmappedTrackedFrames.size() > 0) // if there are other frames to tracke, do that first.
+            if (unmappedTrackedFrames.size() > 0) // if there are other frames to track, do that first.
             {
                 lock.unlock();
                 makeNonKeyFrame(fh);

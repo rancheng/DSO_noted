@@ -423,6 +423,9 @@ EFResidual* EnergyFunctional::insertResidual(PointFrameResidual* r)
 	efr->idxInAll = r->point->efPoint->residualsAll.size();
 	r->point->efPoint->residualsAll.push_back(efr);
 
+	// put host frameID into first 32 bit place
+	// put the target frameID into the last 32 bit place
+	// since single connectivityMap entry is a vector 2d and 2^64 size list.
     connectivityMap[(((uint64_t)efr->host->frameID) << 32) + ((uint64_t)efr->target->frameID)][0]++;
 
 	nResiduals++;
