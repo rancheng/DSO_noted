@@ -98,7 +98,8 @@ public:
 	std::vector<EFFrame*> frames;
 	int nPoints, nFrames, nResiduals;
 
-	// M energy of H matrix and b vector.
+	// there's L energy and M energy, L energy is from Linearize, M energy is from Marginalization
+	// M energy of H matrix and b vector. M is calulated after the marginalization
 	// Hx = b is the gauss newton optimization equation, if you dont' understand, please refer to the coarseInitializer
 	// where I have marked the whole process on how they calculated the H and b with GN optimization iterations.
 	MatXX HM;
