@@ -206,7 +206,7 @@ namespace dso {
                                       (Hl.topLeftCorner<6, 6>().ldlt().solve(bl.head<6>()))); // poses
                     inc.tail<2>().setZero(); // affine models
                 } else
-                    inc = -(wM * (Hl.ldlt().solve(bl)));    //=-H^-1 * b.
+                    inc = -(wM * (Hl.ldlt().solve(bl)));    //=-H^-1 * b. Hl (8x8), bl (8x1)
 
                 // H^-1 * b contribute into the refToNew_new transformation matrix.
                 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -538,7 +538,7 @@ namespace dso {
                 dd[idx] = dxInterp * dxdd + dyInterp * dydd; // partial to the inverse depth fx*dx*((t[0] - t[2] * u) / pt[2])
                 r[idx] = hw * residual; // r is stacked residual vector... for 8 directions.
                 // #########################################################################################
-                float maxstep = 1.0f / Vec2f(dxdd * fxl, dydd * fyl).norm();
+                float maxstep = 1.0f / Vec2f(dxdd * fxl, dydd * fyl).norm(); // this is the pixelwise maxstep will be used in doStep function
                 if (maxstep < point->maxstep) point->maxstep = maxstep;
 
                 // immediately compute dp*dd' and dd*dd' in JbBuffer1.
@@ -546,21 +546,25 @@ namespace dso {
                 // gradient of prior. JbBuffer should be the jacobian buffer for prior and hessian and residual.
                 // JbBuffer_new: [0..7], dp means derivative of pose, dd means derivative of depth
                 // JbBuffer_new: [8..9], residual with inverse depth
+                // for pose
                 JbBuffer_new[i][0] += dp0[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][1] += dp1[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][2] += dp2[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][3] += dp3[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][4] += dp4[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][5] += dp5[idx] * dd[idx]; // 0-7: sum(dd * dp)
+                // for affine
                 JbBuffer_new[i][6] += dp6[idx] * dd[idx]; // 0-7: sum(dd * dp)
                 JbBuffer_new[i][7] += dp7[idx] * dd[idx]; // 0-7: sum(dd * dp)
 
-
+                // for error
                 JbBuffer_new[i][8] += r[idx] * dd[idx]; // sum(res*dd)
                 // dd * dd is the weight
+                // for depth
                 JbBuffer_new[i][9] += dd[idx] * dd[idx]; // 1/(1+sum(dd*dd))=inverse depth hessian entry, while now is just sum(dd*dd), H_{\beta \beta}
             }
             // end of loop 8 directions
+            // JbBuffer_new is ntps x 8 matrix
 
             // energy is accumulated through 8 nearby patterns in target frame.
             // if this point is not good or error is large. then update E[0] with point->energy[0] set point as bad point and dump the energy
@@ -589,6 +593,7 @@ namespace dso {
             // here ((float *) (&dp0)) + i we can see that &dp0 get the address of dp0
             // convert this address into float * which occupy 4 size_of space.
             // and i is the offsets, which shift size_of 4 for each loop
+            // this acc9 is aggregating inside each point, this is just summing up the pattern, it will sum the points also
             for (int i = 0; i + 3 < patternNum; i += 4) // this for loop has 2 steps each step step 4 stride. (align with SSE)
                 acc9.updateSSE(
                         _mm_load_ps(((float *) (&dp0)) + i), // _mm_load_ps load 4 float values from pointer address at a time
@@ -685,6 +690,7 @@ namespace dso {
                 JbBuffer_new[i][9] += couplingWeight;
             }
             // refer to the equation (17) in DSO, here JbBuffer_new[i][9] is H^{-1}_{\beta \beta}
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             JbBuffer_new[i][9] = 1 / (1 + JbBuffer_new[i][9]); // 9: 1/(1+sum(dd*dd))=inverse hessian entry.
             // this func update 0-8 entry weighted by JbBuffer_new[i][9]. which is the coupling weight or alphaW.
             // this is equivalent to  H_sc = H_{\alpha \beta} H^{-1}_{\beta \beta} H_{\beta \alpha}, please refer equation (17) in DSO paper.
@@ -1029,6 +1035,7 @@ namespace dso {
         }
     }
     // this function update the inverse depth for each point
+    // since we got the inc from last step, this inc is x_c, which is the delta_{\xi}
     void CoarseInitializer::doStep(int lvl, float lambda, Vec8f inc) {
 
         const float maxPixelStep = 0.25;
@@ -1038,13 +1045,27 @@ namespace dso {
         for (int i = 0; i < npts; i++) {
             if (!pts[i].isGood) continue;
 
-
+            // note that the jacobian for each point is stored in the JbBuffer
+            // reference :https://zhuanlan.zhihu.com/p/29177540
+            // JbBuffer[i][8] is: \sum_{idx \in \mathcal{P}}{r_p*dd_p}
+            // JbBuffer[i][9] is: \sum_{idx \in \mathcal{P}}{dd_p*dd_p}
+            // b = r*dd + r*dd*x_p
+            // step = - (r*dd + r*dd*x_p) * dd*dd/(1 + \lambda)
+            // [B   E][x_p] = [v]
+            // [E^T C][x_d]   [w]
+            // x_p = [B - EC^{-1}E^T]^{-1} = v - EC^{-1}w
+            // x_d = C^{-1}(w - E^Tx_p)
+            // here w = JbBuffer[i][8] the error term
+            // -E^Tx_p = JbBuffer[i].head<8>().dot(inc), since inc is negative, so here is +
+            // step = x_d
+            // -b = (w - E^Tx_p)
+            // JbBuffer[i][9] = C^{-1} since
             float b = JbBuffer[i][8] + JbBuffer[i].head<8>().dot(inc); // reprojected to 8 dimensions, thus 8D idepth
             float step = -b * JbBuffer[i][9] / (1 + lambda); // lambda is trust region, from LM method
 
 
             float maxstep = maxPixelStep * pts[i].maxstep; // shrink the step size to smaller size
-            if (maxstep > idMaxStep) maxstep = idMaxStep; // maximum step to solve idepth
+            if (maxstep > idMaxStep) maxstep = idMaxStep; // reset maxstep to be smaller than 1e10
 
             if (step > maxstep) step = maxstep; // step will contribute to the new idepth guess.
             if (step < -maxstep) step = -maxstep; // we can now regard step here is a d_{Idepth} (a graident step size)
