@@ -1506,6 +1506,7 @@ namespace dso {
             shiftUp(false);
         }
         // H_{\alpha \beta} H^{-1}_{\beta \beta} H_{\beta \alpha}
+        // H^{-1}_{\beta \beta} = 1 / (1 + JbBuffer_new[i][9])
         // w = H^{-1}_{\beta \beta}, since this goes to the inverse depth dd * dd
         inline void updateSingleWeighted(
                 float J0, float J1,
