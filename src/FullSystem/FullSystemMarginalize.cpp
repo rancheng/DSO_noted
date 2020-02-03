@@ -160,7 +160,7 @@ namespace dso {
                     PointFrameResidual *r = ph->residuals[i];
                     if (r->target == frame) {
                         if (ph->lastResiduals[0].first == r)
-                            ph->lastResiduals[0].first = 0;
+                            ph->lastResiduals[0].first = 0; // clear out the lastResiduals.first from pointHessian.
                         else if (ph->lastResiduals[1].first == r)
                             ph->lastResiduals[1].first = 0;
 

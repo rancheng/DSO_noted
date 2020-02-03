@@ -544,7 +544,7 @@ namespace dso {
 
             Vec2f aff = AffLight::fromToVecExposure(host->ab_exposure, fh->ab_exposure, host->aff_g2l(),
                                                     fh->aff_g2l()).cast<float>();
-
+            // loop all the immature points and initialize their inverse depth with SSD and epipolar line search
             for (ImmaturePoint *ph : host->immaturePoints) {
                 ph->traceOn(fh, KRKi, Kt, aff, &Hcalib, false); // this is where the point idepth get estimated
 

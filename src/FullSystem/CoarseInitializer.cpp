@@ -842,7 +842,7 @@ namespace dso {
             if (!point->isGood) continue;
 
             Pnt *parent = ptst + point->parent;
-            parent->iR += point->iR * point->lastHessian;
+            parent->iR += point->iR * point->lastHessian; // point->lastHessian = dd*dd, which is the squared depth
             parent->iRSumNum += point->lastHessian;
         }
 
