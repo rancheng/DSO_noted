@@ -172,6 +172,9 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 	{
 		for(PointHessian* ph : fh->pointHessians)
 		{
+		    // loop all the pointHessians in the tracking frames
+		    // if the pointHessians are active points
+		    //
 			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
 			{
 			    //only valid map points (active point hessians) can reach into this if statement.

@@ -44,7 +44,7 @@ void AccumulatedSCHessianSSE::addPoint(EFPoint* p, bool shiftPriorToZero, int ti
 		return;
 	}
 
-	float H = p->Hdd_accAF+p->Hdd_accLF+p->priorF;
+	float H = p->Hdd_accAF+p->Hdd_accLF+p->priorF; // H is the inverse depth
 	if(H < 1e-10) H = 1e-10;
 
 	p->data->idepth_hessian=H;
@@ -53,7 +53,7 @@ void AccumulatedSCHessianSSE::addPoint(EFPoint* p, bool shiftPriorToZero, int ti
 	p->bdSumF = p->bd_accAF + p->bd_accLF;
 	if(shiftPriorToZero) p->bdSumF += p->priorF*p->deltaF;
 	VecCf Hcd = p->Hcd_accAF + p->Hcd_accLF;
-	accHcc[tid].update(Hcd,Hcd,p->HdiF);
+	accHcc[tid].update(Hcd,Hcd,p->HdiF); // Hcc = Hcd * Hcd * p->HdiF (HdiF is the weight)
 	accbc[tid].update(Hcd, p->bdSumF * p->HdiF);
 
 	assert(std::isfinite((float)(p->HdiF)));
