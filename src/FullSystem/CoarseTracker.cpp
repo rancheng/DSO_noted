@@ -98,7 +98,7 @@ CoarseTracker::CoarseTracker(int ww, int hh) : lastRef_aff_g2l(0,0)
         // point cloud for each lvl.
         pc_u[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
         pc_v[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
-        pc_idepth[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
+        pc_idepth[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete); // allocated for all points in the scaled image
         pc_color[lvl] = allocAligned<4,float>(wl*hl, ptrToDelete);
 
 	}
