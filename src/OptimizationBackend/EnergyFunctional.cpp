@@ -46,7 +46,7 @@ namespace dso {
 
         if (adHost != 0) delete[] adHost;
         if (adTarget != 0) delete[] adTarget;
-        adHost = new Mat88[nFrames * nFrames];
+        adHost = new Mat88[nFrames * nFrames]; // adjoint host
         adTarget = new Mat88[nFrames * nFrames];
 
         for (int h = 0; h < nFrames; h++)
