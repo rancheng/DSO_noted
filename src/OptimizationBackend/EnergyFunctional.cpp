@@ -41,14 +41,14 @@ namespace dso {
     bool EFIndicesValid = false;
     bool EFDeltaValid = false;
 
-
+    // initlize the adjoint host and target functional
     void EnergyFunctional::setAdjointsF(CalibHessian *Hcalib) {
 
         if (adHost != 0) delete[] adHost;
         if (adTarget != 0) delete[] adTarget;
         adHost = new Mat88[nFrames * nFrames]; // adjoint host
-        adTarget = new Mat88[nFrames * nFrames];
-
+        adTarget = new Mat88[nFrames * nFrames]; // adjoint target
+        // fully connected adjancy matrix for the loal sliding window (nFrames * nFrames)
         for (int h = 0; h < nFrames; h++)
             for (int t = 0; t < nFrames; t++) {
                 FrameHessian *host = frames[h]->data;
@@ -56,7 +56,7 @@ namespace dso {
                 // this worldToCam_evalPT() was initialized in coarse initializer and
                 // updated aftwards in CoarseInitializer.cpp
                 SE3 hostToTarget = target->get_worldToCam_evalPT() * host->get_worldToCam_evalPT().inverse();
-
+                // AT and AH means adjoint host and adjoint target and are insert into adHost/adTarget based on frame id.
                 Mat88 AH = Mat88::Identity();
                 Mat88 AT = Mat88::Identity();
 
@@ -71,7 +71,7 @@ namespace dso {
                 AT(7, 7) = -1;
                 AH(7, 7) = affLL[0];
 
-                // why scale twice?
+                // adjoint Host and adjoint Target scale
                 AH.block<3, 8>(0, 0) *= SCALE_XI_TRANS;
                 AH.block<3, 8>(3, 0) *= SCALE_XI_ROT;
                 AH.block<1, 8>(6, 0) *= SCALE_A;
@@ -80,7 +80,7 @@ namespace dso {
                 AT.block<3, 8>(3, 0) *= SCALE_XI_ROT;
                 AT.block<1, 8>(6, 0) *= SCALE_A;
                 AT.block<1, 8>(7, 0) *= SCALE_B;
-
+                // insert to adjoint host and target frames
                 adHost[h + t * nFrames] = AH;
                 adTarget[h + t * nFrames] = AT;
             }
